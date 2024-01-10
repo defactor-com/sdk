@@ -1,13 +1,14 @@
 import commonjs from '@rollup/plugin-commonjs'
 import { nodeResolve } from '@rollup/plugin-node-resolve'
 import typescriptPlugin from 'rollup-plugin-typescript2'
+import json from '@rollup/plugin-json'
 
 import pkg from './package.json' assert { type: 'json' }
 
 const TRUE_ROOT = 'index'
 const roots = [TRUE_ROOT /* , 'api/utils' */]
 const formats = ['cjs', 'esm', 'es']
-const plugins = [typescriptPlugin(), nodeResolve(), commonjs()]
+const plugins = [json(), typescriptPlugin(), nodeResolve(), commonjs()]
 
 // e.g. dirFromPath("foo/bar/baz") -> "foo/bar"
 function dirFromPath(path) {
