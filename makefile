@@ -3,7 +3,7 @@ include help.mk
 build: ##@helper Build the project
 build:
 	@echo "$(BLUE)-> building project"
-	@yarn
+	@yarn build
 
 .PHONY: test
 test: ##@helper Test the project
