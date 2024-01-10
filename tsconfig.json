@@ -3,6 +3,9 @@
     "target": "es6",
     "module": "esnext",
     "outDir": "dist",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "declaration": true,
 
     "esModuleInterop": true,
     "sourceMap": true,
