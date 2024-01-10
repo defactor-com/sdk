@@ -4,6 +4,9 @@
   "description": "Defactor Development Kit",
   "main": "index.js",
   "repository": "git@github.com:defactor-com/sdk.git",
+  "engines": {
+    "node": "18"
+  },
   "scripts": {
     "build": "tsc",
     "test": "jest",
