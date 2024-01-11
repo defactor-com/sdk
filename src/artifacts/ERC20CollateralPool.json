@@ -1,0 +1,1367 @@
+{
+  "_format": "hh-sol-artifact-1",
+  "contractName": "ERC20CollateralPool",
+  "sourceName": "contracts/ERC20CollateralPool/ERC20CollateralPool.sol",
+  "abi": [
+    {
+      "inputs": [],
+      "name": "AdminMustNotBeZeroAddress",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "AlreadyRepaid",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "ChainlinkDataTooOld",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "InvalidUSDCAddress",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "NotEnoughFundsInPool",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "PoolAnnouncementIsLocked",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "PoolCannotBeLiquidated",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "PoolCollateralTokenCannotBeZeroAddress",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "PoolDoesNotExist",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "PoolEndsAtIsInThePast",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "PoolIsClosed",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "PoolIsNotClosed",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "PoolIsNotCompleted",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "RewardAlreadyClaimed",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "ThereIsAlreadyActiveAnnouncementForThisPool",
+      "type": "error"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "poolId",
+          "type": "uint256"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "BorrowEvent",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "poolId",
+          "type": "uint256"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "ClaimRewardsEvent",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "poolId",
+          "type": "uint256"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "ClaimUnliquidatedCollateralEvent",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint8",
+          "name": "version",
+          "type": "uint8"
+        }
+      ],
+      "name": "Initialized",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "poolId",
+          "type": "uint256"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "LendEvent",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        }
+      ],
+      "name": "Paused",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "poolId",
+          "type": "uint256"
+        }
+      ],
+      "name": "PoolEditAnnounced",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "poolId",
+          "type": "uint256"
+        }
+      ],
+      "name": "PoolEditCanceled",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "poolId",
+          "type": "uint256"
+        }
+      ],
+      "name": "PoolEdited",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "poolId",
+          "type": "uint256"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "RepayEvent",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "bytes32",
+          "name": "role",
+          "type": "bytes32"
+        },
+        {
+          "indexed": true,
+          "internalType": "bytes32",
+          "name": "previousAdminRole",
+          "type": "bytes32"
+        },
+        {
+          "indexed": true,
+          "internalType": "bytes32",
+          "name": "newAdminRole",
+          "type": "bytes32"
+        }
+      ],
+      "name": "RoleAdminChanged",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "bytes32",
+          "name": "role",
+          "type": "bytes32"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "sender",
+          "type": "address"
+        }
+      ],
+      "name": "RoleGranted",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "bytes32",
+          "name": "role",
+          "type": "bytes32"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "sender",
+          "type": "address"
+        }
+      ],
+      "name": "RoleRevoked",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        }
+      ],
+      "name": "Unpaused",
+      "type": "event"
+    },
+    {
+      "inputs": [],
+      "name": "DEFAULT_ADMIN_ROLE",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "HOUNDRED",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "LIQUIDATION_FEE",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "LIQUIDATION_PROTOCOL_FEE",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "ONE_YEAR",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "OZ_IN_G",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "USDC",
+      "outputs": [
+        {
+          "internalType": "contract ERC20Upgradeable",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_admin",
+          "type": "address"
+        },
+        {
+          "internalType": "contract ERC20Upgradeable",
+          "name": "_usdc",
+          "type": "address"
+        },
+        {
+          "components": [
+            {
+              "internalType": "uint48",
+              "name": "endTime",
+              "type": "uint48"
+            },
+            {
+              "internalType": "contract ERC20Upgradeable",
+              "name": "collateralToken",
+              "type": "address"
+            },
+            {
+              "internalType": "contract AggregatorV3Interface",
+              "name": "collateralTokenChainlink",
+              "type": "address"
+            },
+            {
+              "internalType": "uint8",
+              "name": "collateralTokenFactor",
+              "type": "uint8"
+            },
+            {
+              "internalType": "uint8",
+              "name": "collateralTokenPercentage",
+              "type": "uint8"
+            },
+            {
+              "internalType": "uint8",
+              "name": "interest",
+              "type": "uint8"
+            }
+          ],
+          "internalType": "struct IERC20CollateralPool.InitPool[]",
+          "name": "_pools",
+          "type": "tuple[]"
+        }
+      ],
+      "name": "__ERC20CollateralPool_init",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint48",
+              "name": "endTime",
+              "type": "uint48"
+            },
+            {
+              "internalType": "contract ERC20Upgradeable",
+              "name": "collateralToken",
+              "type": "address"
+            },
+            {
+              "internalType": "contract AggregatorV3Interface",
+              "name": "collateralTokenChainlink",
+              "type": "address"
+            },
+            {
+              "internalType": "uint8",
+              "name": "collateralTokenFactor",
+              "type": "uint8"
+            },
+            {
+              "internalType": "uint8",
+              "name": "collateralTokenPercentage",
+              "type": "uint8"
+            },
+            {
+              "internalType": "uint8",
+              "name": "interest",
+              "type": "uint8"
+            }
+          ],
+          "internalType": "struct IERC20CollateralPool.InitPool",
+          "name": "pool",
+          "type": "tuple"
+        }
+      ],
+      "name": "addPool",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "poolId",
+          "type": "uint256"
+        },
+        {
+          "components": [
+            {
+              "internalType": "uint48",
+              "name": "endTime",
+              "type": "uint48"
+            },
+            {
+              "internalType": "contract ERC20Upgradeable",
+              "name": "collateralToken",
+              "type": "address"
+            },
+            {
+              "internalType": "contract AggregatorV3Interface",
+              "name": "collateralTokenChainlink",
+              "type": "address"
+            },
+            {
+              "internalType": "uint8",
+              "name": "collateralTokenFactor",
+              "type": "uint8"
+            },
+            {
+              "internalType": "uint8",
+              "name": "collateralTokenPercentage",
+              "type": "uint8"
+            },
+            {
+              "internalType": "uint8",
+              "name": "interest",
+              "type": "uint8"
+            }
+          ],
+          "internalType": "struct IERC20CollateralPool.InitPool",
+          "name": "pool",
+          "type": "tuple"
+        }
+      ],
+      "name": "announceEditPool",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "name": "announcedPoolEdit",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "unlocksAt",
+          "type": "uint256"
+        },
+        {
+          "components": [
+            {
+              "internalType": "uint48",
+              "name": "endTime",
+              "type": "uint48"
+            },
+            {
+              "internalType": "contract ERC20Upgradeable",
+              "name": "collateralToken",
+              "type": "address"
+            },
+            {
+              "internalType": "contract AggregatorV3Interface",
+              "name": "collateralTokenChainlink",
+              "type": "address"
+            },
+            {
+              "internalType": "uint8",
+              "name": "collateralTokenFactor",
+              "type": "uint8"
+            },
+            {
+              "internalType": "uint8",
+              "name": "collateralTokenPercentage",
+              "type": "uint8"
+            },
+            {
+              "internalType": "uint8",
+              "name": "interest",
+              "type": "uint8"
+            }
+          ],
+          "internalType": "struct IERC20CollateralPool.InitPool",
+          "name": "pool",
+          "type": "tuple"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "poolId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "borrow",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "name": "borrows",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "collateralTokenAmount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint48",
+          "name": "repayTime",
+          "type": "uint48"
+        },
+        {
+          "internalType": "uint48",
+          "name": "borrowTime",
+          "type": "uint48"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "borrowsLength",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "poolId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "calculateCollateralTokenAmount",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "poolId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "borrowId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "wallet",
+          "type": "address"
+        }
+      ],
+      "name": "calculateRepayInterest",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "poolId",
+          "type": "uint256"
+        }
+      ],
+      "name": "cancelEditPool",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "poolId",
+          "type": "uint256"
+        }
+      ],
+      "name": "claimMultiple",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "poolId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "lendingId",
+          "type": "uint256"
+        }
+      ],
+      "name": "claimRewards",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "poolId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "borrowId",
+          "type": "uint256"
+        }
+      ],
+      "name": "claimUnliquidatedCollateral",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "poolId",
+          "type": "uint256"
+        }
+      ],
+      "name": "commitEditPool",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getPools",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "lended",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "borrowed",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "repaid",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "rewards",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "collateralTokenAmount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "liquidatedCollateral",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "collateralTokenAmountAtLiquidation",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "rewardPerToken",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "rewardRate",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint48",
+              "name": "lastUpdated",
+              "type": "uint48"
+            },
+            {
+              "internalType": "uint48",
+              "name": "endTime",
+              "type": "uint48"
+            },
+            {
+              "components": [
+                {
+                  "internalType": "contract ERC20Upgradeable",
+                  "name": "collateralToken",
+                  "type": "address"
+                },
+                {
+                  "internalType": "contract AggregatorV3Interface",
+                  "name": "collateralTokenChainlink",
+                  "type": "address"
+                },
+                {
+                  "internalType": "uint8",
+                  "name": "collateralTokenFactor",
+                  "type": "uint8"
+                },
+                {
+                  "internalType": "uint8",
+                  "name": "collateralTokenPercentage",
+                  "type": "uint8"
+                }
+              ],
+              "internalType": "struct IERC20CollateralPool.CollateralDetails",
+              "name": "collateralDetails",
+              "type": "tuple"
+            },
+            {
+              "internalType": "uint8",
+              "name": "interest",
+              "type": "uint8"
+            },
+            {
+              "internalType": "bool",
+              "name": "liquidated",
+              "type": "bool"
+            }
+          ],
+          "internalType": "struct IERC20CollateralPool.Pool[]",
+          "name": "",
+          "type": "tuple[]"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "role",
+          "type": "bytes32"
+        }
+      ],
+      "name": "getRoleAdmin",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "role",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        }
+      ],
+      "name": "grantRole",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "role",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        }
+      ],
+      "name": "hasRole",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "poolId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "lend",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "name": "lendings",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "rewardPerTokenIgnored",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bool",
+          "name": "claimed",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "lendingsLength",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "poolId",
+          "type": "uint256"
+        }
+      ],
+      "name": "liquidatePool",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "pause",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "paused",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "name": "pools",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "lended",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "borrowed",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "repaid",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "rewards",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "collateralTokenAmount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "liquidatedCollateral",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "collateralTokenAmountAtLiquidation",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "rewardPerToken",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "rewardRate",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint48",
+          "name": "lastUpdated",
+          "type": "uint48"
+        },
+        {
+          "internalType": "uint48",
+          "name": "endTime",
+          "type": "uint48"
+        },
+        {
+          "components": [
+            {
+              "internalType": "contract ERC20Upgradeable",
+              "name": "collateralToken",
+              "type": "address"
+            },
+            {
+              "internalType": "contract AggregatorV3Interface",
+              "name": "collateralTokenChainlink",
+              "type": "address"
+            },
+            {
+              "internalType": "uint8",
+              "name": "collateralTokenFactor",
+              "type": "uint8"
+            },
+            {
+              "internalType": "uint8",
+              "name": "collateralTokenPercentage",
+              "type": "uint8"
+            }
+          ],
+          "internalType": "struct IERC20CollateralPool.CollateralDetails",
+          "name": "collateralDetails",
+          "type": "tuple"
+        },
+        {
+          "internalType": "uint8",
+          "name": "interest",
+          "type": "uint8"
+        },
+        {
+          "internalType": "bool",
+          "name": "liquidated",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "poolsLength",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "role",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        }
+      ],
+      "name": "renounceRole",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "poolId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "borrowId",
+          "type": "uint256"
+        }
+      ],
+      "name": "repay",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "role",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        }
+      ],
+      "name": "revokeRole",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes4",
+          "name": "interfaceId",
+          "type": "bytes4"
+        }
+      ],
+      "name": "supportsInterface",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "unpause",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "usdcFeesCollected",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "linkReferences": {},
+  "deployedLinkReferences": {}
+}
