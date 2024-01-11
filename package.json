@@ -1,9 +1,7 @@
 {
-  "name": "defactor-sdk",
-  "version": "1.0.0",
+  "name": "@defactor-com/defactor-sdk",
+  "version": "0.0.1",
   "description": "Defactor Development Kit",
-  "main": "index.js",
-  "repository": "git@github.com:defactor-com/sdk.git",
   "engines": {
     "node": "18"
   },
@@ -11,8 +9,31 @@
     "build": "rollup -c",
     "test": "jest",
     "lint": "tsc",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "prebuild": "yarn clean && tsc --emitDeclarationOnly --declaration -p tsconfig.json",
+    "clean": "rm -rf dist"
   },
+  "main": "dist/cjs/index.js",
+  "main-es": "dist/es/index.js",
+  "module": "dist/esm/index.js",
+  "exports": {
+    "node": {
+      "types": "./dist/src/index.d.ts",
+      "require": "./dist/cjs/index.js",
+      "import": "./dist/cjs/index.js"
+    },
+    "package.json": "./package.json",
+    "types": "./dist/src/index.d.ts",
+    "default": "./dist/esm/index.js"
+  },
+  "types": "./dist/src/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:defactor-com/sdk.git"
+  },
+  "files": [
+    "dist"
+  ],
   "lint-staged": {
     "*.ts": [
       "eslint . --ext .ts",
