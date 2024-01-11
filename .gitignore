@@ -8,3 +8,6 @@ yarn-debug.log
 
 # Build files
 dist
+
+# Sensitive data
+.env
