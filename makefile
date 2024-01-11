@@ -25,3 +25,8 @@ clean-install: ##@helper Remove old files and make a fresh install
 clean-install:
 	@make clean
 	@make install
+
+publish: ##@helper Publish the dist folder to Github Packages
+publish: dist
+	@echo "$(BLUE)-> publishing to Github Packages"
+	@yarn publish
