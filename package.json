@@ -1,6 +1,6 @@
 {
   "name": "@defactor-com/defactor-sdk",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Defactor Development Kit",
   "engines": {
     "node": "18"
