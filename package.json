@@ -9,6 +9,7 @@
     "build": "rollup -c",
     "test": "jest",
     "lint": "tsc",
+    "release": "yarn build && changeset publish",
     "prepare": "husky install",
     "prebuild": "yarn clean && tsc --emitDeclarationOnly --declaration -p tsconfig.json",
     "clean": "rm -rf dist"
@@ -44,6 +45,7 @@
   "license": "MIT",
   "private": false,
   "devDependencies": {
+    "@changesets/cli": "^2.27.1",
     "@rollup/plugin-commonjs": "^25.0.7",
     "@rollup/plugin-json": "^6.1.0",
     "@rollup/plugin-node-resolve": "^15.2.3",
