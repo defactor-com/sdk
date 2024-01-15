@@ -17,7 +17,7 @@ export type PrivateKey = string | ethers.SigningKey
 
 const DEFAULT_ADMIN_ROLE = '0x' + '00'.repeat(32)
 
-export class AssistedClientProvider {
+export class ClientProvider {
   readonly signer: ethers.Wallet
   readonly contract: Contract
   readonly contractAddress: string

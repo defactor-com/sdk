@@ -1,3 +1,3 @@
-export * as test from './artifacts'
+export * as artifacts from './artifacts'
 
-export * from './assisted-client-provider'
+export * as Assisted from './assisted-client-provider'

@@ -5,6 +5,12 @@ build:
 	@echo "$(BLUE)-> building project"
 	@yarn build
 
+.PHONY: lint
+lint: ##@helper Lint the project
+lint:
+	@echo "$(BLUE)-> linting project"
+	@yarn lint
+
 .PHONY: test
 test: ##@helper Test the project
 test:
