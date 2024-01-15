@@ -2,9 +2,9 @@ import { ethers, Contract } from 'ethers'
 
 import { miscErc20CollateralPool } from './artifacts'
 
-type Abi = ethers.Interface | ethers.InterfaceAbi
+export type Abi = ethers.Interface | ethers.InterfaceAbi
 
-type Pool = {
+export type Pool = {
   endTime: number
   collateralToken: string
   collateralTokenChainlink: string
@@ -13,7 +13,7 @@ type Pool = {
   interest: number
 }
 
-type PrivateKey = string | ethers.SigningKey
+export type PrivateKey = string | ethers.SigningKey
 
 const DEFAULT_ADMIN_ROLE = '0x' + '00'.repeat(32)
 
@@ -70,7 +70,9 @@ export class AssistedClientProvider {
       throw new Error('Sender address is not admin')
     }
 
-    console.log('Pool ready to be created')
+    const action = await this.contract.addPool(pool)
+
+    return await action.wait()
   }
 
   async lend() {
