@@ -1,4 +1,4 @@
-import { AssistedClientProvider } from '../../src'
+import { ClientProvider } from '../../src/assisted-client-provider'
 import {
   ADMIN_TESTING_PRIVATE_KEY,
   COLLATERAL_TOKEN,
@@ -12,7 +12,7 @@ jest.setTimeout(50000)
 
 describe('AssistedClientProvider', () => {
   let providerUrl: string
-  let contractInstance: AssistedClientProvider
+  let contractInstance: ClientProvider
 
   beforeAll(async () => {
     await loadEnv()
@@ -25,7 +25,7 @@ describe('AssistedClientProvider', () => {
   })
 
   beforeEach(() => {
-    contractInstance = new AssistedClientProvider(
+    contractInstance = new ClientProvider(
       INSTANCE_ETH_ADDRESS,
       providerUrl,
       TESTING_PRIVATE_KEY
@@ -83,7 +83,7 @@ describe('AssistedClientProvider', () => {
   })
 
   it('logs a message if the pool is ready to be created', async () => {
-    contractInstance = new AssistedClientProvider(
+    contractInstance = new ClientProvider(
       INSTANCE_ETH_ADDRESS,
       providerUrl,
       ADMIN_TESTING_PRIVATE_KEY
