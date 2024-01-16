@@ -9,7 +9,7 @@
     "build": "rollup -c",
     "test": "jest",
     "lint": "tsc",
-    "release": "yarn build && changeset publish",
+    "release": "yarn build && yarn changeset publish",
     "prepare": "husky install",
     "prebuild": "yarn clean && tsc --emitDeclarationOnly --declaration -p tsconfig.json",
     "clean": "rm -rf dist"
