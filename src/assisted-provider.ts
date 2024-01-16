@@ -1,23 +1,14 @@
 import { ethers, Contract } from 'ethers'
 
 import { miscErc20CollateralPool } from './artifacts'
+import { Pool } from './types/erc20-collateral-token'
+import { Abi, PrivateKey } from './types/types'
 
-export type Abi = ethers.Interface | ethers.InterfaceAbi
-
-export type Pool = {
-  endTime: number
-  collateralToken: string
-  collateralTokenChainlink: string
-  collateralTokenFactor: number
-  collateralTokenPercentage: number
-  interest: number
-}
-
-export type PrivateKey = string | ethers.SigningKey
+export { Abi, PrivateKey, Pool }
 
 const DEFAULT_ADMIN_ROLE = '0x' + '00'.repeat(32)
 
-export class ClientProvider {
+export class AssistedProvider {
   readonly signer: ethers.Wallet
   readonly contract: Contract
   readonly contractAddress: string
