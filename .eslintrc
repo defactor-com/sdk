@@ -2,6 +2,9 @@
   // "root": true,
   "parser": "@typescript-eslint/parser",
   "plugins": ["@typescript-eslint"],
+  "rules": {
+    "@typescript-eslint/no-unnecessary-condition": "error"
+  },
   "overrides": [
     {
       "files": ["*.ts"]
