@@ -5,6 +5,8 @@ on:
     branches: [main]
     types: [completed]
 
+concurrency: ${{ github.workflow }}-${{ github.ref }}
+
 permissions:
   contents: write
   pull-requests: write
@@ -17,6 +19,7 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 18.x
+          registry-url: https://npm.pkg.github.com/
       - run: npm install -g yarn
       - run: yarn install --frozen-lockfile
       - name: Create Release Pull Request for Publish

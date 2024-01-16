@@ -28,10 +28,7 @@
     "default": "./dist/esm/index.js"
   },
   "types": "./dist/src/index.d.ts",
-  "repository": {
-    "type": "git",
-    "url": "git@github.com:defactor-com/sdk.git"
-  },
+  "repository": "git+ssh://git@github.com/defactor-com/sdk.git",
   "files": [
     "dist"
   ],
