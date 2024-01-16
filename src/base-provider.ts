@@ -1,39 +1,39 @@
-// import libraries
+import {
+  Pool as Erc20CollateralPool,
+  Borrow,
+  Lend
+} from './types/erc20-collateral-token'
+import { Pool as Pools, PoolCommit } from './types/pools'
 
-// erc20-collateral-token (view)
-//   calculateRepayInterest
-//   calculateCollateralTokenAmount
-//   getPools
+type Erc20CollateralTokenPoolDetail = Borrow | Lend
 
-// erc20-collateral-token (functions)
-// addPool
-// pause
-// unpause
-// lend
-// borrow
-// repay
-// claimRewards
-// claimMultiple
-// claimUnliquidatedCollateral
-// liquidatePool
+interface Views {
+  getPool(poolId: bigint): Promise<Erc20CollateralPool | Pools>
+  getPools(
+    offset: bigint,
+    limit: bigint
+  ): Promise<Array<Erc20CollateralPool | Pools>>
+  getPoolDetails(
+    poolId: bigint,
+    walletAddress: string
+  ): Promise<Erc20CollateralTokenPoolDetail | PoolCommit>
+}
 
-//
+interface AdminFunctions {
+  pause(): Promise<void>
+  unpause(): Promise<void>
+}
 
-// pool (view)
-// getPool
-
-// pool (functions)
-// createPool
-// collectPool
-// depositRewards
-// closePool
-// archivePool
-// commitToPool
-// uncommitFromPool
-// claim
-// pause
-// unpause
-
-// interface Views {}
-
-export abstract class BaseProvider {}
+export abstract class BaseProvider implements Views, AdminFunctions {
+  abstract getPool(poolId: bigint): Promise<Erc20CollateralPool | Pools>
+  abstract getPools(
+    offset: bigint,
+    limit: bigint
+  ): Promise<Array<Erc20CollateralPool | Pools>>
+  abstract getPoolDetails(
+    poolId: bigint,
+    walletAddress: string
+  ): Promise<Erc20CollateralTokenPoolDetail | PoolCommit>
+  abstract pause(): Promise<void>
+  abstract unpause(): Promise<void>
+}
