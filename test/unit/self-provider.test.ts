@@ -1,4 +1,5 @@
 import { SelfProvider } from '../../src/self-provider'
+import { ERC20CollateralPool } from '../../src/erc20-collateral-pool'
 import {
   ADMIN_TESTING_PRIVATE_KEY,
   COLLATERAL_TOKEN,
@@ -12,7 +13,7 @@ jest.setTimeout(50000)
 
 describe('SelfProvider', () => {
   let providerUrl: string
-  let contractInstance: SelfProvider
+  let providerInstance: SelfProvider<ERC20CollateralPool>
 
   beforeAll(async () => {
     await loadEnv()
@@ -25,7 +26,8 @@ describe('SelfProvider', () => {
   })
 
   beforeEach(() => {
-    contractInstance = new SelfProvider(
+    providerInstance = new SelfProvider(
+      ERC20CollateralPool,
       INSTANCE_ETH_ADDRESS,
       providerUrl,
       TESTING_PRIVATE_KEY
@@ -34,14 +36,14 @@ describe('SelfProvider', () => {
 
   it('get the right liquidation protocol fee', async () => {
     const liquidationProtocolFee =
-      await contractInstance.LIQUIDATION_PROTOCOL_FEE()
+      await providerInstance.contract.LIQUIDATION_PROTOCOL_FEE()
 
     expect(liquidationProtocolFee).toBe(BigInt('5'))
   })
 
   it('throws an error if collateralToken is not a valid address', async () => {
     await expect(
-      contractInstance.createPool({
+      providerInstance.contract.createPool({
         collateralToken: 'invalid',
         collateralTokenChainlink: COLLATERAL_TOKEN_CHAINLINK,
         collateralTokenFactor: 10,
@@ -56,7 +58,7 @@ describe('SelfProvider', () => {
 
   it('throws an error if collateralTokenChainlink is not a valid address', async () => {
     await expect(
-      contractInstance.createPool({
+      providerInstance.contract.createPool({
         collateralToken: COLLATERAL_TOKEN,
         collateralTokenChainlink: 'invalid',
         collateralTokenFactor: 10,
@@ -71,7 +73,7 @@ describe('SelfProvider', () => {
 
   it('throws an error if sender address is not admin', async () => {
     await expect(
-      contractInstance.createPool({
+      providerInstance.contract.createPool({
         collateralToken: COLLATERAL_TOKEN,
         collateralTokenChainlink: COLLATERAL_TOKEN_CHAINLINK,
         collateralTokenFactor: 10,
@@ -83,13 +85,14 @@ describe('SelfProvider', () => {
   })
 
   it('logs a message if the pool is ready to be created', async () => {
-    contractInstance = new SelfProvider(
+    providerInstance = new SelfProvider(
+      ERC20CollateralPool,
       INSTANCE_ETH_ADDRESS,
       providerUrl,
       ADMIN_TESTING_PRIVATE_KEY
     )
 
-    await contractInstance.createPool({
+    await providerInstance.contract.createPool({
       collateralToken: COLLATERAL_TOKEN,
       collateralTokenChainlink: COLLATERAL_TOKEN_CHAINLINK,
       collateralTokenFactor: 10,

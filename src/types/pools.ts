@@ -27,3 +27,16 @@ export interface Functions {
   uncommitFromPool(poolId: bigint): Promise<void>
   claim(poolId: bigint): Promise<void>
 }
+
+export const functionName = {
+  createPool: 'createPool',
+  collectPool: 'collectPool',
+  depositRewards: 'depositRewards',
+  closePool: 'closePool',
+  archivePool: 'archivePool',
+  commitToPool: 'commitToPool',
+  uncommitFromPool: 'uncommitFromPool',
+  claim: 'claim'
+} as const
+
+export type Function = keyof typeof functionName
