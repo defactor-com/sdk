@@ -1,5 +1,3 @@
-// import { AssistedProvider } from '../../src/assisted-provider'
-
 import { loadEnv } from '../test-util'
 
 jest.setTimeout(50000)
