@@ -1,6 +1,6 @@
 {
   "name": "@defactor-com/defactor-sdk",
-  "version": "0.0.7",
+  "version": "0.0.9",
   "description": "Defactor Development Kit",
   "engines": {
     "node": "18"
@@ -37,6 +37,9 @@
       "eslint . --ext .ts",
       "prettier --write"
     ]
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/@defactor-com"
   },
   "author": "Defactor Labs",
   "license": "MIT",

@@ -40,3 +40,16 @@ export interface Functions {
   claimUnliquidatedCollateral(poolId: bigint, borrowId: bigint): Promise<void>
   liquidatePool(poolId: bigint): Promise<void>
 }
+
+export const functionNames = {
+  addPool: 'addPool',
+  lend: 'lend',
+  borrow: 'borrow',
+  repay: 'repay',
+  claimRewards: 'claimRewards',
+  claimMultiple: 'claimMultiple',
+  claimUnliquidatedCollateral: 'claimUnliquidatedCollateral',
+  liquidatePool: 'liquidatePool'
+} as const
+
+export type Function = keyof typeof functionNames

@@ -1,80 +1,64 @@
-import { ethers, Contract } from 'ethers'
-
-import { miscErc20CollateralPool } from './artifacts'
 import { Pool } from './types/erc20-collateral-token'
 import { Abi, PrivateKey } from './types/types'
+import { BaseProvider } from './base-provider'
+import { Pools as PoolsClass } from './pools'
+import { ERC20CollateralPool } from './erc20-collateral-pool'
+import { miscErc20CollateralPool } from './artifacts'
+import {
+  Pool as Erc20CollateralPool,
+  Borrow,
+  Lend
+} from './types/erc20-collateral-token'
+import { Pool as Pools, PoolCommit } from './types/pools'
+import { BaseContractConstructorParams } from './base-contract'
+
+type Erc20CollateralTokenPoolDetail = Borrow | Lend
 
 export { Abi, PrivateKey, Pool }
 
-const DEFAULT_ADMIN_ROLE = '0x' + '00'.repeat(32)
-
-export class AssistedProvider {
-  readonly signer: ethers.Wallet
-  readonly contract: Contract
-  readonly contractAddress: string
-  readonly provider: ethers.JsonRpcProvider
+export class AssistedProvider<
+  T extends PoolsClass | ERC20CollateralPool
+> extends BaseProvider<T> {
   readonly abi: Abi
 
   constructor(
-    contractAddress: string,
+    contractBuilder: new (...args: BaseContractConstructorParams) => T,
+    address: string,
     apiUrl: string,
-    privateKey: PrivateKey,
     abi?: Abi
   ) {
-    this.contractAddress = contractAddress
-    this.provider = new ethers.JsonRpcProvider(apiUrl)
+    super(new contractBuilder(address, apiUrl, null, abi))
+
     this.abi = abi || miscErc20CollateralPool.abi
-    this.signer = new ethers.Wallet(privateKey, this.provider)
-    this.contract = new Contract(
-      contractAddress,
-      miscErc20CollateralPool.abi,
-      this.signer
+  }
+
+  getPool(poolId: bigint): Promise<Erc20CollateralPool | Pools> {
+    throw new Error(`Method not implemented. ${poolId.toString()}`)
+  }
+
+  getPools(
+    offset: bigint,
+    limit: bigint
+  ): Promise<Array<Erc20CollateralPool | Pools>> {
+    throw new Error(
+      `Method not implemented. ${offset.toString()}, ${limit.toString()}`
     )
   }
 
-  async LIQUIDATION_PROTOCOL_FEE() {
-    const liquidationProtocolFee =
-      await this.contract.LIQUIDATION_PROTOCOL_FEE()
-
-    return BigInt(liquidationProtocolFee)
-  }
-
-  async createPool(pool: Pool) {
-    if (!ethers.isAddress(pool.collateralToken)) {
-      throw new Error(
-        'Collateral token does not follow the ethereum address format'
-      )
-    }
-
-    if (!ethers.isAddress(pool.collateralTokenChainlink)) {
-      throw new Error(
-        'Collateral token chainlink does not follow the ethereum address format'
-      )
-    }
-
-    const isAdmin = await this.contract.hasRole(
-      DEFAULT_ADMIN_ROLE,
-      this.signer.address
+  getPoolDetails(
+    poolId: bigint,
+    walletAddress: string
+  ): Promise<Erc20CollateralTokenPoolDetail | PoolCommit> {
+    throw new Error(
+      `Method not implemented. ${poolId.toString()}, ${walletAddress}`
     )
-
-    if (!isAdmin) {
-      throw new Error('Sender address is not admin')
-    }
-
-    const action = await this.contract.addPool(pool)
-
-    return await action.wait()
   }
 
-  async lend() {
-    // code here
+  pause(): Promise<void> {
+    throw new Error('Method not implemented.')
   }
 
-  async borrow() {
-    // code here
-  }
-
-  async repay() {
-    // code here
+  unpause(): Promise<void> {
+    throw new Error('Method not implemented.')
   }
 }

@@ -28,6 +28,7 @@ jobs:
         run: |
           cat << EOF > "$HOME/.npmrc"
             //registry.npmjs.org/:_authToken=$GITHUB_TOKEN
+            registry=https://npm.pkg.github.com/@defactor-com
           EOF
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
