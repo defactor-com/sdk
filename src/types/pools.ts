@@ -10,7 +10,7 @@ export type CollateralToken = {
 }
 
 // TODO: use uint48 instead of bigint
-export type Pool = {
+export type PoolObject = {
   softCap: bigint
   hardCap: bigint
   deadline: bigint
@@ -18,7 +18,7 @@ export type Pool = {
 }
 
 export interface Functions {
-  createPool(pool: Pool): Promise<void>
+  createPool(pool: PoolObject): Promise<void>
   collectPool(poolId: bigint): Promise<void>
   depositRewards(poolId: bigint, amount: bigint): Promise<void>
   closePool(poolId: bigint): Promise<void>
@@ -27,16 +27,3 @@ export interface Functions {
   uncommitFromPool(poolId: bigint): Promise<void>
   claim(poolId: bigint): Promise<void>
 }
-
-export const functionName = {
-  createPool: 'createPool',
-  collectPool: 'collectPool',
-  depositRewards: 'depositRewards',
-  closePool: 'closePool',
-  archivePool: 'archivePool',
-  commitToPool: 'commitToPool',
-  uncommitFromPool: 'uncommitFromPool',
-  claim: 'claim'
-} as const
-
-export type Function = keyof typeof functionName

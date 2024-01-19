@@ -1,9 +1,20 @@
 {
   // "root": true,
   "parser": "@typescript-eslint/parser",
-  "plugins": ["@typescript-eslint"],
+  "plugins": ["import", "unused-imports", "@typescript-eslint"],
   "rules": {
-    "@typescript-eslint/no-unnecessary-condition": "error"
+    "@typescript-eslint/no-unnecessary-condition": "error",
+    "no-unused-expressions": [
+      "error",
+      {
+        "allowShortCircuit": true
+      }
+    ],
+    "no-unused-labels": "error",
+    "import/no-default-export": "error",
+    "import/no-duplicates": "error",
+    "unused-imports/no-unused-imports-ts": "error",
+    "@typescript-eslint/no-unused-vars": "error"
   },
   "overrides": [
     {

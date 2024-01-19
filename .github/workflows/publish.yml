@@ -24,15 +24,6 @@ jobs:
           node-version: 18.x
           registry-url: https://npm.pkg.github.com/
 
-      - name: Creating .npmrc
-        run: |
-          cat << EOF > "$HOME/.npmrc"
-            //registry.npmjs.org/:_authToken=$GITHUB_TOKEN
-            registry=https://npm.pkg.github.com/@defactor-com
-          EOF
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Install Dependencies
         run: yarn install --frozen-lockfile
 
@@ -43,3 +34,4 @@ jobs:
           publish: yarn release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PROVIDER_URL: ${{ secrets.PROVIDER_URL }}
