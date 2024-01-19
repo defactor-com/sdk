@@ -1,9 +1,13 @@
 import { ethers } from 'ethers'
 
-import { Pool } from './types/erc20-collateral-token'
+import {
+  Pool,
+  Pool as Erc20CollateralPool
+} from './types/erc20-collateral-token'
 import { Abi, PrivateKey } from './types/types'
 import { Role } from './provider-utilities'
-import { BaseContract } from './base-contract'
+import { BaseContract, Erc20CollateralTokenPoolDetail } from './base-contract'
+import { Pool as Pools, PoolCommit } from './types/pools'
 
 export class ERC20CollateralPool extends BaseContract {
   constructor(
@@ -20,6 +24,36 @@ export class ERC20CollateralPool extends BaseContract {
       await this.contract.LIQUIDATION_PROTOCOL_FEE()
 
     return BigInt(liquidationProtocolFee)
+  }
+
+  getPool(poolId: bigint): Promise<Erc20CollateralPool | Pools> {
+    throw new Error(`Method not implemented. ${poolId.toString()}`)
+  }
+
+  getPools(
+    offset: bigint,
+    limit: bigint
+  ): Promise<Array<Erc20CollateralPool | Pools>> {
+    throw new Error(
+      `Method not implemented. ${offset.toString()}, ${limit.toString()}`
+    )
+  }
+
+  getPoolDetails(
+    poolId: bigint,
+    walletAddress: string
+  ): Promise<Erc20CollateralTokenPoolDetail | PoolCommit> {
+    throw new Error(
+      `Method not implemented. ${poolId.toString()}, ${walletAddress}`
+    )
+  }
+
+  pause(): Promise<void> {
+    throw new Error('Method not implemented.')
+  }
+
+  unpause(): Promise<void> {
+    throw new Error('Method not implemented.')
   }
 
   async createPool(
