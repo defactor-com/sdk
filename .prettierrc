@@ -6,6 +6,7 @@
   "singleQuote": true,
   "semi": false,
   "arrowParens": "avoid",
+  "plugins": ["@trivago/prettier-plugin-sort-imports"],
   "importOrder": ["^[./]"],
   "importOrderSeparation": true,
   "importOrderSortSpecifiers": true

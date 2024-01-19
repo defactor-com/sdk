@@ -1,10 +1,10 @@
-import { Pool } from './types/erc20-collateral-token'
-import { Abi, PrivateKey } from './types/types'
-import { BaseProvider } from './base-provider'
-import { Pools as PoolsClass } from './pools'
-import { ERC20CollateralPool } from './erc20-collateral-pool'
 import { miscErc20CollateralPool } from './artifacts'
 import { BaseContractConstructorParams } from './base-contract'
+import { BaseProvider } from './base-provider'
+import { ERC20CollateralPool } from './erc20-collateral-pool'
+import { Pools as PoolsClass } from './pools'
+import { Pool } from './types/erc20-collateral-token'
+import { Abi, PrivateKey } from './types/types'
 
 export { Abi, PrivateKey, Pool }
 

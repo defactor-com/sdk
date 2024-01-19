@@ -1,9 +1,9 @@
+import { BaseContractConstructorParams } from './base-contract'
+import { BaseProvider } from './base-provider'
+import { ERC20CollateralPool } from './erc20-collateral-pool'
+import { Pools as PoolsClass } from './pools'
 import { Pool } from './types/erc20-collateral-token'
 import { Abi, PrivateKey } from './types/types'
-import { BaseProvider } from './base-provider'
-import { BaseContractConstructorParams } from './base-contract'
-import { Pools as PoolsClass } from './pools'
-import { ERC20CollateralPool } from './erc20-collateral-pool'
 
 export { Abi, PrivateKey, Pool }
 

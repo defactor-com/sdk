@@ -1,5 +1,5 @@
-import { SelfProvider } from '../../src/self-provider'
 import { ERC20CollateralPool } from '../../src/erc20-collateral-pool'
+import { SelfProvider } from '../../src/self-provider'
 import {
   ADMIN_TESTING_PRIVATE_KEY,
   COLLATERAL_TOKEN,

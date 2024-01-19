@@ -1,9 +1,9 @@
-import { Abi, PrivateKey } from './types/types'
 import { BaseContract, Erc20CollateralTokenPoolDetail } from './base-contract'
 import { Pool as Erc20CollateralPool } from './types/erc20-collateral-token'
-import { Pool as PoolsObject, PoolCommit } from './types/pools'
+import { Functions, PoolCommit, PoolObject } from './types/pools'
+import { Abi, PrivateKey } from './types/types'
 
-export class Pools extends BaseContract {
+export class Pools extends BaseContract implements Functions {
   constructor(
     address: string,
     apiUrl: string,
@@ -13,14 +13,14 @@ export class Pools extends BaseContract {
     super(address, apiUrl, privateKey, abi)
   }
 
-  getPool(poolId: bigint): Promise<Erc20CollateralPool | PoolsObject> {
+  getPool(poolId: bigint): Promise<Erc20CollateralPool | PoolObject> {
     throw new Error(`Method not implemented. ${poolId.toString()}`)
   }
 
   getPools(
     offset: bigint,
     limit: bigint
-  ): Promise<Array<Erc20CollateralPool | PoolsObject>> {
+  ): Promise<Array<Erc20CollateralPool | PoolObject>> {
     throw new Error(
       `Method not implemented. ${offset.toString()}, ${limit.toString()}`
     )
@@ -41,5 +41,37 @@ export class Pools extends BaseContract {
 
   unpause(): Promise<void> {
     throw new Error('Method not implemented.')
+  }
+
+  createPool(pool: PoolObject): Promise<void> {
+    throw new Error(`Method not implemented. ${pool}`)
+  }
+
+  collectPool(poolId: bigint): Promise<void> {
+    throw new Error(`Method not implemented. ${poolId.toString()}`)
+  }
+
+  depositRewards(poolId: bigint, amount: bigint): Promise<void> {
+    throw new Error(`Method not implemented. ${poolId}, ${amount}`)
+  }
+
+  closePool(poolId: bigint): Promise<void> {
+    throw new Error(`Method not implemented. ${poolId.toString()}`)
+  }
+
+  archivePool(poolId: bigint): Promise<void> {
+    throw new Error(`Method not implemented. ${poolId.toString()}`)
+  }
+
+  commitToPool(poolId: bigint, amount: bigint): Promise<void> {
+    throw new Error(`Method not implemented. ${poolId}, ${amount}`)
+  }
+
+  uncommitFromPool(poolId: bigint): Promise<void> {
+    throw new Error(`Method not implemented. ${poolId.toString()}`)
+  }
+
+  claim(poolId: bigint): Promise<void> {
+    throw new Error(`Method not implemented. ${poolId.toString()}`)
   }
 }

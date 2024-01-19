@@ -1,13 +1,13 @@
-import { ethers, Contract } from 'ethers'
+import { Contract, ethers } from 'ethers'
 
 import { miscErc20CollateralPool } from './artifacts'
-import { Abi, PrivateKey } from './types/types'
 import {
-  Pool as Erc20CollateralPool,
   Borrow,
+  Pool as Erc20CollateralPool,
   Lend
 } from './types/erc20-collateral-token'
-import { Pool as Pools, PoolCommit } from './types/pools'
+import { PoolCommit, PoolObject } from './types/pools'
+import { Abi, PrivateKey } from './types/types'
 
 export type BaseContractConstructorParams = ConstructorParameters<
   typeof BaseContract
@@ -16,12 +16,12 @@ export type BaseContractConstructorParams = ConstructorParameters<
 export type Erc20CollateralTokenPoolDetail = Borrow | Lend
 
 interface Views {
-  getPool(poolId: bigint): Promise<Erc20CollateralPool | Pools>
+  getPool(poolId: bigint): Promise<Erc20CollateralPool | PoolObject>
 
   getPools(
     offset: bigint,
     limit: bigint
-  ): Promise<Array<Erc20CollateralPool | Pools>>
+  ): Promise<Array<Erc20CollateralPool | PoolObject>>
 
   getPoolDetails(
     poolId: bigint,
@@ -60,12 +60,12 @@ export abstract class BaseContract implements Views, AdminFunctions {
       : null
   }
 
-  abstract getPool(poolId: bigint): Promise<Erc20CollateralPool | Pools>
+  abstract getPool(poolId: bigint): Promise<Erc20CollateralPool | PoolObject>
 
   abstract getPools(
     offset: bigint,
     limit: bigint
-  ): Promise<Array<Erc20CollateralPool | Pools>>
+  ): Promise<Array<Erc20CollateralPool | PoolObject>>
 
   abstract getPoolDetails(
     poolId: bigint,
