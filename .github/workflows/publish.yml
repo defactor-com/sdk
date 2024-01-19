@@ -27,8 +27,8 @@ jobs:
       - name: Creating .npmrc
         run: |
           cat << EOF > "$HOME/.npmrc"
-            //registry.npmjs.org/:_authToken=$GITHUB_TOKEN
-            registry=https://npm.pkg.github.com/@defactor-com
+            //npm.pkg.github.com/:_authToken=\${{ secrets.GITHUB_TOKEN }}
+            @defactor-com:registry=https://npm.pkg.github.com/
           EOF
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -43,3 +43,4 @@ jobs:
           publish: yarn release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PROVIDER_URL: ${{ secrets.PROVIDER_URL }}
