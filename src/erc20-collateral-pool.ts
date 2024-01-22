@@ -1,13 +1,10 @@
 import { ethers } from 'ethers'
 
+import { miscErc20CollateralPool } from './artifacts'
 import { BaseContract, Erc20CollateralTokenPoolDetail } from './base-contract'
 import { Role } from './provider-utilities'
-import {
-  Pool as Erc20CollateralPool,
-  Functions,
-  Pool
-} from './types/erc20-collateral-token'
-import { PoolCommit, PoolObject } from './types/pools'
+import { Functions, Pool, PoolInput } from './types/erc20-collateral-token'
+import { PoolCommit } from './types/pools'
 import { Abi, PrivateKey } from './types/types'
 
 export class ERC20CollateralPool extends BaseContract implements Functions {
@@ -17,7 +14,7 @@ export class ERC20CollateralPool extends BaseContract implements Functions {
     privateKey: PrivateKey | null,
     abi?: Abi
   ) {
-    super(address, apiUrl, privateKey, abi)
+    super(address, apiUrl, privateKey, abi || miscErc20CollateralPool.abi)
   }
 
   async LIQUIDATION_PROTOCOL_FEE(): Promise<bigint> {
@@ -27,14 +24,17 @@ export class ERC20CollateralPool extends BaseContract implements Functions {
     return BigInt(liquidationProtocolFee)
   }
 
-  getPool(poolId: bigint): Promise<Erc20CollateralPool | PoolObject> {
-    throw new Error(`Method not implemented. ${poolId.toString()}`)
+  async getPool(poolId: bigint): Promise<Pool> {
+    const totalPools = BigInt(await this.contract.poolsLength())
+
+    if (poolId >= totalPools) {
+      throw new Error(`Pool id ${poolId.toString()} does not exist`)
+    }
+
+    return await this.contract.pools(poolId)
   }
 
-  getPools(
-    offset: bigint,
-    limit: bigint
-  ): Promise<Array<Erc20CollateralPool | PoolObject>> {
+  getPools(offset: bigint, limit: bigint): Promise<Array<Pool>> {
     throw new Error(
       `Method not implemented. ${offset.toString()}, ${limit.toString()}`
     )
@@ -58,15 +58,15 @@ export class ERC20CollateralPool extends BaseContract implements Functions {
   }
 
   async createPool(
-    pool: Pool
+    pool: PoolInput
   ): Promise<ethers.ContractTransaction | ethers.TransactionResponse> {
-    if (!ethers.isAddress(pool.collateralToken)) {
+    if (!ethers.isAddress(pool.collateralDetails.collateralToken)) {
       throw new Error(
         'Collateral token does not follow the ethereum address format'
       )
     }
 
-    if (!ethers.isAddress(pool.collateralTokenChainlink)) {
+    if (!ethers.isAddress(pool.collateralDetails.collateralTokenChainlink)) {
       throw new Error(
         'Collateral token chainlink does not follow the ethereum address format'
       )
@@ -80,13 +80,25 @@ export class ERC20CollateralPool extends BaseContract implements Functions {
       }
     }
 
-    const pop = await this.contract.addPool.populateTransaction(pool)
+    const formattedPool = {
+      endTime: pool.endTime,
+      interest: pool.interest,
+      collateralToken: pool.collateralDetails.collateralToken,
+      collateralTokenChainlink: pool.collateralDetails.collateralTokenChainlink,
+      collateralTokenFactor: pool.collateralDetails.collateralTokenFactor,
+      collateralTokenPercentage:
+        pool.collateralDetails.collateralTokenPercentage
+    }
+
+    const pop = await this.contract.addPool.populateTransaction(formattedPool)
 
     return this.signer ? await this.signer.sendTransaction(pop) : pop
   }
 
-  addPool(pool: Pool): Promise<void> {
-    throw new Error(`Method not implemented. ${pool.collateralToken}`)
+  addPool(pool: PoolInput): Promise<void> {
+    throw new Error(
+      `Method not implemented. ${pool.collateralDetails.collateralToken}`
+    )
   }
 
   lend(poolId: bigint, amount: bigint): Promise<void> {

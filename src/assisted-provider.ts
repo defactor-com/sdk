@@ -1,12 +1,16 @@
 import { miscErc20CollateralPool } from './artifacts'
-import { BaseContractConstructorParams } from './base-contract'
 import { BaseProvider } from './base-provider'
 import { ERC20CollateralPool } from './erc20-collateral-pool'
 import { Pools as PoolsClass } from './pools'
-import { Pool } from './types/erc20-collateral-token'
-import { Abi, PrivateKey } from './types/types'
+import { PoolInput } from './types/erc20-collateral-token'
+import {
+  Abi,
+  ERC20CollateralPoolConstructorParams,
+  PoolsConstructorParams,
+  PrivateKey
+} from './types/types'
 
-export { Abi, PrivateKey, Pool }
+export { Abi, PrivateKey, PoolInput }
 
 export class AssistedProvider<
   T extends PoolsClass | ERC20CollateralPool
@@ -14,7 +18,9 @@ export class AssistedProvider<
   readonly abi: Abi
 
   constructor(
-    contractBuilder: new (...args: BaseContractConstructorParams) => T,
+    contractBuilder: new (
+      ...args: PoolsConstructorParams | ERC20CollateralPoolConstructorParams
+    ) => T,
     address: string,
     apiUrl: string,
     abi?: Abi
