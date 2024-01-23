@@ -10,7 +10,7 @@ import {
 
 jest.setTimeout(50000)
 
-describe('SelfProvider - ERC20CollateralPool', () => {
+describe('SelfProvider - Pools', () => {
   let providerUrl: string
   let provider: SelfProvider<Pools>
 
@@ -62,6 +62,28 @@ describe('SelfProvider - ERC20CollateralPool', () => {
       await expect(
         provider.contract.getPool(BigInt(EDGE_BIGINT))
       ).rejects.toThrow(`Pool id ${EDGE_BIGINT.toString()} does not exist`)
+    })
+
+    it('fetch pools by pagination', async () => {
+      const pools = await provider.contract.getPools(BigInt(0), BigInt(10))
+      expect(pools.length).toBe(10)
+
+      const tempPools = await provider.contract.getPools(BigInt(10), BigInt(10))
+      pools.push(...tempPools)
+      expect(pools.length).toBe(20)
+
+      const tempPools2 = await provider.contract.getPools(
+        BigInt(20),
+        BigInt(10)
+      )
+      pools.push(...tempPools2)
+      expect(pools.length).toBe(30)
+    })
+
+    it('get empty pool list because offset exceeds total pools', async () => {
+      const pools = await provider.contract.getPools(EDGE_BIGINT, BigInt(10))
+
+      expect(pools.length).toBe(0)
     })
   })
 

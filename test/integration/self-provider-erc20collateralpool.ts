@@ -81,6 +81,28 @@ describe('SelfProvider - ERC20CollateralPool', () => {
         `Pool id ${EDGE_BIGINT.toString()} does not exist`
       )
     })
+
+    it('fetch pools by pagination', async () => {
+      const pools = await provider.contract.getPools(BigInt(0), BigInt(10))
+      expect(pools.length).toBe(10)
+
+      const tempPools = await provider.contract.getPools(BigInt(10), BigInt(10))
+      pools.push(...tempPools)
+      expect(pools.length).toBe(20)
+
+      const tempPools2 = await provider.contract.getPools(
+        BigInt(20),
+        BigInt(10)
+      )
+      pools.push(...tempPools2)
+      expect(pools.length).toBe(30)
+    })
+
+    it('get empty pool list because offset exceeds total pools', async () => {
+      const pools = await provider.contract.getPools(EDGE_BIGINT, BigInt(10))
+
+      expect(pools.length).toBe(0)
+    })
   })
 
   it('throws an error if collateralToken is not a valid address', async () => {
