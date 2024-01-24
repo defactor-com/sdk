@@ -2,6 +2,9 @@
   "name": "@defactor-com/defactor-sdk",
   "version": "0.0.1",
   "description": "Defactor Development Kit",
+  "publishConfig": {
+    "access": "public"
+  },
   "engines": {
     "node": "18"
   },
@@ -40,7 +43,6 @@
   },
   "author": "Defactor Labs",
   "license": "MIT",
-  "private": false,
   "devDependencies": {
     "@changesets/cli": "^2.27.1",
     "@rollup/plugin-commonjs": "^25.0.7",
