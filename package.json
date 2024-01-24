@@ -1,5 +1,5 @@
 {
-  "name": "@defactor-com/defactor-sdk",
+  "name": "@defactor/defactor-sdk",
   "version": "0.0.1",
   "description": "Defactor Development Kit",
   "publishConfig": {
