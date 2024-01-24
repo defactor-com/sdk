@@ -15,7 +15,6 @@ lint:
 test: ##@helper Test the project
 test:
 	@echo "$(BLUE)-> testing project"
-	@make build
 	@yarn test
 
 install: ##@helper Install dependencies

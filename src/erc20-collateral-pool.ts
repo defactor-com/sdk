@@ -24,20 +24,40 @@ export class ERC20CollateralPool extends BaseContract implements Functions {
     return BigInt(liquidationProtocolFee)
   }
 
-  async getPool(poolId: bigint): Promise<Pool> {
-    const totalPools = BigInt(await this.contract.poolsLength())
+  private async _getPoolById(poolId: bigint): Promise<Pool | null> {
+    const totalPools = await this.getTotalPools()
 
-    if (poolId >= totalPools) {
+    return poolId < totalPools ? await this.contract.pools(poolId) : null
+  }
+
+  async getTotalPools(): Promise<bigint> {
+    return await this.contract.poolsLength()
+  }
+
+  async getPool(poolId: bigint): Promise<Pool> {
+    const pool = await this._getPoolById(poolId)
+
+    if (!pool) {
       throw new Error(`Pool id ${poolId.toString()} does not exist`)
     }
 
-    return await this.contract.pools(poolId)
+    return pool
   }
 
-  getPools(offset: bigint, limit: bigint): Promise<Array<Pool>> {
-    throw new Error(
-      `Method not implemented. ${offset.toString()}, ${limit.toString()}`
-    )
+  async getPools(offset: bigint, limit: bigint): Promise<Array<Pool>> {
+    const totalPools = await this.getTotalPools()
+
+    if (totalPools <= offset) {
+      return new Array<Pool>()
+    }
+
+    const poolPromises = new Array<Promise<Pool>>()
+
+    for (let i = offset; i < offset + limit && i + offset < totalPools; i++) {
+      poolPromises.push(this.getPool(i))
+    }
+
+    return await Promise.all(poolPromises)
   }
 
   getPoolDetails(

@@ -19,11 +19,16 @@ export class Pools extends BaseContract implements Functions {
     return await this.contract.USDC()
   }
 
-  // TODO: make a private version of this function that returns boolean instead of throwing an error
-  async getPool(poolId: bigint): Promise<Pool> {
+  private async _getPoolById(poolId: bigint): Promise<Pool | null> {
     const pool: Pool = await this.contract.pools(poolId)
 
-    if (pool.createdAt === BigInt(0)) {
+    return pool.createdAt !== BigInt(0) ? pool : null
+  }
+
+  async getPool(poolId: bigint): Promise<Pool> {
+    const pool = await this._getPoolById(poolId)
+
+    if (!pool) {
       throw new Error(`Pool id ${poolId.toString()} does not exist`)
     }
 
@@ -31,14 +36,15 @@ export class Pools extends BaseContract implements Functions {
   }
 
   async getPools(offset: bigint, limit: bigint): Promise<Array<Pool>> {
-    const poolsResponse = new Array<Pool>()
+    const tempPoolPromises = new Array<Promise<Pool | null>>()
 
     for (let i = offset; i < offset + limit; i++) {
-      const pool = await this.getPool(i)
-      poolsResponse.push(pool)
+      tempPoolPromises.push(this._getPoolById(i))
     }
 
-    return poolsResponse
+    const pools = await Promise.all(tempPoolPromises)
+
+    return pools.filter(pool => pool !== null) as Array<Pool>
   }
 
   getPoolDetails(

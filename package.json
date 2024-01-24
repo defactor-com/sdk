@@ -1,13 +1,13 @@
 {
   "name": "@defactor-com/defactor-sdk",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Defactor Development Kit",
   "engines": {
     "node": "18"
   },
   "scripts": {
     "build": "rollup -c",
-    "test": "jest",
+    "test": "jest --verbose",
     "lint": "tsc",
     "release": "yarn build && yarn changeset publish",
     "prepare": "husky install",
