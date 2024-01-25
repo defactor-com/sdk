@@ -4,4 +4,4 @@ export * as Assisted from './assisted-provider'
 
 export * as Self from './self-provider'
 
-export * as ProviderUtilities from './provider-utilities'
+export * as ProviderUtilities from './util'

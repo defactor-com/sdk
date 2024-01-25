@@ -2,10 +2,15 @@ import { ethers } from 'ethers'
 
 import { miscErc20CollateralPool } from './artifacts'
 import { BaseContract, Erc20CollateralTokenPoolDetail } from './base-contract'
-import { Role } from './provider-utilities'
-import { Functions, Pool, PoolInput } from './types/erc20-collateral-token'
+import {
+  Functions,
+  Lend,
+  Pool,
+  PoolInput
+} from './types/erc20-collateral-token'
 import { PoolCommit } from './types/pools'
 import { Abi, PrivateKey } from './types/types'
+import { NULL_ADDRESS, Role } from './util'
 
 export class ERC20CollateralPool extends BaseContract implements Functions {
   constructor(
@@ -18,16 +23,26 @@ export class ERC20CollateralPool extends BaseContract implements Functions {
   }
 
   async LIQUIDATION_PROTOCOL_FEE(): Promise<bigint> {
-    const liquidationProtocolFee =
-      await this.contract.LIQUIDATION_PROTOCOL_FEE()
+    return await this.contract.LIQUIDATION_PROTOCOL_FEE()
+  }
 
-    return BigInt(liquidationProtocolFee)
+  async getUsdc(): Promise<string> {
+    return await this.contract.USDC()
+  }
+
+  private existPool(pool: Pool): boolean {
+    // logic taken from the smart contract validation
+    return pool.collateralDetails.collateralToken !== NULL_ADDRESS
   }
 
   private async _getPoolById(poolId: bigint): Promise<Pool | null> {
-    const totalPools = await this.getTotalPools()
+    const pool = await this.contract.pools(poolId)
 
-    return poolId < totalPools ? await this.contract.pools(poolId) : null
+    if (!this.existPool(pool)) {
+      return null
+    }
+
+    return pool
   }
 
   async getTotalPools(): Promise<bigint> {
@@ -58,6 +73,83 @@ export class ERC20CollateralPool extends BaseContract implements Functions {
     }
 
     return await Promise.all(poolPromises)
+  }
+
+  async _getTotalLending(poolId: bigint, address: string): Promise<bigint> {
+    return await this.contract.lendingsLength(poolId, address)
+  }
+
+  async getTotalLending(poolId: bigint, address: string): Promise<bigint> {
+    if (!ethers.isAddress(address)) {
+      throw new Error('Address does not follow the ethereum address format')
+    }
+
+    await this.getPool(poolId)
+
+    return await this._getTotalLending(poolId, address)
+  }
+
+  private async _getLoan(
+    poolId: bigint,
+    address: string,
+    lendingId: bigint
+  ): Promise<Lend> {
+    return await this.contract.lendings(poolId, address, lendingId)
+  }
+
+  async getLoan(
+    poolId: bigint,
+    address: string,
+    lendingId: bigint
+  ): Promise<Lend> {
+    if (!ethers.isAddress(address)) {
+      throw new Error('Address does not follow the ethereum address format')
+    }
+
+    const totalLending = await this._getTotalLending(poolId, address)
+
+    await this.getPool(poolId)
+
+    if (lendingId >= totalLending) {
+      throw new Error(`Lending id ${lendingId.toString()} does not exist`)
+    }
+
+    return await this._getLoan(poolId, address, lendingId)
+  }
+
+  async listLoansByLender(
+    offset: bigint,
+    limit: bigint,
+    poolId: bigint,
+    lenderAddress: string
+  ): Promise<Array<Lend>> {
+    if (offset < 0) {
+      throw new Error(`Offset cannot be negative`)
+    }
+
+    if (limit <= 0) {
+      throw new Error(`Limit cannot be negative or 0`)
+    }
+
+    // TODO: consider taking this parameter (1000) from a configuration file or some configurable approach
+    if (limit > 1000) {
+      throw new Error(`Max limit allowed is 1000`)
+    }
+
+    if (!ethers.isAddress(lenderAddress)) {
+      throw new Error('Address does not follow the ethereum address format')
+    }
+
+    await this.getPool(poolId)
+
+    const loanPromises = new Array<Promise<Lend>>()
+    const totalLending = await this._getTotalLending(poolId, lenderAddress)
+
+    for (let i = offset; i < offset + limit && i + offset < totalLending; i++) {
+      loanPromises.push(this._getLoan(poolId, lenderAddress, i))
+    }
+
+    return await Promise.all(loanPromises)
   }
 
   getPoolDetails(
@@ -121,8 +213,19 @@ export class ERC20CollateralPool extends BaseContract implements Functions {
     )
   }
 
-  lend(poolId: bigint, amount: bigint): Promise<void> {
-    throw new Error(`Method not implemented. ${poolId.toString()}, ${amount}`)
+  async lend(
+    poolId: bigint,
+    amount: bigint
+  ): Promise<ethers.ContractTransaction | ethers.TransactionResponse> {
+    await this.getPool(poolId)
+
+    if (amount <= 0) {
+      throw new Error(`Amount cannot be negative or 0`)
+    }
+
+    const pop = await this.contract.lend.populateTransaction(poolId, amount)
+
+    return this.signer ? await this.signer.sendTransaction(pop) : pop
   }
 
   borrow(poolId: bigint, amount: bigint): Promise<void> {
