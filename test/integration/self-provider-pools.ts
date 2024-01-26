@@ -1,7 +1,7 @@
 import { Pools } from '../../src/pools'
 import { SelfProvider } from '../../src/self-provider'
 import {
-  EDGE_BIGINT,
+  MAX_BIGINT,
   POOLS_ETH_ADDRESS,
   TESTING_PRIVATE_KEY,
   USD_TOKEN_ADDRESS,
@@ -60,8 +60,8 @@ describe('SelfProvider - Pools', () => {
 
     it('get error because wrong pool id', async () => {
       await expect(
-        provider.contract.getPool(BigInt(EDGE_BIGINT))
-      ).rejects.toThrow(`Pool id ${EDGE_BIGINT.toString()} does not exist`)
+        provider.contract.getPool(BigInt(MAX_BIGINT))
+      ).rejects.toThrow(`Pool id ${MAX_BIGINT.toString()} does not exist`)
     })
 
     it('fetch pools by pagination', async () => {
@@ -81,7 +81,7 @@ describe('SelfProvider - Pools', () => {
     })
 
     it('get empty pool list because offset exceeds total pools', async () => {
-      const pools = await provider.contract.getPools(EDGE_BIGINT, BigInt(10))
+      const pools = await provider.contract.getPools(MAX_BIGINT, BigInt(10))
 
       expect(pools.length).toBe(0)
     })
