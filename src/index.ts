@@ -1,7 +1,13 @@
-export * as artifacts from './artifacts'
+import * as artifacts from './artifacts'
+import * as Assisted from './assisted-provider'
+import * as ProviderUtilities from './provider-utilities'
+import * as Self from './self-provider'
 
-export * as Assisted from './assisted-provider'
+export { artifacts, Assisted, Self, ProviderUtilities }
 
-export * as Self from './self-provider'
-
-export * as ProviderUtilities from './provider-utilities'
+export const DefactorSDK = {
+  artifacts,
+  Assisted,
+  Self,
+  ProviderUtilities
+}
