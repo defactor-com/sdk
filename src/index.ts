@@ -1,7 +1,7 @@
 import * as artifacts from './artifacts'
 import * as Assisted from './assisted-provider'
-import * as ProviderUtilities from './provider-utilities'
 import * as Self from './self-provider'
+import * as ProviderUtilities from './util'
 
 export { artifacts, Assisted, Self, ProviderUtilities }
 

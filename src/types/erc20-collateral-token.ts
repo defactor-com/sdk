@@ -1,3 +1,5 @@
+import { ethers } from 'ethers'
+
 // TODO: use uint48 instead of number
 export type Borrow = {
   amount: bigint
@@ -56,7 +58,10 @@ export interface Views {
 
 export interface Functions {
   addPool(pool: PoolInput): Promise<void>
-  lend(poolId: bigint, amount: bigint): Promise<void>
+  lend(
+    poolId: bigint,
+    amount: bigint
+  ): Promise<ethers.ContractTransaction | ethers.TransactionResponse>
   borrow(poolId: bigint, amount: bigint): Promise<void>
   repay(poolId: bigint, amount: bigint): Promise<void>
   claimRewards(poolId: bigint, lendingId: bigint): Promise<void>
