@@ -1,5 +1,11 @@
 # @defactor-com/defactor-sdk
 
+## 0.0.4
+
+### Patch Changes
+
+- 3a22533: Improve the export format
+
 ## 0.0.3
 
 ### Patch Changes
