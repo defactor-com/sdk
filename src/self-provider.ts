@@ -1,15 +1,12 @@
 import { BaseProvider } from './base-provider'
 import { ERC20CollateralPool } from './erc20-collateral-pool'
 import { Pools as PoolsClass } from './pools'
-import { PoolInput } from './types/erc20-collateral-token'
 import {
   Abi,
   ERC20CollateralPoolConstructorParams,
   PoolsConstructorParams,
   PrivateKey
 } from './types/types'
-
-export { Abi, PrivateKey, PoolInput }
 
 export class SelfProvider<
   T extends PoolsClass | ERC20CollateralPool
