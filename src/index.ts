@@ -5,6 +5,10 @@ import * as Pools from './pools'
 import * as SelfProvider from './self-provider'
 import * as ProviderUtilities from './util'
 
+export * as TypesErc20CollateralToken from './types/erc20-collateral-token'
+export * as TypesPools from './types/pools'
+export * as TypesGeneral from './types/types'
+
 export {
   Artifacts,
   AssistedProvider,
