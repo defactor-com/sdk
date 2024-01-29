@@ -1,5 +1,11 @@
 # @defactor-com/defactor-sdk
 
+## 0.0.3
+
+### Patch Changes
+
+- 84dbf13: Export components individually and also as part of the DefactorSDK kit
+
 ## 1.0.0
 
 ### Major Changes
