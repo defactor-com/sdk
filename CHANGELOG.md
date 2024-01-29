@@ -1,5 +1,11 @@
 # @defactor-com/defactor-sdk
 
+## 0.0.5
+
+### Patch Changes
+
+- 0b22d80: Export types object for library types and add it to general export
+
 ## 0.0.4
 
 ### Patch Changes
