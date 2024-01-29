@@ -1,13 +1,24 @@
-import * as artifacts from './artifacts'
-import * as Assisted from './assisted-provider'
-import * as Self from './self-provider'
+import * as Artifacts from './artifacts'
+import * as AssistedProvider from './assisted-provider'
+import * as Erc20CollateralPool from './erc20-collateral-pool'
+import * as Pools from './pools'
+import * as SelfProvider from './self-provider'
 import * as ProviderUtilities from './util'
 
-export { artifacts, Assisted, Self, ProviderUtilities }
+export {
+  Artifacts,
+  AssistedProvider,
+  SelfProvider,
+  ProviderUtilities,
+  Erc20CollateralPool,
+  Pools
+}
 
 export const DefactorSDK = {
-  artifacts,
-  Assisted,
-  Self,
-  ProviderUtilities
+  Artifacts,
+  AssistedProvider,
+  SelfProvider,
+  ProviderUtilities,
+  Erc20CollateralPool,
+  Pools
 }
