@@ -1,5 +1,6 @@
 import { Erc20 } from '../../src/erc20'
 import { ERC20CollateralPool } from '../../src/erc20-collateral-pool'
+import { ecpErrorMessage } from '../../src/error-messages'
 import { SelfProvider } from '../../src/self-provider'
 import { sleep } from '../../src/util'
 import {
@@ -45,9 +46,7 @@ describe('SelfProvider - ERC20CollateralPool', () => {
     it('failure - wrong address format', async () => {
       await expect(
         erc20Contract.approve('0xinvalid', BigInt(10))
-      ).rejects.toThrow(
-        `Collateral token does not follow the ethereum address format`
-      )
+      ).rejects.toThrow(ecpErrorMessage.wrongAddressFormatCustom())
     })
 
     it('failure - amount is equal to 0 or negative', async () => {
@@ -56,11 +55,11 @@ describe('SelfProvider - ERC20CollateralPool', () => {
 
       await expect(
         erc20Contract.approve(TESTING_PUBLIC_KEY, approveAmount)
-      ).rejects.toThrow(`Amount cannot be negative or 0`)
+      ).rejects.toThrow(ecpErrorMessage.noNegativeAmountOrZero)
 
       await expect(
         erc20Contract.approve(TESTING_PUBLIC_KEY, negativeApproveAmount)
-      ).rejects.toThrow(`Amount cannot be negative or 0`)
+      ).rejects.toThrow(ecpErrorMessage.noNegativeAmountOrZero)
     })
 
     it('success - approve and transfer amount', async () => {

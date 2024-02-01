@@ -7,6 +7,7 @@ import {
   Erc20CollateralTokenPoolDetail,
   Views
 } from './base-contract'
+import { ecpErrorMessage } from './error-messages'
 import {
   Functions,
   Lend,
@@ -61,13 +62,26 @@ export class ERC20CollateralPool
     const pool = await this._getPoolById(poolId)
 
     if (!pool) {
-      throw new Error(`Pool id ${poolId.toString()} does not exist`)
+      throw new Error(ecpErrorMessage.noExistPoolId(poolId))
     }
 
     return pool
   }
 
   async getPools(offset: bigint, limit: bigint): Promise<Array<Pool>> {
+    if (offset < 0) {
+      throw new Error(ecpErrorMessage.noNegativeOffset)
+    }
+
+    if (limit <= 0) {
+      throw new Error(ecpErrorMessage.noNegativeLimitOrZero)
+    }
+
+    // TODO: consider taking this parameter (1000) from a configuration file or some configurable approach
+    if (limit > 1000) {
+      throw new Error(ecpErrorMessage.maxLimitAllowed)
+    }
+
     const totalPools = await this.getTotalPools()
 
     if (totalPools <= offset) {
@@ -89,7 +103,7 @@ export class ERC20CollateralPool
 
   async getTotalLending(poolId: bigint, address: string): Promise<bigint> {
     if (!ethers.isAddress(address)) {
-      throw new Error('Address does not follow the ethereum address format')
+      throw new Error(ecpErrorMessage.wrongAddressFormat)
     }
 
     await this.getPool(poolId)
@@ -111,7 +125,7 @@ export class ERC20CollateralPool
     lendingId: bigint
   ): Promise<Lend> {
     if (!ethers.isAddress(address)) {
-      throw new Error('Address does not follow the ethereum address format')
+      throw new Error(ecpErrorMessage.wrongAddressFormat)
     }
 
     const totalLending = await this._getTotalLending(poolId, address)
@@ -119,7 +133,7 @@ export class ERC20CollateralPool
     await this.getPool(poolId)
 
     if (lendingId >= totalLending) {
-      throw new Error(`Lending id ${lendingId.toString()} does not exist`)
+      throw new Error(ecpErrorMessage.noExistLendingId(lendingId))
     }
 
     return await this._getLoan(poolId, address, lendingId)
@@ -132,20 +146,20 @@ export class ERC20CollateralPool
     lenderAddress: string
   ): Promise<Array<Lend>> {
     if (offset < 0) {
-      throw new Error(`Offset cannot be negative`)
+      throw new Error(ecpErrorMessage.noNegativeOffset)
     }
 
     if (limit <= 0) {
-      throw new Error(`Limit cannot be negative or 0`)
+      throw new Error(ecpErrorMessage.noNegativeLimitOrZero)
     }
 
     // TODO: consider taking this parameter (1000) from a configuration file or some configurable approach
     if (limit > 1000) {
-      throw new Error(`Max limit allowed is 1000`)
+      throw new Error(ecpErrorMessage.maxLimitAllowed)
     }
 
     if (!ethers.isAddress(lenderAddress)) {
-      throw new Error('Address does not follow the ethereum address format')
+      throw new Error(ecpErrorMessage.wrongAddressFormat)
     }
 
     await this.getPool(poolId)
@@ -181,22 +195,18 @@ export class ERC20CollateralPool
     pool: PoolInput
   ): Promise<ethers.ContractTransaction | ethers.TransactionResponse> {
     if (!ethers.isAddress(pool.collateralDetails.collateralToken)) {
-      throw new Error(
-        'Collateral token does not follow the ethereum address format'
-      )
+      throw new Error(ecpErrorMessage.wrongAddressFormatCustom())
     }
 
     if (!ethers.isAddress(pool.collateralDetails.collateralTokenChainlink)) {
-      throw new Error(
-        'Collateral token chainlink does not follow the ethereum address format'
-      )
+      throw new Error(ecpErrorMessage.wrongAddressFormatCustom('chainlink'))
     }
 
     if (this.signer) {
       const isAdmin = await this.contract.hasRole(Role.ADMIN, this.signer)
 
       if (!isAdmin) {
-        throw new Error('Sender address is not admin')
+        throw new Error(ecpErrorMessage.addressIsNotAdmin)
       }
     }
 
@@ -228,7 +238,7 @@ export class ERC20CollateralPool
     await this.getPool(poolId)
 
     if (amount <= 0) {
-      throw new Error(`Amount cannot be negative or 0`)
+      throw new Error(ecpErrorMessage.noNegativeAmountOrZero)
     }
 
     const pop = await this.contract.lend.populateTransaction(poolId, amount)
