@@ -6,7 +6,7 @@ import * as SelfProvider from './self-provider'
 import * as TypesErc20CollateralToken from './types/erc20-collateral-token'
 import * as TypesPools from './types/pools'
 import * as TypesGeneral from './types/types'
-import * as ProviderUtilities from './util'
+import * as Utilities from './util'
 
 const types = {
   Erc20CollateralToken: TypesErc20CollateralToken,
@@ -18,7 +18,7 @@ export {
   Artifacts,
   AssistedProvider,
   SelfProvider,
-  ProviderUtilities,
+  Utilities,
   ERC20CollateralPool,
   Pools,
   types
@@ -28,7 +28,7 @@ export const DefactorSDK = {
   Artifacts,
   AssistedProvider,
   SelfProvider,
-  ProviderUtilities,
+  Utilities,
   ERC20CollateralPool,
   Pools
 }

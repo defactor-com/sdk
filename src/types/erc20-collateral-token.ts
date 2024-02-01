@@ -69,3 +69,33 @@ export interface Functions {
   claimUnliquidatedCollateral(poolId: bigint, borrowId: bigint): Promise<void>
   liquidatePool(poolId: bigint): Promise<void>
 }
+
+export const poolKeys: Array<keyof Pool> = [
+  'lended',
+  'borrowed',
+  'repaid',
+  'rewards',
+  'collateralTokenAmount',
+  'liquidatedCollateral',
+  'collateralTokenAmountAtLiquidation',
+  'rewardPerToken',
+  'rewardRate',
+  'lastUpdated',
+  'endTime',
+  'collateralDetails',
+  'interest',
+  'liquidated'
+]
+
+export const collateralDetailsKeys: Array<keyof CollateralDetails> = [
+  'collateralToken',
+  'collateralTokenChainlink',
+  'collateralTokenFactor',
+  'collateralTokenPercentage'
+]
+
+export const lendingKeys: Array<keyof Lend> = [
+  'amount',
+  'rewardPerTokenIgnored',
+  'claimed'
+]

@@ -1,6 +1,4 @@
-import { ethers } from 'ethers'
-
-import { miscErc20 } from '../../src/artifacts'
+import { Erc20 } from '../../src/erc20'
 import { ERC20CollateralPool } from '../../src/erc20-collateral-pool'
 import { SelfProvider } from '../../src/self-provider'
 import { Lend } from '../../src/types/erc20-collateral-token'
@@ -22,6 +20,7 @@ jest.setTimeout(50000)
 describe('SelfProvider - ERC20CollateralPool', () => {
   let providerUrl: string
   let provider: SelfProvider<ERC20CollateralPool>
+  let erc20Contract: Erc20
 
   beforeAll(async () => {
     await loadEnv()
@@ -31,6 +30,11 @@ describe('SelfProvider - ERC20CollateralPool', () => {
     }
 
     providerUrl = process.env.PROVIDER_URL
+    erc20Contract = new Erc20(
+      USD_TOKEN_ADDRESS,
+      providerUrl,
+      TESTING_PRIVATE_KEY
+    )
   })
 
   beforeEach(() => {
@@ -185,7 +189,7 @@ describe('SelfProvider - ERC20CollateralPool', () => {
       ).rejects.toThrow(`Pool id ${MAX_BIGINT} does not exist`)
     })
 
-    it('failure - amount is equal or negative', async () => {
+    it('failure - amount is equal to 0 or negative', async () => {
       const lendingAmount = BigInt(0)
       const negativeLendingAmount = BigInt(-1)
 
@@ -199,15 +203,6 @@ describe('SelfProvider - ERC20CollateralPool', () => {
     })
 
     it('success - lend tokens', async () => {
-      const signer = new ethers.Wallet(
-        TESTING_PRIVATE_KEY,
-        new ethers.JsonRpcProvider(providerUrl)
-      )
-      const erc20Contract = new ethers.Contract(
-        USD_TOKEN_ADDRESS,
-        miscErc20.abi,
-        signer
-      )
       const lendingAmount = BigInt(10_000000)
 
       await erc20Contract.approve(provider.contract.address, lendingAmount)

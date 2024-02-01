@@ -1,7 +1,12 @@
 import { ethers } from 'ethers'
 
 import { miscErc20CollateralPool } from './artifacts'
-import { BaseContract, Erc20CollateralTokenPoolDetail } from './base-contract'
+import {
+  AdminFunctions,
+  BaseContract,
+  Erc20CollateralTokenPoolDetail,
+  Views
+} from './base-contract'
 import {
   Functions,
   Lend,
@@ -12,7 +17,10 @@ import { PoolCommit } from './types/pools'
 import { Abi, PrivateKey } from './types/types'
 import { NULL_ADDRESS, Role } from './util'
 
-export class ERC20CollateralPool extends BaseContract implements Functions {
+export class ERC20CollateralPool
+  extends BaseContract
+  implements Functions, Views, AdminFunctions
+{
   constructor(
     address: string,
     apiUrl: string,

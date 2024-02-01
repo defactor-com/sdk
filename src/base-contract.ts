@@ -15,7 +15,7 @@ export type BaseContractConstructorParams = ConstructorParameters<
 
 export type Erc20CollateralTokenPoolDetail = Borrow | Lend
 
-interface Views {
+export interface Views {
   getPool(poolId: bigint): Promise<ERC20CollateralPool | PoolObject>
 
   getPools(
@@ -29,12 +29,12 @@ interface Views {
   ): Promise<Erc20CollateralTokenPoolDetail | PoolCommit>
 }
 
-interface AdminFunctions {
+export interface AdminFunctions {
   pause(): Promise<void>
   unpause(): Promise<void>
 }
 
-export abstract class BaseContract implements Views, AdminFunctions {
+export abstract class BaseContract {
   readonly address: string
   readonly jsonRpcProvider: ethers.JsonRpcProvider
   readonly abi: Abi
@@ -59,20 +59,4 @@ export abstract class BaseContract implements Views, AdminFunctions {
       ? new ethers.Wallet(privateKey, new ethers.JsonRpcProvider(apiUrl))
       : null
   }
-
-  abstract getPool(poolId: bigint): Promise<ERC20CollateralPool | PoolObject>
-
-  abstract getPools(
-    offset: bigint,
-    limit: bigint
-  ): Promise<Array<ERC20CollateralPool | PoolObject>>
-
-  abstract getPoolDetails(
-    poolId: bigint,
-    walletAddress: string
-  ): Promise<Erc20CollateralTokenPoolDetail | PoolCommit>
-
-  abstract pause(): Promise<void>
-
-  abstract unpause(): Promise<void>
 }

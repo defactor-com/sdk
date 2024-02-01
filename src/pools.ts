@@ -1,12 +1,20 @@
 import { ethers } from 'ethers'
 
 import { miscErc20, miscPools } from './artifacts'
-import { BaseContract, Erc20CollateralTokenPoolDetail } from './base-contract'
+import {
+  AdminFunctions,
+  BaseContract,
+  Erc20CollateralTokenPoolDetail,
+  Views
+} from './base-contract'
 import { Functions, Pool, PoolCommit, PoolInput } from './types/pools'
 import { Abi, PrivateKey } from './types/types'
 import { sleep } from './util'
 
-export class Pools extends BaseContract implements Functions {
+export class Pools
+  extends BaseContract
+  implements Functions, Views, AdminFunctions
+{
   constructor(
     address: string,
     apiUrl: string,
