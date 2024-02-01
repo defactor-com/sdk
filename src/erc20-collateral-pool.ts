@@ -69,6 +69,19 @@ export class ERC20CollateralPool
   }
 
   async getPools(offset: bigint, limit: bigint): Promise<Array<Pool>> {
+    if (offset < 0) {
+      throw new Error(ecpErrorMessage.noNegativeOffset)
+    }
+
+    if (limit <= 0) {
+      throw new Error(ecpErrorMessage.noNegativeLimitOrZero)
+    }
+
+    // TODO: consider taking this parameter (1000) from a configuration file or some configurable approach
+    if (limit > 1000) {
+      throw new Error(ecpErrorMessage.maxLimitAllowed)
+    }
+
     const totalPools = await this.getTotalPools()
 
     if (totalPools <= offset) {

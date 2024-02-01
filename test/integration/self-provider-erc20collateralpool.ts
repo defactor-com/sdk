@@ -94,26 +94,88 @@ describe('SelfProvider - ERC20CollateralPool', () => {
       )
     })
 
-    it('fetch pools by pagination', async () => {
-      const pools = await provider.contract.getPools(BigInt(0), BigInt(10))
-      expect(pools.length).toBe(10)
+    describe('getPools()', () => {
+      it('failure - limit = 0, negative and max limit reached', async () => {
+        await expect(
+          provider.contract.getPools(BigInt(-10), BigInt(0))
+        ).rejects.toThrow(ecpErrorMessage.noNegativeOffset)
 
-      const tempPools = await provider.contract.getPools(BigInt(10), BigInt(10))
-      pools.push(...tempPools)
-      expect(pools.length).toBe(20)
+        await expect(
+          provider.contract.getPools(BigInt(0), BigInt(-10))
+        ).rejects.toThrow(ecpErrorMessage.noNegativeLimitOrZero)
 
-      const tempPools2 = await provider.contract.getPools(
-        BigInt(20),
-        BigInt(10)
-      )
-      pools.push(...tempPools2)
-      expect(pools.length).toBe(30)
-    })
+        await expect(
+          provider.contract.getPools(BigInt(0), BigInt(1001))
+        ).rejects.toThrow(ecpErrorMessage.maxLimitAllowed)
+      })
 
-    it('get empty pool list because offset exceeds total pools', async () => {
-      const pools = await provider.contract.getPools(MAX_BIGINT, BigInt(10))
+      it('failure - not accepted negative offset', async () => {
+        await expect(
+          provider.contract.getPools(BigInt(-10), BigInt(10))
+        ).rejects.toThrow(ecpErrorMessage.noNegativeOffset)
+      })
 
-      expect(pools.length).toBe(0)
+      it('success - get empty pool list because offset exceeds total pools', async () => {
+        const pools = await provider.contract.getPools(MAX_BIGINT, BigInt(10))
+
+        expect(pools.length).toBe(0)
+      })
+
+      it('success - offset = 0', async () => {
+        const pools = await provider.contract.getPools(BigInt(0), BigInt(10))
+
+        expect(pools.length).toBe(10)
+      })
+
+      it('success - limit = 1 (5 times)', async () => {
+        const pools = await provider.contract.getPools(BigInt(0), BigInt(1))
+        expect(pools.length).toBe(1)
+
+        let tempPools = await provider.contract.getPools(BigInt(1), BigInt(1))
+        pools.push(...tempPools)
+        expect(pools.length).toBe(2)
+
+        tempPools = await provider.contract.getPools(BigInt(2), BigInt(1))
+        pools.push(...tempPools)
+        expect(pools.length).toBe(3)
+
+        tempPools = await provider.contract.getPools(BigInt(3), BigInt(1))
+        pools.push(...tempPools)
+        expect(pools.length).toBe(4)
+
+        tempPools = await provider.contract.getPools(BigInt(4), BigInt(1))
+        pools.push(...tempPools)
+        expect(pools.length).toBe(5)
+      })
+
+      it('success - limit = 10 (10 times)', async () => {
+        const pools = await provider.contract.getPools(BigInt(0), BigInt(10))
+        expect(pools.length).toBe(10)
+
+        const tempPools = await provider.contract.getPools(
+          BigInt(10),
+          BigInt(10)
+        )
+        pools.push(...tempPools)
+        expect(pools.length).toBe(20)
+
+        for (let i = 2; i < 10; i++) {
+          const tempPools = await provider.contract.getPools(
+            BigInt(10 * i),
+            BigInt(10)
+          )
+          pools.push(...tempPools)
+          expect(pools.length).toBe(10 * (i + 1))
+        }
+
+        expect(pools.length).toBe(100)
+      })
+
+      it('success - max limit', async () => {
+        const pools = await provider.contract.getPools(BigInt(0), BigInt(1000))
+
+        expect(pools.length).toBeGreaterThan(0)
+      })
     })
 
     it('get loan', async () => {
@@ -207,7 +269,7 @@ describe('SelfProvider - ERC20CollateralPool', () => {
       const lendingAmount = BigInt(10_000000)
 
       await erc20Contract.approve(provider.contract.address, lendingAmount)
-      await sleep(3000)
+      await sleep(10000)
 
       const trx = await provider.contract.lend(BigInt(0), lendingAmount)
 
