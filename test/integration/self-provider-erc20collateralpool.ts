@@ -1,5 +1,6 @@
 import { Erc20 } from '../../src/erc20'
 import { ERC20CollateralPool } from '../../src/erc20-collateral-pool'
+import { ecpErrorMessage } from '../../src/error-messages'
 import { SelfProvider } from '../../src/self-provider'
 import { Lend } from '../../src/types/erc20-collateral-token'
 import { sleep } from '../../src/util'
@@ -89,7 +90,7 @@ describe('SelfProvider - ERC20CollateralPool', () => {
 
     it('get error because wrong pool id', async () => {
       await expect(provider.contract.getPool(MAX_BIGINT)).rejects.toThrow(
-        `Pool id ${MAX_BIGINT} does not exist`
+        ecpErrorMessage.noExistPoolId(MAX_BIGINT)
       )
     })
 
@@ -131,13 +132,13 @@ describe('SelfProvider - ERC20CollateralPool', () => {
     it('failure - pool does not exist', async () => {
       await expect(
         provider.contract.getTotalLending(MAX_BIGINT, TESTING_PUBLIC_KEY)
-      ).rejects.toThrow(`Pool id ${MAX_BIGINT} does not exist`)
+      ).rejects.toThrow(ecpErrorMessage.noExistPoolId(MAX_BIGINT))
     })
 
     it('failure - wrong address format', async () => {
       await expect(
         provider.contract.getTotalLending(BigInt(0), '0xinvalid')
-      ).rejects.toThrow(`Address does not follow the ethereum address format`)
+      ).rejects.toThrow(ecpErrorMessage.wrongAddressFormat)
     })
 
     it('success - get total loans', async () => {
@@ -154,19 +155,19 @@ describe('SelfProvider - ERC20CollateralPool', () => {
     it('failure - pool does not exist', async () => {
       await expect(
         provider.contract.getLoan(MAX_BIGINT, TESTING_PUBLIC_KEY, BigInt(0))
-      ).rejects.toThrow(`Pool id ${MAX_BIGINT} does not exist`)
+      ).rejects.toThrow(ecpErrorMessage.noExistPoolId(MAX_BIGINT))
     })
 
     it('failure - wrong address format', async () => {
       await expect(
         provider.contract.getLoan(BigInt(0), '0xinvalid', BigInt(0))
-      ).rejects.toThrow(`Address does not follow the ethereum address format`)
+      ).rejects.toThrow(ecpErrorMessage.wrongAddressFormat)
     })
 
     it('failure - loan object does not exist', async () => {
       await expect(
         provider.contract.getLoan(BigInt(0), TESTING_PUBLIC_KEY, MAX_BIGINT)
-      ).rejects.toThrow(`Lending id ${MAX_BIGINT} does not exist`)
+      ).rejects.toThrow(ecpErrorMessage.noExistLendingId(MAX_BIGINT))
     })
 
     it('success - get loan', async () => {
@@ -186,7 +187,7 @@ describe('SelfProvider - ERC20CollateralPool', () => {
 
       await expect(
         provider.contract.lend(MAX_BIGINT, lendingAmount)
-      ).rejects.toThrow(`Pool id ${MAX_BIGINT} does not exist`)
+      ).rejects.toThrow(ecpErrorMessage.noExistPoolId(MAX_BIGINT))
     })
 
     it('failure - amount is equal to 0 or negative', async () => {
@@ -195,11 +196,11 @@ describe('SelfProvider - ERC20CollateralPool', () => {
 
       await expect(
         provider.contract.lend(BigInt(0), lendingAmount)
-      ).rejects.toThrow(`Amount cannot be negative or 0`)
+      ).rejects.toThrow(ecpErrorMessage.noNegativeAmountOrZero)
 
       await expect(
         provider.contract.lend(BigInt(0), negativeLendingAmount)
-      ).rejects.toThrow(`Amount cannot be negative or 0`)
+      ).rejects.toThrow(ecpErrorMessage.noNegativeAmountOrZero)
     })
 
     it('success - lend tokens', async () => {
@@ -229,7 +230,7 @@ describe('SelfProvider - ERC20CollateralPool', () => {
           MAX_BIGINT,
           TESTING_PUBLIC_KEY
         )
-      ).rejects.toThrow(`Pool id ${MAX_BIGINT} does not exist`)
+      ).rejects.toThrow(ecpErrorMessage.noExistPoolId(MAX_BIGINT))
     })
 
     it('failure - wrong address format', async () => {
@@ -240,7 +241,7 @@ describe('SelfProvider - ERC20CollateralPool', () => {
           BigInt(0),
           '0xinvalid'
         )
-      ).rejects.toThrow(`Address does not follow the ethereum address format`)
+      ).rejects.toThrow(ecpErrorMessage.wrongAddressFormat)
     })
 
     it('failure - limit is less or equal than 0 and exceeds max limit', async () => {
@@ -251,7 +252,7 @@ describe('SelfProvider - ERC20CollateralPool', () => {
           BigInt(0),
           TESTING_PUBLIC_KEY
         )
-      ).rejects.toThrow(`Limit cannot be negative or 0`)
+      ).rejects.toThrow(ecpErrorMessage.noNegativeLimitOrZero)
 
       await expect(
         provider.contract.listLoansByLender(
@@ -260,7 +261,7 @@ describe('SelfProvider - ERC20CollateralPool', () => {
           BigInt(0),
           TESTING_PUBLIC_KEY
         )
-      ).rejects.toThrow(`Limit cannot be negative or 0`)
+      ).rejects.toThrow(ecpErrorMessage.noNegativeLimitOrZero)
 
       await expect(
         provider.contract.listLoansByLender(
@@ -269,7 +270,7 @@ describe('SelfProvider - ERC20CollateralPool', () => {
           BigInt(0),
           TESTING_PUBLIC_KEY
         )
-      ).rejects.toThrow(`Max limit allowed is 1000`)
+      ).rejects.toThrow(ecpErrorMessage.maxLimitAllowed)
     })
 
     it('failure - not accepted negative offset', async () => {
@@ -280,7 +281,7 @@ describe('SelfProvider - ERC20CollateralPool', () => {
           BigInt(0),
           TESTING_PUBLIC_KEY
         )
-      ).rejects.toThrow(`Offset cannot be negative`)
+      ).rejects.toThrow(ecpErrorMessage.noNegativeOffset)
     })
 
     it('success - offset = 0', async () => {
@@ -497,9 +498,7 @@ describe('SelfProvider - ERC20CollateralPool', () => {
           collateralTokenPercentage: 15
         }
       })
-    ).rejects.toThrow(
-      'Collateral token does not follow the ethereum address format'
-    )
+    ).rejects.toThrow(ecpErrorMessage.wrongAddressFormatCustom())
   })
 
   it('throws an error if collateralTokenChainlink is not a valid address', async () => {
@@ -514,9 +513,7 @@ describe('SelfProvider - ERC20CollateralPool', () => {
           collateralTokenPercentage: 15
         }
       })
-    ).rejects.toThrow(
-      'Collateral token chainlink does not follow the ethereum address format'
-    )
+    ).rejects.toThrow(ecpErrorMessage.wrongAddressFormatCustom('chainlink'))
   })
 
   it('throws an error if sender address is not admin', async () => {
@@ -531,7 +528,7 @@ describe('SelfProvider - ERC20CollateralPool', () => {
           collateralTokenPercentage: 15
         }
       })
-    ).rejects.toThrow('Sender address is not admin')
+    ).rejects.toThrow(ecpErrorMessage.addressIsNotAdmin)
   })
 
   it('logs a message if the pool is ready to be created', async () => {
