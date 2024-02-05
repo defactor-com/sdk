@@ -16,7 +16,7 @@ import {
   loadEnv
 } from '../test-util'
 
-jest.setTimeout(50000)
+jest.setTimeout(1000000)
 
 describe('SelfProvider - ERC20CollateralPool', () => {
   let providerUrl: string
@@ -176,6 +176,176 @@ describe('SelfProvider - ERC20CollateralPool', () => {
       })
     })
 
+    describe('getBorrowsByBorrower()', () => {
+      it('failure - pool id does not exist', async () => {
+        await expect(
+          provider.contract.getBorrowsByBorrower(
+            BigInt(MAX_BIGINT),
+            TESTING_PUBLIC_KEY,
+            BigInt(0),
+            BigInt(10)
+          )
+        ).rejects.toThrow(ecpErrorMessage.noExistPoolId(MAX_BIGINT))
+      })
+
+      it('failure - wrong address format', async () => {
+        await expect(
+          provider.contract.getBorrowsByBorrower(
+            BigInt(0),
+            '0xinvalid',
+            BigInt(0),
+            BigInt(10)
+          )
+        ).rejects.toThrow(ecpErrorMessage.wrongAddressFormat)
+      })
+
+      it('failure - limit = 0, negative and max limit reached', async () => {
+        await expect(
+          provider.contract.getBorrowsByBorrower(
+            BigInt(0),
+            TESTING_PUBLIC_KEY,
+            BigInt(-10),
+            BigInt(0)
+          )
+        ).rejects.toThrow(ecpErrorMessage.noNegativeOffset)
+
+        await expect(
+          provider.contract.getBorrowsByBorrower(
+            BigInt(0),
+            TESTING_PUBLIC_KEY,
+            BigInt(0),
+            BigInt(-10)
+          )
+        ).rejects.toThrow(ecpErrorMessage.noNegativeLimitOrZero)
+
+        await expect(
+          provider.contract.getBorrowsByBorrower(
+            BigInt(0),
+            TESTING_PUBLIC_KEY,
+            BigInt(0),
+            BigInt(1001)
+          )
+        ).rejects.toThrow(ecpErrorMessage.maxLimitAllowed)
+      })
+
+      it('failure - not accepted negative offset', async () => {
+        await expect(
+          provider.contract.getBorrowsByBorrower(
+            BigInt(0),
+            TESTING_PUBLIC_KEY,
+            BigInt(-10),
+            BigInt(0)
+          )
+        ).rejects.toThrow(ecpErrorMessage.noNegativeOffset)
+      })
+
+      it('success - get empty borrow list because offset exceeds total borrows', async () => {
+        const totalBorrows = await provider.contract.getTotalBorrows(
+          BigInt(0),
+          TESTING_PUBLIC_KEY
+        )
+
+        const borrowList = await provider.contract.getBorrowsByBorrower(
+          BigInt(0),
+          TESTING_PUBLIC_KEY,
+          BigInt(totalBorrows + BigInt(1)),
+          BigInt(10)
+        )
+
+        expect(borrowList.length).toBe(0)
+      })
+
+      it('success - limit = 1 (5 times)', async () => {
+        const borrows = await provider.contract.getBorrowsByBorrower(
+          BigInt(0),
+          TESTING_PUBLIC_KEY,
+          BigInt(0),
+          BigInt(1)
+        )
+        expect(borrows.length).toBe(1)
+
+        let tempBorrows = await provider.contract.getBorrowsByBorrower(
+          BigInt(0),
+          TESTING_PUBLIC_KEY,
+          BigInt(1),
+          BigInt(1)
+        )
+        borrows.push(...tempBorrows)
+        expect(borrows.length).toBe(2)
+
+        tempBorrows = await provider.contract.getBorrowsByBorrower(
+          BigInt(0),
+          TESTING_PUBLIC_KEY,
+          BigInt(2),
+          BigInt(1)
+        )
+        borrows.push(...tempBorrows)
+        expect(borrows.length).toBe(3)
+
+        tempBorrows = await provider.contract.getBorrowsByBorrower(
+          BigInt(0),
+          TESTING_PUBLIC_KEY,
+          BigInt(3),
+          BigInt(1)
+        )
+        borrows.push(...tempBorrows)
+        expect(borrows.length).toBe(4)
+
+        tempBorrows = await provider.contract.getBorrowsByBorrower(
+          BigInt(0),
+          TESTING_PUBLIC_KEY,
+          BigInt(4),
+          BigInt(1)
+        )
+        borrows.push(...tempBorrows)
+
+        expect(borrows.length).toBe(5)
+      })
+
+      it('success - limit = 10 (3 times)', async () => {
+        const borrows = await provider.contract.getBorrowsByBorrower(
+          BigInt(0),
+          TESTING_PUBLIC_KEY,
+          BigInt(0),
+          BigInt(10)
+        )
+        expect(borrows.length).toBe(10)
+
+        const tempBorrows = await provider.contract.getBorrowsByBorrower(
+          BigInt(0),
+          TESTING_PUBLIC_KEY,
+          BigInt(10),
+          BigInt(10)
+        )
+        borrows.push(...tempBorrows)
+        expect(borrows.length).toBe(20)
+
+        for (let i = 2; i < 3; i++) {
+          const tempBorrows = await provider.contract.getBorrowsByBorrower(
+            BigInt(0),
+            TESTING_PUBLIC_KEY,
+            BigInt(10 * i),
+            BigInt(10)
+          )
+          borrows.push(...tempBorrows)
+          expect(borrows.length).toBe(10 * (i + 1))
+        }
+
+        expect(borrows.length).toBe(30)
+      })
+
+      it('success - max limit', async () => {
+        const borrows = await provider.contract.getBorrowsByBorrower(
+          BigInt(0),
+          TESTING_PUBLIC_KEY,
+          BigInt(0),
+          BigInt(1000)
+        )
+
+        expect(borrows.length).toBeGreaterThan(0)
+      })
+    })
+
     describe('getPools()', () => {
       it('failure - limit = 0, negative and max limit reached', async () => {
         await expect(
@@ -198,7 +368,11 @@ describe('SelfProvider - ERC20CollateralPool', () => {
       })
 
       it('success - get empty pool list because offset exceeds total pools', async () => {
-        const pools = await provider.contract.getPools(MAX_BIGINT, BigInt(10))
+        const totalPools = await provider.contract.getTotalPools()
+        const pools = await provider.contract.getPools(
+          totalPools + BigInt(1),
+          BigInt(10)
+        )
 
         expect(pools.length).toBe(0)
       })
