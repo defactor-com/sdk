@@ -37,7 +37,6 @@ describe('Utils', () => {
     it('success - data normalized successfully', async () => {
       const pool = normalizeEcp(unformattedPool)
       const coldPoolData = {
-        collateralTokenAmount: BigInt(0).toString(),
         endTime: BigInt(1711925999).toString(),
         collateralDetails: {
           collateralToken: '0x81da82b49CD9Ee7b7d67B4655784581f30590eA1',
@@ -49,7 +48,6 @@ describe('Utils', () => {
       }
 
       expect({
-        collateralTokenAmount: pool.collateralTokenAmount,
         endTime: pool.endTime,
         collateralDetails: {
           collateralToken: pool.collateralDetails.collateralToken,

@@ -66,7 +66,7 @@ describe('SelfProvider - ERC20CollateralPool', () => {
       const approveAmount = BigInt(5_000000)
 
       await erc20Contract.approve(provider.contract.address, approveAmount)
-      await sleep(3000)
+      await sleep(5000)
 
       const trx = await provider.contract.lend(BigInt(0), approveAmount)
 

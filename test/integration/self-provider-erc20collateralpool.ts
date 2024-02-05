@@ -21,7 +21,8 @@ jest.setTimeout(50000)
 describe('SelfProvider - ERC20CollateralPool', () => {
   let providerUrl: string
   let provider: SelfProvider<ERC20CollateralPool>
-  let erc20Contract: Erc20
+  let usdcTokenContract: Erc20
+  let auTokenContract: Erc20
 
   beforeAll(async () => {
     await loadEnv()
@@ -31,8 +32,13 @@ describe('SelfProvider - ERC20CollateralPool', () => {
     }
 
     providerUrl = process.env.PROVIDER_URL
-    erc20Contract = new Erc20(
+    usdcTokenContract = new Erc20(
       USD_TOKEN_ADDRESS,
+      providerUrl,
+      TESTING_PRIVATE_KEY
+    )
+    auTokenContract = new Erc20(
+      COLLATERAL_TOKEN,
       providerUrl,
       TESTING_PRIVATE_KEY
     )
@@ -48,11 +54,17 @@ describe('SelfProvider - ERC20CollateralPool', () => {
   })
 
   describe('Constant Variables', () => {
-    it('get the right liquidation protocol fee', async () => {
+    it('get liquidation protocol fee', async () => {
       const liquidationProtocolFee =
         await provider.contract.LIQUIDATION_PROTOCOL_FEE()
 
       expect(liquidationProtocolFee).toBe(BigInt('5'))
+    })
+
+    it('get usdc fees collected', async () => {
+      const usdcFeesCollected = await provider.contract.USDC_FEES_COLLECTED()
+
+      expect(usdcFeesCollected).toBeGreaterThanOrEqual(BigInt('0'))
     })
   })
 
@@ -61,7 +73,6 @@ describe('SelfProvider - ERC20CollateralPool', () => {
       const pool = await provider.contract.getPool(BigInt(0))
 
       const coldPoolData = {
-        collateralTokenAmount: BigInt(0),
         endTime: BigInt(1711925999),
         collateralDetails: {
           collateralToken: '0x81da82b49CD9Ee7b7d67B4655784581f30590eA1',
@@ -74,7 +85,6 @@ describe('SelfProvider - ERC20CollateralPool', () => {
       }
 
       expect({
-        collateralTokenAmount: pool.collateralTokenAmount,
         endTime: pool.endTime,
         collateralDetails: {
           collateralToken: pool.collateralDetails.collateralToken,
@@ -92,6 +102,78 @@ describe('SelfProvider - ERC20CollateralPool', () => {
       await expect(provider.contract.getPool(MAX_BIGINT)).rejects.toThrow(
         ecpErrorMessage.noExistPoolId(MAX_BIGINT)
       )
+    })
+
+    describe('calculateCollateralTokenAmount()', () => {
+      it('failure - pool id does not exist', async () => {
+        await expect(
+          provider.contract.calculateCollateralTokenAmount(
+            MAX_BIGINT,
+            BigInt(0)
+          )
+        ).rejects.toThrow(ecpErrorMessage.noExistPoolId(MAX_BIGINT))
+      })
+
+      it('failure - amount is equal to 0 or negative', async () => {
+        await expect(
+          provider.contract.calculateCollateralTokenAmount(BigInt(0), BigInt(0))
+        ).rejects.toThrow(ecpErrorMessage.noNegativeAmountOrZero)
+
+        await expect(
+          provider.contract.calculateCollateralTokenAmount(
+            BigInt(0),
+            BigInt(-1)
+          )
+        ).rejects.toThrow(ecpErrorMessage.noNegativeAmountOrZero)
+      })
+
+      it('success - get the collateral amount', async () => {
+        const collateralAmount =
+          await provider.contract.calculateCollateralTokenAmount(
+            BigInt(0),
+            BigInt(10)
+          )
+
+        expect(collateralAmount).toBe(BigInt('372006973844'))
+      })
+    })
+
+    describe('getBorrow()', () => {
+      it('failure - pool id does not exist', async () => {
+        await expect(
+          provider.contract.getBorrow(MAX_BIGINT, TESTING_PUBLIC_KEY, BigInt(0))
+        ).rejects.toThrow(ecpErrorMessage.noExistPoolId(MAX_BIGINT))
+      })
+
+      it('failure - wrong address format', async () => {
+        await expect(
+          provider.contract.getBorrow(BigInt(0), '0xinvalid', BigInt(0))
+        ).rejects.toThrow(ecpErrorMessage.wrongAddressFormat)
+      })
+
+      it('failure - borrow id does not exist', async () => {
+        await expect(
+          provider.contract.getBorrow(BigInt(0), TESTING_PUBLIC_KEY, MAX_BIGINT)
+        ).rejects.toThrow(ecpErrorMessage.noExistBorrowId(MAX_BIGINT))
+      })
+
+      it('success - get borrow information', async () => {
+        const borrow = await provider.contract.getBorrow(
+          BigInt(0),
+          TESTING_PUBLIC_KEY,
+          BigInt(0)
+        )
+
+        expect({
+          amount: borrow.amount,
+          borrowTime: borrow.borrowTime,
+          collateralTokenAmount: borrow.collateralTokenAmount
+        }).toEqual({
+          amount: BigInt('10'),
+          borrowTime: BigInt('1706887089'),
+          collateralTokenAmount: BigInt('372006973844')
+        })
+      })
     })
 
     describe('getPools()', () => {
@@ -190,6 +272,52 @@ describe('SelfProvider - ERC20CollateralPool', () => {
     })
   })
 
+  describe('borrow()', () => {
+    it('failure - pool id does not exist', async () => {
+      await expect(
+        provider.contract.borrow(MAX_BIGINT, BigInt(10))
+      ).rejects.toThrow(ecpErrorMessage.noExistPoolId(MAX_BIGINT))
+    })
+
+    it('failure - amount is equal to 0 or negative', async () => {
+      await expect(
+        provider.contract.borrow(BigInt(0), BigInt(0))
+      ).rejects.toThrow(ecpErrorMessage.noNegativeAmountOrZero)
+
+      await expect(
+        provider.contract.borrow(BigInt(0), BigInt(-1))
+      ).rejects.toThrow(ecpErrorMessage.noNegativeAmountOrZero)
+    })
+
+    it('failure - pool end time has been reached or overpassed', async () => {
+      await expect(
+        provider.contract.borrow(BigInt(415), BigInt(10))
+      ).rejects.toThrow(ecpErrorMessage.endTimeReached)
+    })
+
+    it('success - borrow from the pool', async () => {
+      const amountToBorrow = BigInt(10)
+      const collateralAmount =
+        await provider.contract.calculateCollateralTokenAmount(
+          BigInt(0),
+          amountToBorrow
+        )
+
+      await auTokenContract.approve(provider.contract.address, collateralAmount)
+      await sleep(10000)
+
+      const trx = await provider.contract.borrow(BigInt(0), amountToBorrow)
+
+      expect({
+        to: trx.to,
+        from: trx.from
+      }).toEqual({
+        to: ERC20_COLLATERAL_POOL_ETH_ADDRESS,
+        from: TESTING_PUBLIC_KEY
+      })
+    })
+  })
+
   describe('getTotalLendings()', () => {
     it('failure - pool does not exist', async () => {
       await expect(
@@ -268,7 +396,7 @@ describe('SelfProvider - ERC20CollateralPool', () => {
     it('success - lend tokens', async () => {
       const lendingAmount = BigInt(10_000000)
 
-      await erc20Contract.approve(provider.contract.address, lendingAmount)
+      await usdcTokenContract.approve(provider.contract.address, lendingAmount)
       await sleep(10000)
 
       const trx = await provider.contract.lend(BigInt(0), lendingAmount)
@@ -548,70 +676,94 @@ describe('SelfProvider - ERC20CollateralPool', () => {
     // })
   })
 
-  it('throws an error if collateralToken is not a valid address', async () => {
-    await expect(
-      provider.contract.createPool({
-        endTime: 1911925999,
-        interest: 10,
-        collateralDetails: {
-          collateralToken: 'invalid',
-          collateralTokenChainlink: COLLATERAL_TOKEN_CHAINLINK,
-          collateralTokenFactor: 10,
-          collateralTokenPercentage: 15
-        }
-      })
-    ).rejects.toThrow(ecpErrorMessage.wrongAddressFormatCustom())
-  })
-
-  it('throws an error if collateralTokenChainlink is not a valid address', async () => {
-    await expect(
-      provider.contract.createPool({
-        endTime: 1911925999,
-        interest: 10,
-        collateralDetails: {
-          collateralToken: COLLATERAL_TOKEN,
-          collateralTokenChainlink: 'invalid',
-          collateralTokenFactor: 10,
-          collateralTokenPercentage: 15
-        }
-      })
-    ).rejects.toThrow(ecpErrorMessage.wrongAddressFormatCustom('chainlink'))
-  })
-
-  it('throws an error if sender address is not admin', async () => {
-    await expect(
-      provider.contract.createPool({
-        endTime: 1911925999,
-        interest: 10,
-        collateralDetails: {
-          collateralToken: COLLATERAL_TOKEN,
-          collateralTokenChainlink: COLLATERAL_TOKEN_CHAINLINK,
-          collateralTokenFactor: 10,
-          collateralTokenPercentage: 15
-        }
-      })
-    ).rejects.toThrow(ecpErrorMessage.addressIsNotAdmin)
-  })
-
-  it('logs a message if the pool is ready to be created', async () => {
-    provider = new SelfProvider(
-      ERC20CollateralPool,
-      ERC20_COLLATERAL_POOL_ETH_ADDRESS,
-      providerUrl,
-      ADMIN_TESTING_PRIVATE_KEY
-    )
-
-    await provider.contract.createPool({
-      endTime: 1911925999,
-      interest: 10,
-      collateralDetails: {
-        collateralToken: COLLATERAL_TOKEN,
-        collateralTokenChainlink: COLLATERAL_TOKEN_CHAINLINK,
-        collateralTokenFactor: 10,
-        collateralTokenPercentage: 15
-      }
+  describe('createPool()', () => {
+    it('failure - collateralToken is not a valid address', async () => {
+      await expect(
+        provider.contract.createPool({
+          endTime: 1911925999,
+          interest: 10,
+          collateralDetails: {
+            collateralToken: 'invalid',
+            collateralTokenChainlink: COLLATERAL_TOKEN_CHAINLINK,
+            collateralTokenFactor: 10,
+            collateralTokenPercentage: 15
+          }
+        })
+      ).rejects.toThrow(ecpErrorMessage.wrongAddressFormatCustom())
     })
 
-    expect(true).toBe(true)
+    it('failure - collateralTokenChainlink is not a valid address', async () => {
+      await expect(
+        provider.contract.createPool({
+          endTime: 1911925999,
+          interest: 10,
+          collateralDetails: {
+            collateralToken: COLLATERAL_TOKEN,
+            collateralTokenChainlink: 'invalid',
+            collateralTokenFactor: 10,
+            collateralTokenPercentage: 15
+          }
+        })
+      ).rejects.toThrow(ecpErrorMessage.wrongAddressFormatCustom('chainlink'))
+    })
+
+    it('failure - sender address is not admin', async () => {
+      await expect(
+        provider.contract.createPool({
+          endTime: 1911925999,
+          interest: 10,
+          collateralDetails: {
+            collateralToken: COLLATERAL_TOKEN,
+            collateralTokenChainlink: COLLATERAL_TOKEN_CHAINLINK,
+            collateralTokenFactor: 10,
+            collateralTokenPercentage: 15
+          }
+        })
+      ).rejects.toThrow(ecpErrorMessage.addressIsNotAdmin)
+    })
+
+    it('failure - create pool with end time in the pass', async () => {
+      provider = new SelfProvider(
+        ERC20CollateralPool,
+        ERC20_COLLATERAL_POOL_ETH_ADDRESS,
+        providerUrl,
+        ADMIN_TESTING_PRIVATE_KEY
+      )
+
+      await expect(
+        provider.contract.createPool({
+          endTime: 1706925614,
+          interest: 10,
+          collateralDetails: {
+            collateralToken: COLLATERAL_TOKEN,
+            collateralTokenChainlink: COLLATERAL_TOKEN_CHAINLINK,
+            collateralTokenFactor: 10,
+            collateralTokenPercentage: 15
+          }
+        })
+      ).rejects.toThrow(ecpErrorMessage.timeMustBeInFuture)
+    })
+
+    it('success - create pool', async () => {
+      provider = new SelfProvider(
+        ERC20CollateralPool,
+        ERC20_COLLATERAL_POOL_ETH_ADDRESS,
+        providerUrl,
+        ADMIN_TESTING_PRIVATE_KEY
+      )
+
+      await provider.contract.createPool({
+        endTime: 1911925999,
+        interest: 10,
+        collateralDetails: {
+          collateralToken: COLLATERAL_TOKEN,
+          collateralTokenChainlink: COLLATERAL_TOKEN_CHAINLINK,
+          collateralTokenFactor: 10,
+          collateralTokenPercentage: 15
+        }
+      })
+
+      expect(true).toBe(true)
+    })
   })
 })
