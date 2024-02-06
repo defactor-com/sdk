@@ -15,7 +15,6 @@ import {
   Pool,
   PoolInput
 } from './types/erc20-collateral-token'
-import { PoolCommit } from './types/pools'
 import { Abi, PrivateKey } from './types/types'
 import { NULL_ADDRESS, Role } from './util'
 
@@ -69,8 +68,31 @@ export class ERC20CollateralPool
     return pool
   }
 
+  private async _getBorrow(
+    poolId: bigint,
+    borrowerAddress: string,
+    borrowId: bigint
+  ): Promise<Borrow> {
+    return await this.contract.borrows(poolId, borrowerAddress, borrowId)
+  }
+
   async getTotalPools(): Promise<bigint> {
     return await this.contract.poolsLength()
+  }
+
+  private async _getTotalLending(
+    poolId: bigint,
+    address: string
+  ): Promise<bigint> {
+    return await this.contract.lendingsLength(poolId, address)
+  }
+
+  private async _getLoan(
+    poolId: bigint,
+    address: string,
+    lendingId: bigint
+  ): Promise<Lend> {
+    return await this.contract.lendings(poolId, address, lendingId)
   }
 
   async getTotalBorrows(
@@ -84,14 +106,6 @@ export class ERC20CollateralPool
     }
 
     return await this.contract.borrowsLength(poolId, borrowerAddress)
-  }
-
-  async _getBorrow(
-    poolId: bigint,
-    borrowerAddress: string,
-    borrowId: bigint
-  ): Promise<Borrow> {
-    return await this.contract.borrows(poolId, borrowerAddress, borrowId)
   }
 
   async getPool(poolId: bigint): Promise<Pool> {
@@ -133,10 +147,6 @@ export class ERC20CollateralPool
     return await Promise.all(poolPromises)
   }
 
-  async _getTotalLending(poolId: bigint, address: string): Promise<bigint> {
-    return await this.contract.lendingsLength(poolId, address)
-  }
-
   async getTotalLending(poolId: bigint, address: string): Promise<bigint> {
     if (!ethers.isAddress(address)) {
       throw new Error(ecpErrorMessage.wrongAddressFormat)
@@ -145,14 +155,6 @@ export class ERC20CollateralPool
     await this.getPool(poolId)
 
     return await this._getTotalLending(poolId, address)
-  }
-
-  private async _getLoan(
-    poolId: bigint,
-    address: string,
-    lendingId: bigint
-  ): Promise<Lend> {
-    return await this.contract.lendings(poolId, address, lendingId)
   }
 
   async getLoan(
@@ -213,7 +215,7 @@ export class ERC20CollateralPool
   getPoolDetails(
     poolId: bigint,
     walletAddress: string
-  ): Promise<Erc20CollateralTokenPoolDetail | PoolCommit> {
+  ): Promise<Erc20CollateralTokenPoolDetail> {
     throw new Error(
       `Method not implemented. ${poolId.toString()}, ${walletAddress}`
     )

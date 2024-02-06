@@ -1,5 +1,7 @@
 import { ethers } from 'ethers'
 
+import { Erc20CollateralTokenPoolDetail } from '../base-contract'
+
 // TODO: use uint48 instead of number
 export type Borrow = {
   amount: bigint
@@ -54,6 +56,27 @@ export interface Views {
     poolId: bigint,
     amount: bigint
   ): Promise<bigint>
+  getTotalPools(): Promise<bigint>
+  getTotalBorrows(poolId: bigint, borrowerAddress: string): Promise<bigint>
+  getPool(poolId: bigint): Promise<Pool>
+  getPools(offset: bigint, limit: bigint): Promise<Array<Pool>>
+  getTotalLending(poolId: bigint, address: string): Promise<bigint>
+  getLoan(poolId: bigint, address: string, lendingId: bigint): Promise<Lend>
+  getPoolDetails(
+    poolId: bigint,
+    walletAddress: string
+  ): Promise<Erc20CollateralTokenPoolDetail>
+  listLoansByLender(
+    offset: bigint,
+    limit: bigint,
+    poolId: bigint,
+    lenderAddress: string
+  ): Promise<Array<Lend>>
+  getBorrow(
+    poolId: bigint,
+    borrowerAddress: string,
+    borrowId: bigint
+  ): Promise<Borrow>
 }
 
 export interface Functions {
