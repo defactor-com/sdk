@@ -227,7 +227,7 @@ export class ERC20CollateralPool
     throw new Error('Method not implemented.')
   }
 
-  async createPool(
+  async addPool(
     pool: PoolInput
   ): Promise<ethers.ContractTransaction | ethers.TransactionResponse> {
     if (!ethers.isAddress(pool.collateralDetails.collateralToken)) {
@@ -263,12 +263,6 @@ export class ERC20CollateralPool
     const pop = await this.contract.addPool.populateTransaction(formattedPool)
 
     return this.signer ? await this.signer.sendTransaction(pop) : pop
-  }
-
-  addPool(pool: PoolInput): Promise<void> {
-    throw new Error(
-      `Method not implemented. ${pool.collateralDetails.collateralToken}`
-    )
   }
 
   async lend(

@@ -57,7 +57,9 @@ export interface Views {
 }
 
 export interface Functions {
-  addPool(pool: PoolInput): Promise<void>
+  addPool(
+    pool: PoolInput
+  ): Promise<ethers.ContractTransaction | ethers.TransactionResponse>
   lend(
     poolId: bigint,
     amount: bigint

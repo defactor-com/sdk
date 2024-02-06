@@ -892,10 +892,10 @@ describe('SelfProvider - ERC20CollateralPool', () => {
     // })
   })
 
-  describe('createPool()', () => {
+  describe('addPool()', () => {
     it('failure - collateralToken is not a valid address', async () => {
       await expect(
-        provider.contract.createPool({
+        provider.contract.addPool({
           endTime: 1911925999,
           interest: 10,
           collateralDetails: {
@@ -910,7 +910,7 @@ describe('SelfProvider - ERC20CollateralPool', () => {
 
     it('failure - collateralTokenChainlink is not a valid address', async () => {
       await expect(
-        provider.contract.createPool({
+        provider.contract.addPool({
           endTime: 1911925999,
           interest: 10,
           collateralDetails: {
@@ -925,7 +925,7 @@ describe('SelfProvider - ERC20CollateralPool', () => {
 
     it('failure - sender address is not admin', async () => {
       await expect(
-        provider.contract.createPool({
+        provider.contract.addPool({
           endTime: 1911925999,
           interest: 10,
           collateralDetails: {
@@ -947,7 +947,7 @@ describe('SelfProvider - ERC20CollateralPool', () => {
       )
 
       await expect(
-        provider.contract.createPool({
+        provider.contract.addPool({
           endTime: 1706925614,
           interest: 10,
           collateralDetails: {
@@ -968,7 +968,7 @@ describe('SelfProvider - ERC20CollateralPool', () => {
         ADMIN_TESTING_PRIVATE_KEY
       )
 
-      await provider.contract.createPool({
+      await provider.contract.addPool({
         endTime: 1911925999,
         interest: 10,
         collateralDetails: {
