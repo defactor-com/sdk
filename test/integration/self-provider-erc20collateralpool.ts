@@ -434,6 +434,48 @@ describe('SelfProvider - ERC20CollateralPool', () => {
       })
     })
 
+    describe('calculateRepayInterest()', () => {
+      it('failure - pool id does not exist', async () => {
+        await expect(
+          provider.contract.calculateRepayInterest(
+            BigInt(MAX_BIGINT),
+            BigInt(0),
+            TESTING_PUBLIC_KEY
+          )
+        ).rejects.toThrow(ecpErrorMessage.noExistPoolId(MAX_BIGINT))
+      })
+
+      it('failure - wrong address format', async () => {
+        await expect(
+          provider.contract.calculateRepayInterest(
+            BigInt(0),
+            BigInt(0),
+            '0xinvalid'
+          )
+        ).rejects.toThrow(ecpErrorMessage.wrongAddressFormat)
+      })
+
+      it('failure - borrow id does not exist', async () => {
+        await expect(
+          provider.contract.calculateRepayInterest(
+            BigInt(0),
+            BigInt(MAX_BIGINT),
+            TESTING_PUBLIC_KEY
+          )
+        ).rejects.toThrow(ecpErrorMessage.noExistBorrowId(MAX_BIGINT))
+      })
+
+      it('success - get interest amount', async () => {
+        const repayInterest = await provider.contract.calculateRepayInterest(
+          BigInt(0),
+          BigInt(0),
+          TESTING_PUBLIC_KEY
+        )
+
+        expect(repayInterest).toBeGreaterThanOrEqual(BigInt(0))
+      })
+    })
+
     it('get loan', async () => {
       const loan = await provider.contract.getLoan(
         BigInt(0),

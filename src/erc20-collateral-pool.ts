@@ -49,6 +49,16 @@ export class ERC20CollateralPool
     return pool.collateralDetails.collateralToken !== NULL_ADDRESS
   }
 
+  private async _existBorrow(
+    poolId: bigint,
+    borrowId: bigint,
+    borrowerAddress: string
+  ): Promise<boolean> {
+    const totalBorrows = await this.getTotalBorrows(poolId, borrowerAddress)
+
+    return borrowId < totalBorrows
+  }
+
   private async _getPoolById(poolId: bigint): Promise<Pool | null> {
     const pool = await this.contract.pools(poolId)
 
@@ -304,9 +314,13 @@ export class ERC20CollateralPool
     borrowerAddress: string,
     borrowId: bigint
   ): Promise<Borrow> {
-    const totalBorrows = await this.getTotalBorrows(poolId, borrowerAddress)
+    const existBorrow = await this._existBorrow(
+      poolId,
+      borrowId,
+      borrowerAddress
+    )
 
-    if (borrowId >= totalBorrows) {
+    if (!existBorrow) {
       throw new Error(ecpErrorMessage.noExistBorrowId(borrowId))
     }
 
@@ -359,6 +373,34 @@ export class ERC20CollateralPool
     }
 
     return await Promise.all(borrowPromises)
+  }
+
+  async calculateRepayInterest(
+    poolId: bigint,
+    borrowId: bigint,
+    borrowerAddress: string
+  ): Promise<bigint> {
+    await this.getPool(poolId)
+
+    if (!ethers.isAddress(borrowerAddress)) {
+      throw new Error(ecpErrorMessage.wrongAddressFormat)
+    }
+
+    const existBorrow = await this._existBorrow(
+      poolId,
+      borrowId,
+      borrowerAddress
+    )
+
+    if (!existBorrow) {
+      throw new Error(ecpErrorMessage.noExistBorrowId(borrowId))
+    }
+
+    return await this.contract.calculateRepayInterest(
+      poolId,
+      borrowId,
+      borrowerAddress
+    )
   }
 
   repay(poolId: bigint, amount: bigint): Promise<void> {
