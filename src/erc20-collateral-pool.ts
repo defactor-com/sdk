@@ -373,8 +373,8 @@ export class ERC20CollateralPool
 
   async calculateRepayInterest(
     poolId: bigint,
-    borrowId: bigint,
-    borrowerAddress: string
+    borrowerAddress: string,
+    borrowId: bigint
   ): Promise<bigint> {
     await this.getPool(poolId)
 
@@ -399,8 +399,26 @@ export class ERC20CollateralPool
     )
   }
 
-  repay(poolId: bigint, amount: bigint): Promise<void> {
-    throw new Error(`Method not implemented. ${poolId.toString()}, ${amount}`)
+  async repay(
+    poolId: bigint,
+    borrowerAddress: string,
+    borrowId: bigint
+  ): Promise<ethers.ContractTransaction | ethers.TransactionResponse> {
+    await this.getPool(poolId)
+
+    if (!ethers.isAddress(borrowerAddress)) {
+      throw new Error(ecpErrorMessage.wrongAddressFormat)
+    }
+
+    const borrow = await this.getBorrow(poolId, borrowerAddress, borrowId)
+
+    if (borrow.repayTime > 0) {
+      throw new Error(ecpErrorMessage.borrowAlreadyRepaid)
+    }
+
+    const pop = await this.contract.repay.populateTransaction(poolId, borrowId)
+
+    return this.signer ? await this.signer.sendTransaction(pop) : pop
   }
 
   claimRewards(poolId: bigint, lendingId: bigint): Promise<void> {

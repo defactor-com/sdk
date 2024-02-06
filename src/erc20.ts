@@ -2,6 +2,7 @@ import { ethers } from 'ethers'
 
 import { miscErc20 } from './artifacts'
 import { BaseContract } from './base-contract'
+import { ecpErrorMessage } from './error-messages'
 import { Abi, PrivateKey } from './types/types'
 
 export class Erc20 extends BaseContract {
@@ -28,8 +29,8 @@ export class Erc20 extends BaseContract {
       )
     }
 
-    if (amount <= 0) {
-      throw new Error('Amount cannot be negative or 0')
+    if (amount < 0) {
+      throw new Error(ecpErrorMessage.noNegativeAmountOrZero)
     }
 
     const pop = await this.contract.approve.populateTransaction(address, amount)

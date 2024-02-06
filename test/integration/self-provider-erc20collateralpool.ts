@@ -71,7 +71,6 @@ describe('SelfProvider - ERC20CollateralPool', () => {
   describe('Views', () => {
     it('get a pool by id', async () => {
       const pool = await provider.contract.getPool(BigInt(0))
-
       const coldPoolData = {
         endTime: BigInt(1711925999),
         collateralDetails: {
@@ -83,7 +82,6 @@ describe('SelfProvider - ERC20CollateralPool', () => {
         },
         interest: BigInt(10)
       }
-
       expect({
         endTime: pool.endTime,
         collateralDetails: {
@@ -97,13 +95,11 @@ describe('SelfProvider - ERC20CollateralPool', () => {
         interest: pool.interest
       }).toEqual(coldPoolData)
     })
-
     it('get error because wrong pool id', async () => {
       await expect(provider.contract.getPool(MAX_BIGINT)).rejects.toThrow(
         ecpErrorMessage.noExistPoolId(MAX_BIGINT)
       )
     })
-
     describe('calculateCollateralTokenAmount()', () => {
       it('failure - pool id does not exist', async () => {
         await expect(
@@ -113,12 +109,10 @@ describe('SelfProvider - ERC20CollateralPool', () => {
           )
         ).rejects.toThrow(ecpErrorMessage.noExistPoolId(MAX_BIGINT))
       })
-
       it('failure - amount is equal to 0 or negative', async () => {
         await expect(
           provider.contract.calculateCollateralTokenAmount(BigInt(0), BigInt(0))
         ).rejects.toThrow(ecpErrorMessage.noNegativeAmountOrZero)
-
         await expect(
           provider.contract.calculateCollateralTokenAmount(
             BigInt(0),
@@ -126,44 +120,37 @@ describe('SelfProvider - ERC20CollateralPool', () => {
           )
         ).rejects.toThrow(ecpErrorMessage.noNegativeAmountOrZero)
       })
-
       it('success - get the collateral amount', async () => {
         const collateralAmount =
           await provider.contract.calculateCollateralTokenAmount(
             BigInt(0),
             BigInt(10)
           )
-
         expect(collateralAmount).toBe(BigInt('372006973844'))
       })
     })
-
     describe('getBorrow()', () => {
       it('failure - pool id does not exist', async () => {
         await expect(
           provider.contract.getBorrow(MAX_BIGINT, TESTING_PUBLIC_KEY, BigInt(0))
         ).rejects.toThrow(ecpErrorMessage.noExistPoolId(MAX_BIGINT))
       })
-
       it('failure - wrong address format', async () => {
         await expect(
           provider.contract.getBorrow(BigInt(0), '0xinvalid', BigInt(0))
         ).rejects.toThrow(ecpErrorMessage.wrongAddressFormat)
       })
-
       it('failure - borrow id does not exist', async () => {
         await expect(
           provider.contract.getBorrow(BigInt(0), TESTING_PUBLIC_KEY, MAX_BIGINT)
         ).rejects.toThrow(ecpErrorMessage.noExistBorrowId(MAX_BIGINT))
       })
-
       it('success - get borrow information', async () => {
         const borrow = await provider.contract.getBorrow(
           BigInt(0),
           TESTING_PUBLIC_KEY,
           BigInt(0)
         )
-
         expect({
           amount: borrow.amount,
           borrowTime: borrow.borrowTime,
@@ -175,7 +162,6 @@ describe('SelfProvider - ERC20CollateralPool', () => {
         })
       })
     })
-
     describe('getBorrowsByBorrower()', () => {
       it('failure - pool id does not exist', async () => {
         await expect(
@@ -187,7 +173,6 @@ describe('SelfProvider - ERC20CollateralPool', () => {
           )
         ).rejects.toThrow(ecpErrorMessage.noExistPoolId(MAX_BIGINT))
       })
-
       it('failure - wrong address format', async () => {
         await expect(
           provider.contract.getBorrowsByBorrower(
@@ -198,7 +183,6 @@ describe('SelfProvider - ERC20CollateralPool', () => {
           )
         ).rejects.toThrow(ecpErrorMessage.wrongAddressFormat)
       })
-
       it('failure - limit = 0, negative and max limit reached', async () => {
         await expect(
           provider.contract.getBorrowsByBorrower(
@@ -208,7 +192,6 @@ describe('SelfProvider - ERC20CollateralPool', () => {
             BigInt(0)
           )
         ).rejects.toThrow(ecpErrorMessage.noNegativeOffset)
-
         await expect(
           provider.contract.getBorrowsByBorrower(
             BigInt(0),
@@ -217,7 +200,6 @@ describe('SelfProvider - ERC20CollateralPool', () => {
             BigInt(-10)
           )
         ).rejects.toThrow(ecpErrorMessage.noNegativeLimitOrZero)
-
         await expect(
           provider.contract.getBorrowsByBorrower(
             BigInt(0),
@@ -227,7 +209,6 @@ describe('SelfProvider - ERC20CollateralPool', () => {
           )
         ).rejects.toThrow(ecpErrorMessage.maxLimitAllowed)
       })
-
       it('failure - not accepted negative offset', async () => {
         await expect(
           provider.contract.getBorrowsByBorrower(
@@ -238,23 +219,19 @@ describe('SelfProvider - ERC20CollateralPool', () => {
           )
         ).rejects.toThrow(ecpErrorMessage.noNegativeOffset)
       })
-
       it('success - get empty borrow list because offset exceeds total borrows', async () => {
         const totalBorrows = await provider.contract.getTotalBorrows(
           BigInt(0),
           TESTING_PUBLIC_KEY
         )
-
         const borrowList = await provider.contract.getBorrowsByBorrower(
           BigInt(0),
           TESTING_PUBLIC_KEY,
           BigInt(totalBorrows + BigInt(1)),
           BigInt(10)
         )
-
         expect(borrowList.length).toBe(0)
       })
-
       it('success - limit = 1 (5 times)', async () => {
         const borrows = await provider.contract.getBorrowsByBorrower(
           BigInt(0),
@@ -263,7 +240,6 @@ describe('SelfProvider - ERC20CollateralPool', () => {
           BigInt(1)
         )
         expect(borrows.length).toBe(1)
-
         let tempBorrows = await provider.contract.getBorrowsByBorrower(
           BigInt(0),
           TESTING_PUBLIC_KEY,
@@ -272,7 +248,6 @@ describe('SelfProvider - ERC20CollateralPool', () => {
         )
         borrows.push(...tempBorrows)
         expect(borrows.length).toBe(2)
-
         tempBorrows = await provider.contract.getBorrowsByBorrower(
           BigInt(0),
           TESTING_PUBLIC_KEY,
@@ -281,7 +256,6 @@ describe('SelfProvider - ERC20CollateralPool', () => {
         )
         borrows.push(...tempBorrows)
         expect(borrows.length).toBe(3)
-
         tempBorrows = await provider.contract.getBorrowsByBorrower(
           BigInt(0),
           TESTING_PUBLIC_KEY,
@@ -290,7 +264,6 @@ describe('SelfProvider - ERC20CollateralPool', () => {
         )
         borrows.push(...tempBorrows)
         expect(borrows.length).toBe(4)
-
         tempBorrows = await provider.contract.getBorrowsByBorrower(
           BigInt(0),
           TESTING_PUBLIC_KEY,
@@ -298,10 +271,8 @@ describe('SelfProvider - ERC20CollateralPool', () => {
           BigInt(1)
         )
         borrows.push(...tempBorrows)
-
         expect(borrows.length).toBe(5)
       })
-
       it('success - limit = 10 (3 times)', async () => {
         const borrows = await provider.contract.getBorrowsByBorrower(
           BigInt(0),
@@ -310,7 +281,6 @@ describe('SelfProvider - ERC20CollateralPool', () => {
           BigInt(10)
         )
         expect(borrows.length).toBe(10)
-
         const tempBorrows = await provider.contract.getBorrowsByBorrower(
           BigInt(0),
           TESTING_PUBLIC_KEY,
@@ -319,7 +289,6 @@ describe('SelfProvider - ERC20CollateralPool', () => {
         )
         borrows.push(...tempBorrows)
         expect(borrows.length).toBe(20)
-
         for (let i = 2; i < 3; i++) {
           const tempBorrows = await provider.contract.getBorrowsByBorrower(
             BigInt(0),
@@ -330,10 +299,8 @@ describe('SelfProvider - ERC20CollateralPool', () => {
           borrows.push(...tempBorrows)
           expect(borrows.length).toBe(10 * (i + 1))
         }
-
         expect(borrows.length).toBe(30)
       })
-
       it('success - max limit', async () => {
         const borrows = await provider.contract.getBorrowsByBorrower(
           BigInt(0),
@@ -341,80 +308,63 @@ describe('SelfProvider - ERC20CollateralPool', () => {
           BigInt(0),
           BigInt(1000)
         )
-
         expect(borrows.length).toBeGreaterThan(0)
       })
     })
-
     describe('getPools()', () => {
       it('failure - limit = 0, negative and max limit reached', async () => {
         await expect(
           provider.contract.getPools(BigInt(-10), BigInt(0))
         ).rejects.toThrow(ecpErrorMessage.noNegativeOffset)
-
         await expect(
           provider.contract.getPools(BigInt(0), BigInt(-10))
         ).rejects.toThrow(ecpErrorMessage.noNegativeLimitOrZero)
-
         await expect(
           provider.contract.getPools(BigInt(0), BigInt(1001))
         ).rejects.toThrow(ecpErrorMessage.maxLimitAllowed)
       })
-
       it('failure - not accepted negative offset', async () => {
         await expect(
           provider.contract.getPools(BigInt(-10), BigInt(10))
         ).rejects.toThrow(ecpErrorMessage.noNegativeOffset)
       })
-
       it('success - get empty pool list because offset exceeds total pools', async () => {
         const totalPools = await provider.contract.getTotalPools()
         const pools = await provider.contract.getPools(
           totalPools + BigInt(1),
           BigInt(10)
         )
-
         expect(pools.length).toBe(0)
       })
-
       it('success - offset = 0', async () => {
         const pools = await provider.contract.getPools(BigInt(0), BigInt(10))
-
         expect(pools.length).toBe(10)
       })
-
       it('success - limit = 1 (5 times)', async () => {
         const pools = await provider.contract.getPools(BigInt(0), BigInt(1))
         expect(pools.length).toBe(1)
-
         let tempPools = await provider.contract.getPools(BigInt(1), BigInt(1))
         pools.push(...tempPools)
         expect(pools.length).toBe(2)
-
         tempPools = await provider.contract.getPools(BigInt(2), BigInt(1))
         pools.push(...tempPools)
         expect(pools.length).toBe(3)
-
         tempPools = await provider.contract.getPools(BigInt(3), BigInt(1))
         pools.push(...tempPools)
         expect(pools.length).toBe(4)
-
         tempPools = await provider.contract.getPools(BigInt(4), BigInt(1))
         pools.push(...tempPools)
         expect(pools.length).toBe(5)
       })
-
       it('success - limit = 10 (10 times)', async () => {
         const pools = await provider.contract.getPools(BigInt(0), BigInt(10))
         expect(pools.length).toBe(10)
-
         const tempPools = await provider.contract.getPools(
           BigInt(10),
           BigInt(10)
         )
         pools.push(...tempPools)
         expect(pools.length).toBe(20)
-
         for (let i = 2; i < 10; i++) {
           const tempPools = await provider.contract.getPools(
             BigInt(10 * i),
@@ -423,17 +373,13 @@ describe('SelfProvider - ERC20CollateralPool', () => {
           pools.push(...tempPools)
           expect(pools.length).toBe(10 * (i + 1))
         }
-
         expect(pools.length).toBe(100)
       })
-
       it('success - max limit', async () => {
         const pools = await provider.contract.getPools(BigInt(0), BigInt(1000))
-
         expect(pools.length).toBeGreaterThan(0)
       })
     })
-
     describe('calculateRepayInterest()', () => {
       it('failure - pool id does not exist', async () => {
         await expect(
@@ -444,7 +390,6 @@ describe('SelfProvider - ERC20CollateralPool', () => {
           )
         ).rejects.toThrow(ecpErrorMessage.noExistPoolId(MAX_BIGINT))
       })
-
       it('failure - wrong address format', async () => {
         await expect(
           provider.contract.calculateRepayInterest(
@@ -454,7 +399,6 @@ describe('SelfProvider - ERC20CollateralPool', () => {
           )
         ).rejects.toThrow(ecpErrorMessage.wrongAddressFormat)
       })
-
       it('failure - borrow id does not exist', async () => {
         await expect(
           provider.contract.calculateRepayInterest(
@@ -464,71 +408,59 @@ describe('SelfProvider - ERC20CollateralPool', () => {
           )
         ).rejects.toThrow(ecpErrorMessage.noExistBorrowId(MAX_BIGINT))
       })
-
       it('success - get interest amount', async () => {
         const repayInterest = await provider.contract.calculateRepayInterest(
           BigInt(0),
           TESTING_PUBLIC_KEY,
           BigInt(0)
         )
-
         expect(repayInterest).toBeGreaterThanOrEqual(BigInt(0))
       })
     })
-
     describe('getTotalLendings()', () => {
       it('failure - pool does not exist', async () => {
         await expect(
           provider.contract.getTotalLending(MAX_BIGINT, TESTING_PUBLIC_KEY)
         ).rejects.toThrow(ecpErrorMessage.noExistPoolId(MAX_BIGINT))
       })
-
       it('failure - wrong address format', async () => {
         await expect(
           provider.contract.getTotalLending(BigInt(0), '0xinvalid')
         ).rejects.toThrow(ecpErrorMessage.wrongAddressFormat)
       })
-
       it('success - get total loans', async () => {
         const totalLoans = await provider.contract.getTotalLending(
           BigInt(0),
           TESTING_PUBLIC_KEY
         )
-
         expect(totalLoans).toBeGreaterThanOrEqual(BigInt('6'))
       })
     })
-
     describe('getLoan()', () => {
       it('failure - pool does not exist', async () => {
         await expect(
           provider.contract.getLoan(MAX_BIGINT, TESTING_PUBLIC_KEY, BigInt(0))
         ).rejects.toThrow(ecpErrorMessage.noExistPoolId(MAX_BIGINT))
       })
-
       it('failure - wrong address format', async () => {
         await expect(
           provider.contract.getLoan(BigInt(0), '0xinvalid', BigInt(0))
         ).rejects.toThrow(ecpErrorMessage.wrongAddressFormat)
       })
-
       it('failure - loan object does not exist', async () => {
         await expect(
           provider.contract.getLoan(BigInt(0), TESTING_PUBLIC_KEY, MAX_BIGINT)
         ).rejects.toThrow(ecpErrorMessage.noExistLendingId(MAX_BIGINT))
       })
-
       it('success - get loan', async () => {
         const loan = await provider.contract.getLoan(
           BigInt(0),
           TESTING_PUBLIC_KEY,
           BigInt(0)
         )
-
         expect(loan.amount).toBe(BigInt(10_000000))
       })
     })
-
     describe('listLoansByLender()', () => {
       it('failure - pool does not exist', async () => {
         await expect(
@@ -540,7 +472,6 @@ describe('SelfProvider - ERC20CollateralPool', () => {
           )
         ).rejects.toThrow(ecpErrorMessage.noExistPoolId(MAX_BIGINT))
       })
-
       it('failure - wrong address format', async () => {
         await expect(
           provider.contract.listLoansByLender(
@@ -551,7 +482,6 @@ describe('SelfProvider - ERC20CollateralPool', () => {
           )
         ).rejects.toThrow(ecpErrorMessage.wrongAddressFormat)
       })
-
       it('failure - limit is less or equal than 0 and exceeds max limit', async () => {
         await expect(
           provider.contract.listLoansByLender(
@@ -561,7 +491,6 @@ describe('SelfProvider - ERC20CollateralPool', () => {
             TESTING_PUBLIC_KEY
           )
         ).rejects.toThrow(ecpErrorMessage.noNegativeLimitOrZero)
-
         await expect(
           provider.contract.listLoansByLender(
             BigInt(0),
@@ -570,7 +499,6 @@ describe('SelfProvider - ERC20CollateralPool', () => {
             TESTING_PUBLIC_KEY
           )
         ).rejects.toThrow(ecpErrorMessage.noNegativeLimitOrZero)
-
         await expect(
           provider.contract.listLoansByLender(
             BigInt(0),
@@ -580,7 +508,6 @@ describe('SelfProvider - ERC20CollateralPool', () => {
           )
         ).rejects.toThrow(ecpErrorMessage.maxLimitAllowed)
       })
-
       it('failure - not accepted negative offset', async () => {
         await expect(
           provider.contract.listLoansByLender(
@@ -591,7 +518,6 @@ describe('SelfProvider - ERC20CollateralPool', () => {
           )
         ).rejects.toThrow(ecpErrorMessage.noNegativeOffset)
       })
-
       it('success - offset = 0', async () => {
         const loans = await provider.contract.listLoansByLender(
           BigInt(0),
@@ -599,10 +525,8 @@ describe('SelfProvider - ERC20CollateralPool', () => {
           BigInt(0),
           TESTING_PUBLIC_KEY
         )
-
         expect(loans.length).toBe(10)
       })
-
       it('success - offset exceeds max loans', async () => {
         const loans = await provider.contract.listLoansByLender(
           MAX_BIGINT,
@@ -610,13 +534,10 @@ describe('SelfProvider - ERC20CollateralPool', () => {
           BigInt(0),
           TESTING_PUBLIC_KEY
         )
-
         expect(loans.length).toBe(0)
       })
-
       it('success - limit = 1 with offset 0, 1, ..., 5', async () => {
         const warehouseLoans = new Array<Lend>()
-
         let tempLoans = await provider.contract.listLoansByLender(
           BigInt(0),
           BigInt(1),
@@ -624,9 +545,7 @@ describe('SelfProvider - ERC20CollateralPool', () => {
           TESTING_PUBLIC_KEY
         )
         warehouseLoans.push(...tempLoans)
-
         expect(warehouseLoans.length).toBe(1)
-
         tempLoans = await provider.contract.listLoansByLender(
           BigInt(1),
           BigInt(1),
@@ -634,9 +553,7 @@ describe('SelfProvider - ERC20CollateralPool', () => {
           TESTING_PUBLIC_KEY
         )
         warehouseLoans.push(...tempLoans)
-
         expect(warehouseLoans.length).toBe(2)
-
         tempLoans = await provider.contract.listLoansByLender(
           BigInt(2),
           BigInt(1),
@@ -644,9 +561,7 @@ describe('SelfProvider - ERC20CollateralPool', () => {
           TESTING_PUBLIC_KEY
         )
         warehouseLoans.push(...tempLoans)
-
         expect(warehouseLoans.length).toBe(3)
-
         tempLoans = await provider.contract.listLoansByLender(
           BigInt(3),
           BigInt(1),
@@ -654,9 +569,7 @@ describe('SelfProvider - ERC20CollateralPool', () => {
           TESTING_PUBLIC_KEY
         )
         warehouseLoans.push(...tempLoans)
-
         expect(warehouseLoans.length).toBe(4)
-
         tempLoans = await provider.contract.listLoansByLender(
           BigInt(4),
           BigInt(1),
@@ -664,9 +577,7 @@ describe('SelfProvider - ERC20CollateralPool', () => {
           TESTING_PUBLIC_KEY
         )
         warehouseLoans.push(...tempLoans)
-
         expect(warehouseLoans.length).toBe(5)
-
         tempLoans = await provider.contract.listLoansByLender(
           BigInt(5),
           BigInt(1),
@@ -674,13 +585,10 @@ describe('SelfProvider - ERC20CollateralPool', () => {
           TESTING_PUBLIC_KEY
         )
         warehouseLoans.push(...tempLoans)
-
         expect(warehouseLoans.length).toBe(6)
       })
-
       it('success - limit = 10 with offset 0, 10, 20, ..., 90', async () => {
         const warehouseLoans = new Array<Lend>()
-
         let tempLoans = await provider.contract.listLoansByLender(
           BigInt(0),
           BigInt(10),
@@ -688,9 +596,7 @@ describe('SelfProvider - ERC20CollateralPool', () => {
           TESTING_PUBLIC_KEY
         )
         warehouseLoans.push(...tempLoans)
-
         expect(warehouseLoans.length).toBe(10)
-
         tempLoans = await provider.contract.listLoansByLender(
           BigInt(10),
           BigInt(10),
@@ -698,9 +604,7 @@ describe('SelfProvider - ERC20CollateralPool', () => {
           TESTING_PUBLIC_KEY
         )
         warehouseLoans.push(...tempLoans)
-
         expect(warehouseLoans.length).toBe(20)
-
         tempLoans = await provider.contract.listLoansByLender(
           BigInt(20),
           BigInt(10),
@@ -708,9 +612,7 @@ describe('SelfProvider - ERC20CollateralPool', () => {
           TESTING_PUBLIC_KEY
         )
         warehouseLoans.push(...tempLoans)
-
         expect(warehouseLoans.length).toBe(30)
-
         tempLoans = await provider.contract.listLoansByLender(
           BigInt(30),
           BigInt(10),
@@ -718,9 +620,7 @@ describe('SelfProvider - ERC20CollateralPool', () => {
           TESTING_PUBLIC_KEY
         )
         warehouseLoans.push(...tempLoans)
-
         expect(warehouseLoans.length).toBe(40)
-
         tempLoans = await provider.contract.listLoansByLender(
           BigInt(40),
           BigInt(10),
@@ -728,9 +628,7 @@ describe('SelfProvider - ERC20CollateralPool', () => {
           TESTING_PUBLIC_KEY
         )
         warehouseLoans.push(...tempLoans)
-
         expect(warehouseLoans.length).toBe(50)
-
         tempLoans = await provider.contract.listLoansByLender(
           BigInt(50),
           BigInt(10),
@@ -738,9 +636,7 @@ describe('SelfProvider - ERC20CollateralPool', () => {
           TESTING_PUBLIC_KEY
         )
         warehouseLoans.push(...tempLoans)
-
         expect(warehouseLoans.length).toBe(60)
-
         tempLoans = await provider.contract.listLoansByLender(
           BigInt(60),
           BigInt(10),
@@ -748,9 +644,7 @@ describe('SelfProvider - ERC20CollateralPool', () => {
           TESTING_PUBLIC_KEY
         )
         warehouseLoans.push(...tempLoans)
-
         expect(warehouseLoans.length).toBe(70)
-
         tempLoans = await provider.contract.listLoansByLender(
           BigInt(70),
           BigInt(10),
@@ -758,9 +652,7 @@ describe('SelfProvider - ERC20CollateralPool', () => {
           TESTING_PUBLIC_KEY
         )
         warehouseLoans.push(...tempLoans)
-
         expect(warehouseLoans.length).toBe(80)
-
         tempLoans = await provider.contract.listLoansByLender(
           BigInt(80),
           BigInt(10),
@@ -768,9 +660,7 @@ describe('SelfProvider - ERC20CollateralPool', () => {
           TESTING_PUBLIC_KEY
         )
         warehouseLoans.push(...tempLoans)
-
         expect(warehouseLoans.length).toBe(90)
-
         tempLoans = await provider.contract.listLoansByLender(
           BigInt(90),
           BigInt(10),
@@ -778,10 +668,8 @@ describe('SelfProvider - ERC20CollateralPool', () => {
           TESTING_PUBLIC_KEY
         )
         warehouseLoans.push(...tempLoans)
-
         expect(warehouseLoans.length).toBe(100)
       })
-
       // it('success - limit = 1000', async () => {
       //   const loans = await provider.contract.listLoansByLender(
       //     BigInt(0),
@@ -789,7 +677,6 @@ describe('SelfProvider - ERC20CollateralPool', () => {
       //     BigInt(0),
       //     TESTING_PUBLIC_KEY
       //   )
-
       //   expect(loans.length).toBe(1000)
       // })
     })
@@ -976,6 +863,102 @@ describe('SelfProvider - ERC20CollateralPool', () => {
         })
 
         expect(true).toBe(true)
+      })
+    })
+
+    describe('repay()', () => {
+      it('failure - pool id does not exist', async () => {
+        await expect(
+          provider.contract.repay(MAX_BIGINT, TESTING_PUBLIC_KEY, BigInt(0))
+        ).rejects.toThrow(ecpErrorMessage.noExistPoolId(MAX_BIGINT))
+      })
+
+      it('failure - wrong address format', async () => {
+        await expect(
+          provider.contract.repay(BigInt(0), '0xinvalid', BigInt(0))
+        ).rejects.toThrow(ecpErrorMessage.wrongAddressFormat)
+      })
+
+      it('failure - borrow id does not exist', async () => {
+        await expect(
+          provider.contract.repay(BigInt(0), TESTING_PUBLIC_KEY, MAX_BIGINT)
+        ).rejects.toThrow(ecpErrorMessage.noExistBorrowId(MAX_BIGINT))
+      })
+
+      it('failure - borrow has been repaid', async () => {
+        const borrow = await provider.contract.getBorrow(
+          BigInt(0),
+          TESTING_PUBLIC_KEY,
+          BigInt(1)
+        )
+        const repayInterest = await provider.contract.calculateRepayInterest(
+          BigInt(0),
+          TESTING_PUBLIC_KEY,
+          BigInt(1)
+        )
+
+        await usdcTokenContract.approve(
+          provider.contract.address,
+          repayInterest + borrow.amount
+        )
+        await sleep(10000)
+
+        await expect(
+          provider.contract.repay(BigInt(0), TESTING_PUBLIC_KEY, BigInt(1))
+        ).rejects.toThrow(ecpErrorMessage.borrowAlreadyRepaid)
+      })
+
+      it('success - repay the borrow', async () => {
+        const totalBorrows = await provider.contract.getTotalBorrows(
+          BigInt(0),
+          TESTING_PUBLIC_KEY
+        )
+        const amountToBorrow = BigInt(10)
+        const collateralAmount =
+          await provider.contract.calculateCollateralTokenAmount(
+            BigInt(0),
+            amountToBorrow
+          )
+
+        await auTokenContract.approve(
+          provider.contract.address,
+          collateralAmount
+        )
+        await sleep(10000)
+        await provider.contract.borrow(BigInt(0), amountToBorrow)
+        await sleep(10000)
+
+        const borrow = await provider.contract.getBorrow(
+          BigInt(0),
+          TESTING_PUBLIC_KEY,
+          totalBorrows
+        )
+
+        const repayInterest = await provider.contract.calculateRepayInterest(
+          BigInt(0),
+          TESTING_PUBLIC_KEY,
+          totalBorrows
+        )
+
+        await usdcTokenContract.approve(
+          provider.contract.address,
+          repayInterest + borrow.amount
+        )
+        await sleep(10000)
+
+        const trx = await provider.contract.repay(
+          BigInt(0),
+          TESTING_PUBLIC_KEY,
+          totalBorrows
+        )
+
+        expect({
+          to: trx.to,
+          from: trx.from
+        }).toEqual({
+          to: ERC20_COLLATERAL_POOL_ETH_ADDRESS,
+          from: TESTING_PUBLIC_KEY
+        })
       })
     })
   })

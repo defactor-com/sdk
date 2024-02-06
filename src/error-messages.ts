@@ -15,5 +15,6 @@ export const ecpErrorMessage = {
   addressIsNotAdmin: 'Sender address is not admin',
   endTimeReached: 'Pool has ended',
   timeMustBeInFuture: 'Time must be in the future',
-  amountOverpassPoolBalance: 'Amount overpass the pool available amount'
+  amountOverpassPoolBalance: 'Amount overpass the pool available amount',
+  borrowAlreadyRepaid: 'Borrow already repaid'
 }

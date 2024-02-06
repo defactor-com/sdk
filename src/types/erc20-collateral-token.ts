@@ -91,7 +91,11 @@ export interface Functions {
     poolId: bigint,
     amount: bigint
   ): Promise<ethers.ContractTransaction | ethers.TransactionResponse>
-  repay(poolId: bigint, amount: bigint): Promise<void>
+  repay(
+    poolId: bigint,
+    borrowerAddress: string,
+    borrowId: bigint
+  ): Promise<ethers.ContractTransaction | ethers.TransactionResponse>
   claimRewards(poolId: bigint, lendingId: bigint): Promise<void>
   claimMultiple(poolId: bigint): Promise<void>
   claimUnliquidatedCollateral(poolId: bigint, borrowId: bigint): Promise<void>
