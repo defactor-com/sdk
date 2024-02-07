@@ -442,13 +442,14 @@ export class ERC20CollateralPool
     )
   }
 
-  // TODO: create unit test for this function
-  async getLiquidationInfo(poolId: bigint) {
-    const pool = await this.getPool(poolId)
-
+  async getLiquidationInfo(pool: Pool) {
     if (pool.endTime > Date.now()) {
       throw new Error(ecpErrorMessage.poolIsNotClosed)
     }
+
+    console.log(`pool.liquidatedCollateral: ${pool.liquidatedCollateral}`)
+    console.log(`pool.collateralTokenAmount: ${pool.collateralTokenAmount}`)
+    console.log(`pool.liquidated: ${pool.liquidated}`)
 
     if (
       pool.liquidatedCollateral > BigInt(0) ||
