@@ -1,5 +1,6 @@
 import * as Artifacts from './artifacts'
 import * as AssistedProvider from './assisted-provider'
+import { Erc20 } from './erc20'
 import { ERC20CollateralPool } from './erc20-collateral-pool'
 import { Pools } from './pools'
 import * as SelfProvider from './self-provider'
@@ -20,6 +21,7 @@ export {
   SelfProvider,
   Utilities,
   ERC20CollateralPool,
+  Erc20,
   Pools,
   types
 }
@@ -30,5 +32,6 @@ export const DefactorSDK = {
   SelfProvider,
   Utilities,
   ERC20CollateralPool,
+  Erc20,
   Pools
 }
