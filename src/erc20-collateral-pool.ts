@@ -22,6 +22,12 @@ export class ERC20CollateralPool
   extends BaseContract
   implements Functions, Views, AdminFunctions
 {
+  readonly LIQUIDATION_PROTOCOL_FEE = BigInt(5)
+  readonly LIQUIDATION_FEE = BigInt(5)
+  readonly OZ_IN_G = BigInt(31_10347680)
+  readonly ONE_YEAR = BigInt(365)
+  readonly HOUNDRED = BigInt(100)
+
   constructor(
     address: string,
     apiUrl: string,
@@ -29,10 +35,6 @@ export class ERC20CollateralPool
     abi?: Abi
   ) {
     super(address, apiUrl, privateKey, abi || miscErc20CollateralPool.abi)
-  }
-
-  async LIQUIDATION_PROTOCOL_FEE(): Promise<bigint> {
-    return await this.contract.LIQUIDATION_PROTOCOL_FEE()
   }
 
   async USDC_FEES_COLLECTED(): Promise<bigint> {
@@ -421,7 +423,10 @@ export class ERC20CollateralPool
     return this.signer ? await this.signer.sendTransaction(pop) : pop
   }
 
-  claimRewards(poolId: bigint, lendingId: bigint): Promise<void> {
+  async claimRewards(
+    poolId: bigint,
+    lendingId: bigint
+  ): Promise<ethers.ContractTransaction | ethers.TransactionResponse> {
     throw new Error(
       `Method not implemented. ${poolId.toString()}, ${lendingId.toString()}`
     )
@@ -437,7 +442,62 @@ export class ERC20CollateralPool
     )
   }
 
-  liquidatePool(poolId: bigint): Promise<void> {
-    throw new Error(`Method not implemented. ${poolId.toString()}`)
+  // TODO: create unit test for this function
+  async getLiquidationInfo(poolId: bigint) {
+    const pool = await this.getPool(poolId)
+
+    if (pool.endTime > Date.now()) {
+      throw new Error(ecpErrorMessage.poolIsNotClosed)
+    }
+
+    if (
+      pool.liquidatedCollateral > BigInt(0) ||
+      pool.collateralTokenAmount == BigInt(0) ||
+      pool.liquidated
+    ) {
+      throw new Error(ecpErrorMessage.poolCannotBeLiquidated)
+    }
+
+    const remainingInterest = pool.lended * pool.rewardPerToken - pool.rewards
+    const liquidatableAmount = pool.borrowed - pool.repaid + remainingInterest
+
+    const liquidatableAmountWithProtocolFee =
+      (liquidatableAmount * (this.LIQUIDATION_PROTOCOL_FEE + this.HOUNDRED)) /
+      this.HOUNDRED
+
+    const liquidatableAmountWithLiquidationFee =
+      (liquidatableAmount *
+        (this.LIQUIDATION_FEE +
+          this.LIQUIDATION_PROTOCOL_FEE +
+          this.HOUNDRED)) /
+      this.HOUNDRED
+
+    return {
+      remainingInterest,
+      liquidatableAmountWithProtocolFee,
+      liquidatableAmountWithLiquidationFee
+    }
+  }
+
+  async liquidatePool(
+    poolId: bigint
+  ): Promise<ethers.ContractTransaction | ethers.TransactionResponse> {
+    const pool = await this.getPool(poolId)
+
+    if (pool.endTime > Date.now()) {
+      throw new Error(ecpErrorMessage.poolIsNotClosed)
+    }
+
+    if (
+      pool.liquidatedCollateral > BigInt(0) ||
+      pool.collateralTokenAmount == BigInt(0) ||
+      pool.liquidated
+    ) {
+      throw new Error(ecpErrorMessage.poolCannotBeLiquidated)
+    }
+
+    const pop = await this.contract.liquidatePool.populateTransaction(poolId)
+
+    return this.signer ? await this.signer.sendTransaction(pop) : pop
   }
 }

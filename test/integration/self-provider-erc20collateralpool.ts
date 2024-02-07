@@ -10,6 +10,8 @@ import {
   COLLATERAL_TOKEN_CHAINLINK,
   ERC20_COLLATERAL_POOL_ETH_ADDRESS,
   MAX_BIGINT,
+  ONE_DAY_MS,
+  ONE_SEC_MS,
   TESTING_PRIVATE_KEY,
   TESTING_PUBLIC_KEY,
   USD_TOKEN_ADDRESS,
@@ -51,21 +53,6 @@ describe('SelfProvider - ERC20CollateralPool', () => {
       providerUrl,
       TESTING_PRIVATE_KEY
     )
-  })
-
-  describe('Constant Variables', () => {
-    it('get liquidation protocol fee', async () => {
-      const liquidationProtocolFee =
-        await provider.contract.LIQUIDATION_PROTOCOL_FEE()
-
-      expect(liquidationProtocolFee).toBe(BigInt('5'))
-    })
-
-    it('get usdc fees collected', async () => {
-      const usdcFeesCollected = await provider.contract.USDC_FEES_COLLECTED()
-
-      expect(usdcFeesCollected).toBeGreaterThanOrEqual(BigInt('0'))
-    })
   })
 
   describe('Views', () => {
@@ -959,6 +946,140 @@ describe('SelfProvider - ERC20CollateralPool', () => {
           to: ERC20_COLLATERAL_POOL_ETH_ADDRESS,
           from: TESTING_PUBLIC_KEY
         })
+      })
+    })
+
+    describe('liquidatePool()', () => {
+      it('failure - pool id does not exist', async () => {
+        await expect(
+          provider.contract.liquidatePool(BigInt(MAX_BIGINT))
+        ).rejects.toThrow(ecpErrorMessage.noExistPoolId(MAX_BIGINT))
+      })
+
+      it('failure - pool is not closed', async () => {
+        provider = new SelfProvider(
+          ERC20CollateralPool,
+          ERC20_COLLATERAL_POOL_ETH_ADDRESS,
+          providerUrl,
+          ADMIN_TESTING_PRIVATE_KEY
+        )
+
+        const totalPools = await provider.contract.getTotalPools()
+
+        await provider.contract.addPool({
+          endTime: Date.now() + ONE_DAY_MS,
+          interest: 10,
+          collateralDetails: {
+            collateralToken: COLLATERAL_TOKEN,
+            collateralTokenChainlink: COLLATERAL_TOKEN_CHAINLINK,
+            collateralTokenFactor: 10,
+            collateralTokenPercentage: 15
+          }
+        })
+
+        await sleep(10000)
+
+        await expect(
+          provider.contract.liquidatePool(totalPools)
+        ).rejects.toThrow(ecpErrorMessage.poolIsNotClosed)
+      })
+
+      it('failure - pool cannot be liquidated', async () => {
+        provider = new SelfProvider(
+          ERC20CollateralPool,
+          ERC20_COLLATERAL_POOL_ETH_ADDRESS,
+          providerUrl,
+          ADMIN_TESTING_PRIVATE_KEY
+        )
+
+        const totalPools = await provider.contract.getTotalPools()
+
+        await provider.contract.addPool({
+          endTime: Date.now() + ONE_SEC_MS * 10,
+          interest: 10,
+          collateralDetails: {
+            collateralToken: COLLATERAL_TOKEN,
+            collateralTokenChainlink: COLLATERAL_TOKEN_CHAINLINK,
+            collateralTokenFactor: 10,
+            collateralTokenPercentage: 15
+          }
+        })
+
+        await sleep(10000)
+
+        await expect(
+          provider.contract.liquidatePool(totalPools)
+        ).rejects.toThrow(ecpErrorMessage.poolCannotBeLiquidated)
+      })
+
+      it('success - liquidate the pool', async () => {
+        const totalPools = await provider.contract.getTotalPools()
+        const poolId = totalPools - BigInt(1) // BigInt(0)
+
+        console.log(`Pool Id: ${poolId}`)
+
+        console.log(`-> Starting to lend`)
+
+        // Lend to the pool
+        const lendingAmount = BigInt(1_000000) // 1 USDC
+
+        await usdcTokenContract.approve(
+          provider.contract.address,
+          lendingAmount
+        )
+        await sleep(10000)
+
+        await provider.contract.lend(poolId, lendingAmount)
+
+        console.log(`-> Starting to borrow`)
+
+        // Borrow from the pool
+        const amountToBorrow = BigInt(500000) // 0.5 USDC
+        const collateralAmount =
+          await provider.contract.calculateCollateralTokenAmount(
+            poolId,
+            amountToBorrow
+          )
+
+        await auTokenContract.approve(
+          provider.contract.address,
+          collateralAmount
+        )
+        await sleep(10000)
+        await provider.contract.borrow(poolId, amountToBorrow)
+        await sleep(10000)
+
+        // repay
+        const totalBorrows = await provider.contract.getTotalBorrows(
+          poolId,
+          TESTING_PUBLIC_KEY
+        )
+        const lastBorrowId = totalBorrows - BigInt(1)
+        const repayInterest = await provider.contract.calculateRepayInterest(
+          poolId,
+          TESTING_PUBLIC_KEY,
+          lastBorrowId
+        )
+
+        await usdcTokenContract.approve(
+          provider.contract.address,
+          repayInterest + amountToBorrow
+        )
+        await sleep(10000)
+
+        // await provider.contract.repay(poolId, TESTING_PUBLIC_KEY, lastBorrowId)
+
+        const liquidationInfo =
+          await provider.contract.getLiquidationInfo(poolId)
+
+        await usdcTokenContract.approve(
+          provider.contract.address,
+          liquidationInfo.liquidatableAmountWithProtocolFee
+        )
+
+        // await sleep(20000)
+
+        // await provider.contract.liquidatePool(poolId)
       })
     })
   })

@@ -14,6 +14,8 @@ export const ecpErrorMessage = {
   maxLimitAllowed: 'Max limit allowed is 1000',
   addressIsNotAdmin: 'Sender address is not admin',
   endTimeReached: 'Pool has ended',
+  poolIsNotClosed: 'Pool is not closed',
+  poolCannotBeLiquidated: 'Pool cannot be liquidated',
   timeMustBeInFuture: 'Time must be in the future',
   amountOverpassPoolBalance: 'Amount overpass the pool available amount',
   borrowAlreadyRepaid: 'Borrow already repaid'

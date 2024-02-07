@@ -96,10 +96,15 @@ export interface Functions {
     borrowerAddress: string,
     borrowId: bigint
   ): Promise<ethers.ContractTransaction | ethers.TransactionResponse>
-  claimRewards(poolId: bigint, lendingId: bigint): Promise<void>
+  claimRewards(
+    poolId: bigint,
+    lendingId: bigint
+  ): Promise<ethers.ContractTransaction | ethers.TransactionResponse>
   claimMultiple(poolId: bigint): Promise<void>
   claimUnliquidatedCollateral(poolId: bigint, borrowId: bigint): Promise<void>
-  liquidatePool(poolId: bigint): Promise<void>
+  liquidatePool(
+    poolId: bigint
+  ): Promise<ethers.ContractTransaction | ethers.TransactionResponse>
 }
 
 export const poolKeys: Array<keyof Pool> = [
