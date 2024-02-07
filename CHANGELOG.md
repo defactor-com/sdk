@@ -1,5 +1,11 @@
 # @defactor-com/defactor-sdk
 
+## 0.1.0
+
+### Minor Changes
+
+- 2abf83a: Update library export structure, create new implementation to extend the coverage of the smart contract functionalities and support loans interaction
+
 ## 0.0.5
 
 ### Patch Changes
