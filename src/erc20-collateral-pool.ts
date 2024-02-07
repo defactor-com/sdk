@@ -447,10 +447,6 @@ export class ERC20CollateralPool
       throw new Error(ecpErrorMessage.poolIsNotClosed)
     }
 
-    console.log(`pool.liquidatedCollateral: ${pool.liquidatedCollateral}`)
-    console.log(`pool.collateralTokenAmount: ${pool.collateralTokenAmount}`)
-    console.log(`pool.liquidated: ${pool.liquidated}`)
-
     if (
       pool.liquidatedCollateral > BigInt(0) ||
       pool.collateralTokenAmount == BigInt(0) ||
