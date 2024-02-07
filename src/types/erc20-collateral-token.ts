@@ -1,5 +1,7 @@
 import { ethers } from 'ethers'
 
+import { Erc20CollateralTokenPoolDetail } from '../base-contract'
+
 // TODO: use uint48 instead of number
 export type Borrow = {
   amount: bigint
@@ -54,10 +56,33 @@ export interface Views {
     poolId: bigint,
     amount: bigint
   ): Promise<bigint>
+  getTotalPools(): Promise<bigint>
+  getTotalBorrows(poolId: bigint, borrowerAddress: string): Promise<bigint>
+  getPool(poolId: bigint): Promise<Pool>
+  getPools(offset: bigint, limit: bigint): Promise<Array<Pool>>
+  getTotalLending(poolId: bigint, address: string): Promise<bigint>
+  getLoan(poolId: bigint, address: string, lendingId: bigint): Promise<Lend>
+  getPoolDetails(
+    poolId: bigint,
+    walletAddress: string
+  ): Promise<Erc20CollateralTokenPoolDetail>
+  listLoansByLender(
+    offset: bigint,
+    limit: bigint,
+    poolId: bigint,
+    lenderAddress: string
+  ): Promise<Array<Lend>>
+  getBorrow(
+    poolId: bigint,
+    borrowerAddress: string,
+    borrowId: bigint
+  ): Promise<Borrow>
 }
 
 export interface Functions {
-  addPool(pool: PoolInput): Promise<void>
+  addPool(
+    pool: PoolInput
+  ): Promise<ethers.ContractTransaction | ethers.TransactionResponse>
   lend(
     poolId: bigint,
     amount: bigint
@@ -66,11 +91,20 @@ export interface Functions {
     poolId: bigint,
     amount: bigint
   ): Promise<ethers.ContractTransaction | ethers.TransactionResponse>
-  repay(poolId: bigint, amount: bigint): Promise<void>
-  claimRewards(poolId: bigint, lendingId: bigint): Promise<void>
+  repay(
+    poolId: bigint,
+    borrowerAddress: string,
+    borrowId: bigint
+  ): Promise<ethers.ContractTransaction | ethers.TransactionResponse>
+  claimRewards(
+    poolId: bigint,
+    lendingId: bigint
+  ): Promise<ethers.ContractTransaction | ethers.TransactionResponse>
   claimMultiple(poolId: bigint): Promise<void>
   claimUnliquidatedCollateral(poolId: bigint, borrowId: bigint): Promise<void>
-  liquidatePool(poolId: bigint): Promise<void>
+  liquidatePool(
+    poolId: bigint
+  ): Promise<ethers.ContractTransaction | ethers.TransactionResponse>
 }
 
 export const poolKeys: Array<keyof Pool> = [

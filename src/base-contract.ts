@@ -40,6 +40,7 @@ export abstract class BaseContract {
   readonly abi: Abi
   readonly contract: Contract
   readonly signer: ethers.Wallet | null
+  readonly apiUrl: string
 
   constructor(
     address: string,
@@ -55,6 +56,7 @@ export abstract class BaseContract {
     this.address = address
     this.jsonRpcProvider = new ethers.JsonRpcProvider(apiUrl)
     this.abi = abi
+    this.apiUrl = apiUrl
     this.signer = privateKey
       ? new ethers.Wallet(privateKey, new ethers.JsonRpcProvider(apiUrl))
       : null

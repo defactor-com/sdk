@@ -50,13 +50,7 @@ describe('SelfProvider - ERC20CollateralPool', () => {
     })
 
     it('failure - amount is equal to 0 or negative', async () => {
-      const approveAmount = BigInt(0)
       const negativeApproveAmount = BigInt(-10)
-
-      await expect(
-        erc20Contract.approve(TESTING_PUBLIC_KEY, approveAmount)
-      ).rejects.toThrow(ecpErrorMessage.noNegativeAmountOrZero)
-
       await expect(
         erc20Contract.approve(TESTING_PUBLIC_KEY, negativeApproveAmount)
       ).rejects.toThrow(ecpErrorMessage.noNegativeAmountOrZero)

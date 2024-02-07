@@ -17,3 +17,9 @@ export const loadEnv = async (): Promise<void> => {
 }
 
 export const MAX_BIGINT = BigInt(2) * BigInt(10) ** BigInt(18)
+
+export const ONE_MS = 1000
+export const ONE_SEC = 1
+export const ONE_SEC_MS = ONE_SEC * ONE_MS
+export const ONE_DAY_SEC = 86400
+export const ONE_DAY_MS = ONE_DAY_SEC * 1000
