@@ -1,5 +1,11 @@
 # @defactor-com/defactor-sdk
 
+## 0.1.1
+
+### Patch Changes
+
+- 6e889a4: Create export for Erc20 class
+
 ## 0.1.0
 
 ### Minor Changes
