@@ -1,5 +1,11 @@
 # @defactor-com/defactor-sdk
 
+## 0.1.2
+
+### Patch Changes
+
+- b1d4509: Add generics file to the export index
+
 ## 0.1.1
 
 ### Patch Changes
