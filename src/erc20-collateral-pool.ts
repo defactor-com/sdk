@@ -274,7 +274,11 @@ export class ERC20CollateralPool
     poolId: bigint,
     amount: bigint
   ): Promise<ethers.ContractTransaction | ethers.TransactionResponse> {
-    await this.getPool(poolId)
+    const pool = await this.getPool(poolId)
+
+    if (pool.endTime <= Date.now() / 1000) {
+      throw new Error(ecpErrorMessage.poolIsClosed)
+    }
 
     if (amount <= 0) {
       throw new Error(ecpErrorMessage.noNegativeAmountOrZero)

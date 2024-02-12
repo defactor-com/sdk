@@ -823,6 +823,14 @@ describe('SelfProvider - ERC20CollateralPool', () => {
         ).rejects.toThrow(ecpErrorMessage.noExistPoolId(MAX_BIGINT))
       })
 
+      it('failure - pool is closed', async () => {
+        const lendingAmount = BigInt(1000000)
+
+        await expect(
+          provider.contract.lend(BigInt(650), lendingAmount)
+        ).rejects.toThrow(ecpErrorMessage.poolIsClosed)
+      })
+
       it('failure - amount is equal to 0 or negative', async () => {
         const lendingAmount = BigInt(0)
         const negativeLendingAmount = BigInt(-1)
