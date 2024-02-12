@@ -13,7 +13,8 @@ import {
   Functions,
   Lend,
   Pool,
-  PoolInput
+  PoolInput,
+  PoolLiquidationInfo
 } from './types/erc20-collateral-token'
 import { Abi, PrivateKey } from './types/types'
 import { NULL_ADDRESS, Role } from './util'
@@ -442,7 +443,7 @@ export class ERC20CollateralPool
     )
   }
 
-  async getLiquidationInfo(pool: Pool) {
+  async getLiquidationInfo(pool: Pool): Promise<PoolLiquidationInfo> {
     if (pool.endTime > Date.now()) {
       throw new Error(ecpErrorMessage.poolIsNotClosed)
     }
