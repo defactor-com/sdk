@@ -142,3 +142,10 @@ export const lendingKeys: Array<keyof Lend> = [
   'rewardPerTokenIgnored',
   'claimed'
 ]
+
+export const borrowKeys: Array<keyof Borrow> = [
+  'amount',
+  'collateralTokenAmount',
+  'repayTime',
+  'borrowTime'
+]
