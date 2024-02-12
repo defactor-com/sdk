@@ -13,7 +13,8 @@ import {
   Functions,
   Lend,
   Pool,
-  PoolInput
+  PoolInput,
+  PoolLiquidationInfo
 } from './types/erc20-collateral-token'
 import { Abi, PrivateKey } from './types/types'
 import { NULL_ADDRESS, Role } from './util'
@@ -273,7 +274,11 @@ export class ERC20CollateralPool
     poolId: bigint,
     amount: bigint
   ): Promise<ethers.ContractTransaction | ethers.TransactionResponse> {
-    await this.getPool(poolId)
+    const pool = await this.getPool(poolId)
+
+    if (pool.endTime <= Date.now() / 1000) {
+      throw new Error(ecpErrorMessage.poolIsClosed)
+    }
 
     if (amount <= 0) {
       throw new Error(ecpErrorMessage.noNegativeAmountOrZero)
@@ -442,7 +447,7 @@ export class ERC20CollateralPool
     )
   }
 
-  async getLiquidationInfo(pool: Pool) {
+  async getLiquidationInfo(pool: Pool): Promise<PoolLiquidationInfo> {
     if (pool.endTime > Date.now()) {
       throw new Error(ecpErrorMessage.poolIsNotClosed)
     }

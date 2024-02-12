@@ -15,10 +15,11 @@ import {
   TESTING_PRIVATE_KEY,
   TESTING_PUBLIC_KEY,
   USD_TOKEN_ADDRESS,
-  loadEnv
+  loadEnv,
+  waitUntilConfirmationCompleted
 } from '../test-util'
 
-jest.setTimeout(1000000)
+jest.setTimeout(9000000)
 
 describe('SelfProvider - ERC20CollateralPool', () => {
   let providerUrl: string
@@ -791,11 +792,15 @@ describe('SelfProvider - ERC20CollateralPool', () => {
             amountToBorrow
           )
 
-        await auTokenContract.approve(
+        const tx = await auTokenContract.approve(
           provider.contract.address,
           collateralAmount
         )
-        await sleep(10000)
+
+        await waitUntilConfirmationCompleted(
+          provider.contract.jsonRpcProvider,
+          tx
+        )
 
         const trx = await provider.contract.borrow(BigInt(0), amountToBorrow)
 
@@ -818,6 +823,14 @@ describe('SelfProvider - ERC20CollateralPool', () => {
         ).rejects.toThrow(ecpErrorMessage.noExistPoolId(MAX_BIGINT))
       })
 
+      it('failure - pool is closed', async () => {
+        const lendingAmount = BigInt(1000000)
+
+        await expect(
+          provider.contract.lend(BigInt(650), lendingAmount)
+        ).rejects.toThrow(ecpErrorMessage.poolIsClosed)
+      })
+
       it('failure - amount is equal to 0 or negative', async () => {
         const lendingAmount = BigInt(0)
         const negativeLendingAmount = BigInt(-1)
@@ -834,11 +847,14 @@ describe('SelfProvider - ERC20CollateralPool', () => {
       it('success - lend tokens', async () => {
         const lendingAmount = BigInt(10_000000)
 
-        await usdcTokenContract.approve(
+        const tx = await usdcTokenContract.approve(
           provider.contract.address,
           lendingAmount
         )
-        await sleep(10000)
+        await waitUntilConfirmationCompleted(
+          provider.contract.jsonRpcProvider,
+          tx
+        )
 
         const trx = await provider.contract.lend(BigInt(0), lendingAmount)
 
@@ -974,11 +990,14 @@ describe('SelfProvider - ERC20CollateralPool', () => {
           BigInt(1)
         )
 
-        await usdcTokenContract.approve(
+        const tx = await usdcTokenContract.approve(
           provider.contract.address,
           repayInterest + borrow.amount
         )
-        await sleep(10000)
+        await waitUntilConfirmationCompleted(
+          provider.contract.jsonRpcProvider,
+          tx
+        )
 
         await expect(
           provider.contract.repay(BigInt(0), TESTING_PUBLIC_KEY, BigInt(1))
@@ -997,13 +1016,19 @@ describe('SelfProvider - ERC20CollateralPool', () => {
             amountToBorrow
           )
 
-        await auTokenContract.approve(
+        const tx = await auTokenContract.approve(
           provider.contract.address,
           collateralAmount
         )
-        await sleep(10000)
-        await provider.contract.borrow(BigInt(0), amountToBorrow)
-        await sleep(10000)
+        await waitUntilConfirmationCompleted(
+          provider.contract.jsonRpcProvider,
+          tx
+        )
+        const tx2 = await provider.contract.borrow(BigInt(0), amountToBorrow)
+        await waitUntilConfirmationCompleted(
+          provider.contract.jsonRpcProvider,
+          tx2
+        )
 
         const borrow = await provider.contract.getBorrow(
           BigInt(0),
@@ -1017,11 +1042,14 @@ describe('SelfProvider - ERC20CollateralPool', () => {
           totalBorrows
         )
 
-        await usdcTokenContract.approve(
+        const tx3 = await usdcTokenContract.approve(
           provider.contract.address,
           repayInterest + borrow.amount
         )
-        await sleep(10000)
+        await waitUntilConfirmationCompleted(
+          provider.contract.jsonRpcProvider,
+          tx3
+        )
 
         const trx = await provider.contract.repay(
           BigInt(0),
@@ -1056,7 +1084,7 @@ describe('SelfProvider - ERC20CollateralPool', () => {
 
         const totalPools = await provider.contract.getTotalPools()
 
-        await provider.contract.addPool({
+        const tx = await provider.contract.addPool({
           endTime: Date.now() + ONE_DAY_MS,
           interest: 10,
           collateralDetails: {
@@ -1067,7 +1095,10 @@ describe('SelfProvider - ERC20CollateralPool', () => {
           }
         })
 
-        await sleep(10000)
+        await waitUntilConfirmationCompleted(
+          provider.contract.jsonRpcProvider,
+          tx
+        )
 
         await expect(
           provider.contract.liquidatePool(totalPools)
@@ -1084,7 +1115,7 @@ describe('SelfProvider - ERC20CollateralPool', () => {
 
         const totalPools = await provider.contract.getTotalPools()
 
-        await provider.contract.addPool({
+        const tx = await provider.contract.addPool({
           endTime: Date.now() + ONE_SEC_MS * 10,
           interest: 10,
           collateralDetails: {
@@ -1094,6 +1125,11 @@ describe('SelfProvider - ERC20CollateralPool', () => {
             collateralTokenPercentage: 15
           }
         })
+
+        await waitUntilConfirmationCompleted(
+          provider.contract.jsonRpcProvider,
+          tx
+        )
 
         await sleep(10000)
 

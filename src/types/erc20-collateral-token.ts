@@ -50,6 +50,12 @@ export type Pool = {
   liquidated: boolean
 }
 
+export type PoolLiquidationInfo = {
+  remainingInterest: bigint
+  liquidatableAmountWithProtocolFee: bigint
+  liquidatableAmountWithLiquidationFee: bigint
+}
+
 export interface Views {
   calculateRepayInterest(poolId: bigint, amount: bigint): Promise<bigint>
   calculateCollateralTokenAmount(
@@ -135,4 +141,11 @@ export const lendingKeys: Array<keyof Lend> = [
   'amount',
   'rewardPerTokenIgnored',
   'claimed'
+]
+
+export const borrowKeys: Array<keyof Borrow> = [
+  'amount',
+  'collateralTokenAmount',
+  'repayTime',
+  'borrowTime'
 ]

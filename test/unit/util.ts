@@ -1,10 +1,15 @@
 import { ERC20CollateralPool } from '../../src/erc20-collateral-pool'
 import { SelfProvider } from '../../src/self-provider'
-import { Pool } from '../../src/types/erc20-collateral-token'
-import { normalizeEcp } from '../../src/util'
+import { Borrow, Lend, Pool } from '../../src/types/erc20-collateral-token'
+import {
+  normalizeBorrow,
+  normalizeLending,
+  normalizePool
+} from '../../src/util'
 import {
   ERC20_COLLATERAL_POOL_ETH_ADDRESS,
   TESTING_PRIVATE_KEY,
+  TESTING_PUBLIC_KEY,
   loadEnv
 } from '../test-util'
 
@@ -14,6 +19,8 @@ describe('Utils', () => {
   let providerUrl: string
   let provider: SelfProvider<ERC20CollateralPool>
   let unformattedPool: Pool
+  let unformattedBorrow: Borrow
+  let unformattedLend: Lend
 
   beforeAll(async () => {
     await loadEnv()
@@ -31,11 +38,21 @@ describe('Utils', () => {
     )
 
     unformattedPool = await provider.contract.getPool(BigInt(0))
+    unformattedBorrow = await provider.contract.getBorrow(
+      BigInt(0),
+      TESTING_PUBLIC_KEY,
+      BigInt(0)
+    )
+    unformattedLend = await provider.contract.getLoan(
+      BigInt(0),
+      TESTING_PUBLIC_KEY,
+      BigInt(0)
+    )
   })
 
   describe('Normalizer', () => {
-    it('success - data normalized successfully', async () => {
-      const pool = normalizeEcp(unformattedPool)
+    it('success - pool normalized successfully', async () => {
+      const pool = normalizePool(unformattedPool)
       const coldPoolData = {
         endTime: BigInt(1711925999).toString(),
         collateralDetails: {
@@ -58,6 +75,20 @@ describe('Utils', () => {
             pool.collateralDetails.collateralTokenPercentage
         }
       }).toEqual(coldPoolData)
+    })
+
+    it('success - borrow normalized successfully', async () => {
+      const borrow = normalizeBorrow(unformattedBorrow)
+
+      expect(typeof borrow.amount).toEqual('string')
+      expect(typeof borrow.collateralTokenAmount).toEqual('string')
+    })
+
+    it('success - borrow normalized successfully', async () => {
+      const lend = normalizeLending(unformattedLend)
+
+      expect(typeof lend.amount).toEqual('string')
+      expect(typeof lend.rewardPerTokenIgnored).toEqual('string')
     })
   })
 })

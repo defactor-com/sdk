@@ -1,8 +1,12 @@
 import { convertBigIntToString, normalizer } from './generics'
 import {
+  Borrow,
   CollateralDetails,
+  Lend,
   Pool,
+  borrowKeys,
   collateralDetailsKeys,
+  lendingKeys,
   poolKeys
 } from './types/erc20-collateral-token'
 
@@ -16,7 +20,7 @@ export const sleep = (ms: number): Promise<void> => {
   return new Promise(resolve => setTimeout(resolve, ms))
 }
 
-export const normalizeEcp = (pool: Pool) => {
+export const normalizePool = (pool: Pool) => {
   const normalizedPool = normalizer<Pool>(pool, poolKeys)
   normalizedPool.collateralDetails = normalizer<CollateralDetails>(
     normalizedPool.collateralDetails,
@@ -24,4 +28,16 @@ export const normalizeEcp = (pool: Pool) => {
   )
 
   return convertBigIntToString(normalizedPool)
+}
+
+export const normalizeBorrow = (borrow: Borrow) => {
+  const normalizedBorrow = normalizer<Borrow>(borrow, borrowKeys)
+
+  return convertBigIntToString(normalizedBorrow)
+}
+
+export const normalizeLending = (loan: Lend) => {
+  const normalizedLending = normalizer<Lend>(loan, lendingKeys)
+
+  return convertBigIntToString(normalizedLending)
 }

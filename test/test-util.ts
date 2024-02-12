@@ -1,3 +1,5 @@
+import { ethers } from 'ethers'
+
 export const ERC20_COLLATERAL_POOL_ETH_ADDRESS =
   '0x615e1f7970363Fbf7A1843eFc16f0E4e685610F9'
 export const POOLS_ETH_ADDRESS = '0xc9BB84fCE54C27C159Cbef4cb45A922018cFF675'
@@ -23,3 +25,12 @@ export const ONE_SEC = 1
 export const ONE_SEC_MS = ONE_SEC * ONE_MS
 export const ONE_DAY_SEC = 86400
 export const ONE_DAY_MS = ONE_DAY_SEC * 1000
+
+export const waitUntilConfirmationCompleted = async (
+  provider: ethers.JsonRpcProvider,
+  tx: ethers.ContractTransaction | ethers.TransactionResponse
+) => {
+  if (tx instanceof ethers.TransactionResponse) {
+    await provider.waitForTransaction(tx.hash)
+  }
+}
