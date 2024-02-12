@@ -1,5 +1,11 @@
 # @defactor-com/defactor-sdk
 
+## 0.1.3
+
+### Patch Changes
+
+- 93b71f3: Add normalizer for borrow and lend object, also create a new type of liquidation info object
+
 ## 0.1.2
 
 ### Patch Changes
