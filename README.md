@@ -50,7 +50,7 @@ const provider = new SelfProvider(
     DefactorSDK.ERC20CollateralPool,    // contract constructor
     ERC20_COLLATERAL_POOL_ETH_ADDRESS,  // contract address
     providerUrl,                        // provider url (alchemy, infura, etc)
-    TESTING_PRIVATE_KEY                 // private key
+    ADMIN_PRIVATE_KEY                   // private key
 )
 
 // Pools Contract
@@ -58,15 +58,53 @@ const provider = new SelfProvider(
     DefactorSDK.Pools,      // contract constructor
     POOLS_ETH_ADDRESS,      // contract address
     providerUrl,            // provider url (alchemy, infura, etc)
-    TESTING_PRIVATE_KEY     // private key
+    ADMIN_PRIVATE_KEY       // private key
 )
+```
+
+### Interacting with the SDK
+
+```typescript
+import { ERC20CollateralPool, SelfProvider } from '@defactor/defactor-sdk'
+
+const providerInstance = new SelfProvider.SelfProvider<ERC20CollateralPool>(
+  ERC20CollateralPool,
+  contractConfig.contractAddress!, // loaded from config file
+  contractConfig.providerUrl!, // loaded from config file
+  contractConfig.adminPrivateKey! // loaded from config file
+)
+
+const liquidationProtocolFee =
+  providerInstance.contract.LIQUIDATION_PROTOCOL_FEE
+
+console.log(liquidationProtocolFee)
+```
+
+## Methods Available
+
+```typescript
+async USDC_FEES_COLLECTED(): Promise<bigint>                                                                                                // Returns the total USDC fees collected.
+async getUsdc(): Promise<string>                                                                                                            // Returns the USDC contract address.
+async getTotalPools(): Promise<bigint>                                                                                                      // Returns the total number of pools.
+async getPool(poolId: bigint): Promise<Pool>                                                                                                // Returns the pool with the given ID.
+async getPools(offset: bigint, limit: bigint): Promise<Array<Pool>>                                                                         // Returns a list of pools within the given range.
+async getTotalLending(poolId: bigint, address: string): Promise<bigint>                                                                     // Returns the total amount of lending for a given pool and address.
+async getLoan(poolId: bigint, address: string, lendingId: bigint): Promise<Lend>                                                            // Returns a specific loan.
+async addPool(pool: PoolInput): Promise<ethers.ContractTransaction | ethers.TransactionResponse>                                            // Adds a new pool.
+async lend(poolId: bigint, amount: bigint): Promise<ethers.ContractTransaction | ethers.TransactionResponse>                                // Lends a certain amount to a pool.
+async borrow(poolId: bigint, amount: bigint): Promise<ethers.ContractTransaction | ethers.TransactionResponse>                              // Borrows a certain amount from a pool.
+async getBorrow(poolId: bigint, borrowerAddress: string, borrowId: bigint): Promise<Borrow>                                                 // Returns a specific borrow.
+async calculateCollateralTokenAmount(poolId: bigint, amount: bigint): Promise<bigint>                                                       // Calculates the amount of collateral tokens for a given amount.
+async repay(poolId: bigint, borrowerAddress: string, borrowId: bigint): Promise<ethers.ContractTransaction | ethers.TransactionResponse>    // Repays a borrow.
+async getLiquidationInfo(pool: Pool): Promise<PoolLiquidationInfo>                                                                          // Returns information about the liquidation of a pool.
+async liquidatePool(poolId: bigint): Promise<ethers.ContractTransaction | ethers.TransactionResponse>                                       // Liquidates a pool.
 ```
 
 <!-- ## API Reference -->
 
 ## Contributing
 
-To contribute, please familiarize yourself with Defactor's [Open Source Contributing Guidelines](https://defactor.dev/docs/introduction/open-source-guidelines) and then propose your amazing code feature/fix.
+To contribute, please familiarize yourself with Defactor`s [Open Source Contributing Guidelines](https://defactor.dev/docs/introduction/open-source-guidelines) and then propose your amazing code feature/fix.
 
 If you encounter any big or small bugs, please, report it by [opening an issue](https://github.com/defactor-com/sdk/issues/new/choose).
 
