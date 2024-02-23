@@ -212,85 +212,89 @@ describe('SelfProvider - ERC20CollateralPool', () => {
           BigInt(0),
           TESTING_PUBLIC_KEY
         )
-        const borrowList = await provider.contract.getBorrowsByBorrower(
-          BigInt(0),
-          TESTING_PUBLIC_KEY,
-          BigInt(totalBorrows + BigInt(1)),
-          BigInt(10)
-        )
+        const { data: borrowList } =
+          await provider.contract.getBorrowsByBorrower(
+            BigInt(0),
+            TESTING_PUBLIC_KEY,
+            BigInt(totalBorrows + BigInt(1)),
+            BigInt(10)
+          )
         expect(borrowList.length).toBe(0)
       })
       it('success - limit = 1 (5 times)', async () => {
-        const borrows = await provider.contract.getBorrowsByBorrower(
+        const { data: borrows } = await provider.contract.getBorrowsByBorrower(
           BigInt(0),
           TESTING_PUBLIC_KEY,
           BigInt(0),
           BigInt(1)
         )
         expect(borrows.length).toBe(1)
-        let tempBorrows = await provider.contract.getBorrowsByBorrower(
-          BigInt(0),
-          TESTING_PUBLIC_KEY,
-          BigInt(1),
-          BigInt(1)
-        )
+        let { data: tempBorrows } =
+          await provider.contract.getBorrowsByBorrower(
+            BigInt(0),
+            TESTING_PUBLIC_KEY,
+            BigInt(1),
+            BigInt(1)
+          )
         borrows.push(...tempBorrows)
         expect(borrows.length).toBe(2)
-        tempBorrows = await provider.contract.getBorrowsByBorrower(
+        ;({ data: tempBorrows } = await provider.contract.getBorrowsByBorrower(
           BigInt(0),
           TESTING_PUBLIC_KEY,
           BigInt(2),
           BigInt(1)
-        )
+        ))
         borrows.push(...tempBorrows)
         expect(borrows.length).toBe(3)
-        tempBorrows = await provider.contract.getBorrowsByBorrower(
+        ;({ data: tempBorrows } = await provider.contract.getBorrowsByBorrower(
           BigInt(0),
           TESTING_PUBLIC_KEY,
           BigInt(3),
           BigInt(1)
-        )
+        ))
         borrows.push(...tempBorrows)
         expect(borrows.length).toBe(4)
-        tempBorrows = await provider.contract.getBorrowsByBorrower(
+        ;({ data: tempBorrows } = await provider.contract.getBorrowsByBorrower(
           BigInt(0),
           TESTING_PUBLIC_KEY,
           BigInt(4),
           BigInt(1)
-        )
+        ))
         borrows.push(...tempBorrows)
         expect(borrows.length).toBe(5)
       })
       it('success - limit = 10 (3 times)', async () => {
-        const borrows = await provider.contract.getBorrowsByBorrower(
+        const { data: borrows } = await provider.contract.getBorrowsByBorrower(
           BigInt(0),
           TESTING_PUBLIC_KEY,
           BigInt(0),
           BigInt(10)
         )
         expect(borrows.length).toBe(10)
-        const tempBorrows = await provider.contract.getBorrowsByBorrower(
-          BigInt(0),
-          TESTING_PUBLIC_KEY,
-          BigInt(10),
-          BigInt(10)
-        )
+        const { data: tempBorrows } =
+          await provider.contract.getBorrowsByBorrower(
+            BigInt(0),
+            TESTING_PUBLIC_KEY,
+            BigInt(10),
+            BigInt(10)
+          )
         borrows.push(...tempBorrows)
         expect(borrows.length).toBe(20)
         for (let i = 2; i < 3; i++) {
-          const tempBorrows = await provider.contract.getBorrowsByBorrower(
-            BigInt(0),
-            TESTING_PUBLIC_KEY,
-            BigInt(10 * i),
-            BigInt(10)
-          )
+          const { data: tempBorrows } =
+            await provider.contract.getBorrowsByBorrower(
+              BigInt(0),
+              TESTING_PUBLIC_KEY,
+              BigInt(10 * i),
+              BigInt(10)
+            )
           borrows.push(...tempBorrows)
           expect(borrows.length).toBe(10 * (i + 1))
         }
         expect(borrows.length).toBe(30)
       })
       it('success - max limit', async () => {
-        const borrows = await provider.contract.getBorrowsByBorrower(
+        const { data: borrows } = await provider.contract.getBorrowsByBorrower(
           BigInt(0),
           TESTING_PUBLIC_KEY,
           BigInt(0),
@@ -318,43 +322,64 @@ describe('SelfProvider - ERC20CollateralPool', () => {
       })
       it('success - get empty pool list because offset exceeds total pools', async () => {
         const totalPools = await provider.contract.getTotalPools()
-        const pools = await provider.contract.getPools(
+        const { data: pools } = await provider.contract.getPools(
           totalPools + BigInt(1),
           BigInt(10)
         )
         expect(pools.length).toBe(0)
       })
       it('success - offset = 0', async () => {
-        const pools = await provider.contract.getPools(BigInt(0), BigInt(10))
+        const { data: pools } = await provider.contract.getPools(
+          BigInt(0),
+          BigInt(10)
+        )
         expect(pools.length).toBe(10)
       })
       it('success - limit = 1 (5 times)', async () => {
-        const pools = await provider.contract.getPools(BigInt(0), BigInt(1))
+        const { data: pools } = await provider.contract.getPools(
+          BigInt(0),
+          BigInt(1)
+        )
         expect(pools.length).toBe(1)
-        let tempPools = await provider.contract.getPools(BigInt(1), BigInt(1))
+        let { data: tempPools } = await provider.contract.getPools(
+          BigInt(1),
+          BigInt(1)
+        )
         pools.push(...tempPools)
         expect(pools.length).toBe(2)
-        tempPools = await provider.contract.getPools(BigInt(2), BigInt(1))
+        ;({ data: tempPools } = await provider.contract.getPools(
+          BigInt(2),
+          BigInt(1)
+        ))
         pools.push(...tempPools)
         expect(pools.length).toBe(3)
-        tempPools = await provider.contract.getPools(BigInt(3), BigInt(1))
+        ;({ data: tempPools } = await provider.contract.getPools(
+          BigInt(3),
+          BigInt(1)
+        ))
         pools.push(...tempPools)
         expect(pools.length).toBe(4)
-        tempPools = await provider.contract.getPools(BigInt(4), BigInt(1))
+        ;({ data: tempPools } = await provider.contract.getPools(
+          BigInt(4),
+          BigInt(1)
+        ))
         pools.push(...tempPools)
         expect(pools.length).toBe(5)
       })
       it('success - limit = 10 (10 times)', async () => {
-        const pools = await provider.contract.getPools(BigInt(0), BigInt(10))
+        const { data: pools } = await provider.contract.getPools(
+          BigInt(0),
+          BigInt(10)
+        )
         expect(pools.length).toBe(10)
-        const tempPools = await provider.contract.getPools(
+        const { data: tempPools } = await provider.contract.getPools(
           BigInt(10),
           BigInt(10)
         )
         pools.push(...tempPools)
         expect(pools.length).toBe(20)
         for (let i = 2; i < 10; i++) {
-          const tempPools = await provider.contract.getPools(
+          const { data: tempPools } = await provider.contract.getPools(
             BigInt(10 * i),
             BigInt(10)
           )
@@ -364,7 +389,10 @@ describe('SelfProvider - ERC20CollateralPool', () => {
         expect(pools.length).toBe(100)
       })
       it('success - max limit', async () => {
-        const pools = await provider.contract.getPools(BigInt(0), BigInt(1000))
+        const { data: pools } = await provider.contract.getPools(
+          BigInt(0),
+          BigInt(1000)
+        )
         expect(pools.length).toBeGreaterThan(0)
       })
     })
@@ -507,7 +535,7 @@ describe('SelfProvider - ERC20CollateralPool', () => {
         ).rejects.toThrow(ecpErrorMessage.noNegativeOffset)
       })
       it('success - offset = 0', async () => {
-        const loans = await provider.contract.listLoansByLender(
+        const { data: loans } = await provider.contract.listLoansByLender(
           BigInt(0),
           BigInt(10),
           BigInt(0),
@@ -516,7 +544,7 @@ describe('SelfProvider - ERC20CollateralPool', () => {
         expect(loans.length).toBe(10)
       })
       it('success - offset exceeds max loans', async () => {
-        const loans = await provider.contract.listLoansByLender(
+        const { data: loans } = await provider.contract.listLoansByLender(
           MAX_BIGINT,
           BigInt(10),
           BigInt(0),
@@ -526,7 +554,7 @@ describe('SelfProvider - ERC20CollateralPool', () => {
       })
       it('success - limit = 1 with offset 0, 1, ..., 5', async () => {
         const warehouseLoans = new Array<Lend>()
-        let tempLoans = await provider.contract.listLoansByLender(
+        let { data: tempLoans } = await provider.contract.listLoansByLender(
           BigInt(0),
           BigInt(1),
           BigInt(0),
@@ -534,50 +562,50 @@ describe('SelfProvider - ERC20CollateralPool', () => {
         )
         warehouseLoans.push(...tempLoans)
         expect(warehouseLoans.length).toBe(1)
-        tempLoans = await provider.contract.listLoansByLender(
+        ;({ data: tempLoans } = await provider.contract.listLoansByLender(
           BigInt(1),
           BigInt(1),
           BigInt(0),
           TESTING_PUBLIC_KEY
-        )
+        ))
         warehouseLoans.push(...tempLoans)
         expect(warehouseLoans.length).toBe(2)
-        tempLoans = await provider.contract.listLoansByLender(
+        ;({ data: tempLoans } = await provider.contract.listLoansByLender(
           BigInt(2),
           BigInt(1),
           BigInt(0),
           TESTING_PUBLIC_KEY
-        )
+        ))
         warehouseLoans.push(...tempLoans)
         expect(warehouseLoans.length).toBe(3)
-        tempLoans = await provider.contract.listLoansByLender(
+        ;({ data: tempLoans } = await provider.contract.listLoansByLender(
           BigInt(3),
           BigInt(1),
           BigInt(0),
           TESTING_PUBLIC_KEY
-        )
+        ))
         warehouseLoans.push(...tempLoans)
         expect(warehouseLoans.length).toBe(4)
-        tempLoans = await provider.contract.listLoansByLender(
+        ;({ data: tempLoans } = await provider.contract.listLoansByLender(
           BigInt(4),
           BigInt(1),
           BigInt(0),
           TESTING_PUBLIC_KEY
-        )
+        ))
         warehouseLoans.push(...tempLoans)
         expect(warehouseLoans.length).toBe(5)
-        tempLoans = await provider.contract.listLoansByLender(
+        ;({ data: tempLoans } = await provider.contract.listLoansByLender(
           BigInt(5),
           BigInt(1),
           BigInt(0),
           TESTING_PUBLIC_KEY
-        )
+        ))
         warehouseLoans.push(...tempLoans)
         expect(warehouseLoans.length).toBe(6)
       })
       it('success - limit = 10 with offset 0, 10, 20, ..., 90', async () => {
         const warehouseLoans = new Array<Lend>()
-        let tempLoans = await provider.contract.listLoansByLender(
+        let { data: tempLoans } = await provider.contract.listLoansByLender(
           BigInt(0),
           BigInt(10),
           BigInt(0),
@@ -585,76 +613,76 @@ describe('SelfProvider - ERC20CollateralPool', () => {
         )
         warehouseLoans.push(...tempLoans)
         expect(warehouseLoans.length).toBe(10)
-        tempLoans = await provider.contract.listLoansByLender(
+        ;({ data: tempLoans } = await provider.contract.listLoansByLender(
           BigInt(10),
           BigInt(10),
           BigInt(0),
           TESTING_PUBLIC_KEY
-        )
+        ))
         warehouseLoans.push(...tempLoans)
         expect(warehouseLoans.length).toBe(20)
-        tempLoans = await provider.contract.listLoansByLender(
+        ;({ data: tempLoans } = await provider.contract.listLoansByLender(
           BigInt(20),
           BigInt(10),
           BigInt(0),
           TESTING_PUBLIC_KEY
-        )
+        ))
         warehouseLoans.push(...tempLoans)
         expect(warehouseLoans.length).toBe(30)
-        tempLoans = await provider.contract.listLoansByLender(
+        ;({ data: tempLoans } = await provider.contract.listLoansByLender(
           BigInt(30),
           BigInt(10),
           BigInt(0),
           TESTING_PUBLIC_KEY
-        )
+        ))
         warehouseLoans.push(...tempLoans)
         expect(warehouseLoans.length).toBe(40)
-        tempLoans = await provider.contract.listLoansByLender(
+        ;({ data: tempLoans } = await provider.contract.listLoansByLender(
           BigInt(40),
           BigInt(10),
           BigInt(0),
           TESTING_PUBLIC_KEY
-        )
+        ))
         warehouseLoans.push(...tempLoans)
         expect(warehouseLoans.length).toBe(50)
-        tempLoans = await provider.contract.listLoansByLender(
+        ;({ data: tempLoans } = await provider.contract.listLoansByLender(
           BigInt(50),
           BigInt(10),
           BigInt(0),
           TESTING_PUBLIC_KEY
-        )
+        ))
         warehouseLoans.push(...tempLoans)
         expect(warehouseLoans.length).toBe(60)
-        tempLoans = await provider.contract.listLoansByLender(
+        ;({ data: tempLoans } = await provider.contract.listLoansByLender(
           BigInt(60),
           BigInt(10),
           BigInt(0),
           TESTING_PUBLIC_KEY
-        )
+        ))
         warehouseLoans.push(...tempLoans)
         expect(warehouseLoans.length).toBe(70)
-        tempLoans = await provider.contract.listLoansByLender(
+        ;({ data: tempLoans } = await provider.contract.listLoansByLender(
           BigInt(70),
           BigInt(10),
           BigInt(0),
           TESTING_PUBLIC_KEY
-        )
+        ))
         warehouseLoans.push(...tempLoans)
         expect(warehouseLoans.length).toBe(80)
-        tempLoans = await provider.contract.listLoansByLender(
+        ;({ data: tempLoans } = await provider.contract.listLoansByLender(
           BigInt(80),
           BigInt(10),
           BigInt(0),
           TESTING_PUBLIC_KEY
-        )
+        ))
         warehouseLoans.push(...tempLoans)
         expect(warehouseLoans.length).toBe(90)
-        tempLoans = await provider.contract.listLoansByLender(
+        ;({ data: tempLoans } = await provider.contract.listLoansByLender(
           BigInt(90),
           BigInt(10),
           BigInt(0),
           TESTING_PUBLIC_KEY
-        )
+        ))
         warehouseLoans.push(...tempLoans)
         expect(warehouseLoans.length).toBe(100)
       })

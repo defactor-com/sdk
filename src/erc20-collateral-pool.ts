@@ -5,6 +5,7 @@ import {
   AdminFunctions,
   BaseContract,
   Erc20CollateralTokenPoolDetail,
+  Pagination,
   Views
 } from './base-contract'
 import { ecpErrorMessage } from './error-messages'
@@ -121,7 +122,7 @@ export class ERC20CollateralPool
     return pool
   }
 
-  async getPools(offset: bigint, limit: bigint): Promise<Array<Pool>> {
+  async getPools(offset: bigint, limit: bigint): Promise<Pagination<Pool>> {
     if (offset < 0) {
       throw new Error(ecpErrorMessage.noNegativeOffset)
     }
@@ -138,7 +139,7 @@ export class ERC20CollateralPool
     const totalPools = await this.getTotalPools()
 
     if (totalPools <= offset) {
-      return new Array<Pool>()
+      return { data: new Array<Pool>(), more: false }
     }
 
     const poolPromises = new Array<Promise<Pool>>()
@@ -147,7 +148,10 @@ export class ERC20CollateralPool
       poolPromises.push(this.getPool(i))
     }
 
-    return await Promise.all(poolPromises)
+    return {
+      data: await Promise.all(poolPromises),
+      more: offset + limit < totalPools
+    }
   }
 
   async getTotalLending(poolId: bigint, address: string): Promise<bigint> {
@@ -185,7 +189,7 @@ export class ERC20CollateralPool
     limit: bigint,
     poolId: bigint,
     lenderAddress: string
-  ): Promise<Array<Lend>> {
+  ): Promise<Pagination<Lend>> {
     if (offset < 0) {
       throw new Error(ecpErrorMessage.noNegativeOffset)
     }
@@ -212,7 +216,10 @@ export class ERC20CollateralPool
       loanPromises.push(this._getLoan(poolId, lenderAddress, i))
     }
 
-    return await Promise.all(loanPromises)
+    return {
+      data: await Promise.all(loanPromises),
+      more: offset + limit < totalLending
+    }
   }
 
   getPoolDetails(
@@ -348,7 +355,7 @@ export class ERC20CollateralPool
     borrowerAddress: string,
     offset: bigint,
     limit: bigint
-  ): Promise<Array<Borrow>> {
+  ): Promise<Pagination<Borrow>> {
     if (offset < 0) {
       throw new Error(ecpErrorMessage.noNegativeOffset)
     }
@@ -375,7 +382,10 @@ export class ERC20CollateralPool
       borrowPromises.push(this._getBorrow(poolId, borrowerAddress, i))
     }
 
-    return await Promise.all(borrowPromises)
+    return {
+      data: await Promise.all(borrowPromises),
+      more: offset + limit < totalBorrows
+    }
   }
 
   async calculateRepayInterest(

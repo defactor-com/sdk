@@ -1,6 +1,6 @@
 import { ethers } from 'ethers'
 
-import { Erc20CollateralTokenPoolDetail } from '../base-contract'
+import { Erc20CollateralTokenPoolDetail, Pagination } from '../base-contract'
 
 // TODO: use uint48 instead of number
 export type Borrow = {
@@ -65,7 +65,7 @@ export interface Views {
   getTotalPools(): Promise<bigint>
   getTotalBorrows(poolId: bigint, borrowerAddress: string): Promise<bigint>
   getPool(poolId: bigint): Promise<Pool>
-  getPools(offset: bigint, limit: bigint): Promise<Array<Pool>>
+  getPools(offset: bigint, limit: bigint): Promise<Pagination<Pool>>
   getTotalLending(poolId: bigint, address: string): Promise<bigint>
   getLoan(poolId: bigint, address: string, lendingId: bigint): Promise<Lend>
   getPoolDetails(
@@ -77,12 +77,18 @@ export interface Views {
     limit: bigint,
     poolId: bigint,
     lenderAddress: string
-  ): Promise<Array<Lend>>
+  ): Promise<Pagination<Lend>>
   getBorrow(
     poolId: bigint,
     borrowerAddress: string,
     borrowId: bigint
   ): Promise<Borrow>
+  getBorrowsByBorrower(
+    poolId: bigint,
+    borrowerAddress: string,
+    offset: bigint,
+    limit: bigint
+  ): Promise<Pagination<Borrow>>
 }
 
 export interface Functions {
