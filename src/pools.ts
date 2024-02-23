@@ -5,6 +5,7 @@ import {
   AdminFunctions,
   BaseContract,
   Erc20CollateralTokenPoolDetail,
+  Pagination,
   Views
 } from './base-contract'
 import { Functions, Pool, PoolCommit, PoolInput } from './types/pools'
@@ -44,7 +45,7 @@ export class Pools
     return pool
   }
 
-  async getPools(offset: bigint, limit: bigint): Promise<Array<Pool>> {
+  async getPools(offset: bigint, limit: bigint): Promise<Pagination<Pool>> {
     const tempPoolPromises = new Array<Promise<Pool | null>>()
 
     for (let i = offset; i < offset + limit; i++) {
@@ -53,7 +54,11 @@ export class Pools
 
     const pools = await Promise.all(tempPoolPromises)
 
-    return pools.filter(pool => pool !== null) as Array<Pool>
+    return {
+      data: pools.filter(pool => pool !== null) as Array<Pool>,
+      // TODO: create get total pools function to make `offset + limit < totalPools`
+      more: true
+    }
   }
 
   getPoolDetails(

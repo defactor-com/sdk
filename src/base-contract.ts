@@ -15,13 +15,18 @@ export type BaseContractConstructorParams = ConstructorParameters<
 
 export type Erc20CollateralTokenPoolDetail = Borrow | Lend
 
+export type Pagination<T> = {
+  data: Array<T>
+  more: boolean
+}
+
 export interface Views {
   getPool(poolId: bigint): Promise<ERC20CollateralPool | PoolObject>
 
   getPools(
     offset: bigint,
     limit: bigint
-  ): Promise<Array<ERC20CollateralPool | PoolObject>>
+  ): Promise<Pagination<ERC20CollateralPool | PoolObject>>
 
   getPoolDetails(
     poolId: bigint,
