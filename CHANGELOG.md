@@ -1,5 +1,11 @@
 # @defactor-com/defactor-sdk
 
+## 0.2.1
+
+### Patch Changes
+
+- 3e992c8: Update abi with new contract structure
+
 ## 0.2.0
 
 ### Minor Changes
