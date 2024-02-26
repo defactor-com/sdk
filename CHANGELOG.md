@@ -1,5 +1,11 @@
 # @defactor-com/defactor-sdk
 
+## 0.2.0
+
+### Minor Changes
+
+- b7fed46: return `more` attribute in the functions that uses pagination to indicate if there is any data left to fetch
+
 ## 0.1.3
 
 ### Patch Changes
