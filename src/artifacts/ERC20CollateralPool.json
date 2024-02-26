@@ -89,6 +89,12 @@
         },
         {
           "indexed": true,
+          "internalType": "uint256",
+          "name": "borrowId",
+          "type": "uint256"
+        },
+        {
+          "indexed": true,
           "internalType": "address",
           "name": "user",
           "type": "address"
@@ -177,6 +183,12 @@
         },
         {
           "indexed": true,
+          "internalType": "uint256",
+          "name": "lendId",
+          "type": "uint256"
+        },
+        {
+          "indexed": true,
           "internalType": "address",
           "name": "user",
           "type": "address"
@@ -202,6 +214,25 @@
         }
       ],
       "name": "Paused",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "poolId",
+          "type": "uint256"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        }
+      ],
+      "name": "PoolAdded",
       "type": "event"
     },
     {
