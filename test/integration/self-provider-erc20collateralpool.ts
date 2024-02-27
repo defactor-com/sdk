@@ -696,7 +696,6 @@ describe('SelfProvider - ERC20CollateralPool', () => {
       //   expect(loans.length).toBe(1000)
       // })
     })
-
     describe('getLiquidationInfo()', () => {
       it('failure - pool is not closed', async () => {
         const pool: Pool = {
@@ -720,12 +719,10 @@ describe('SelfProvider - ERC20CollateralPool', () => {
           interest: 0,
           liquidated: false
         }
-
         await expect(
           provider.contract.getLiquidationInfo(pool)
         ).rejects.toThrow(ecpErrorMessage.poolIsNotClosed)
       })
-
       it('failure - pool does not exist', async () => {
         const pool: Pool = {
           lended: BigInt(0),
@@ -748,12 +745,10 @@ describe('SelfProvider - ERC20CollateralPool', () => {
           interest: 0,
           liquidated: true
         }
-
         await expect(
           provider.contract.getLiquidationInfo(pool)
         ).rejects.toThrow(ecpErrorMessage.poolCannotBeLiquidated)
       })
-
       it('success - get liquidation info', async () => {
         const pool: Pool = {
           lended: BigInt(10000),
@@ -782,7 +777,6 @@ describe('SelfProvider - ERC20CollateralPool', () => {
           liquidatableAmountWithProtocolFee: BigInt(105105),
           liquidatableAmountWithLiquidationFee: BigInt(110110)
         }
-
         expect(liquidationInfo).toEqual(expectedLiquidationInfo)
       })
     })
@@ -1216,6 +1210,40 @@ describe('SelfProvider - ERC20CollateralPool', () => {
         // )
         // await sleep(20000)
         // await provider.contract.liquidatePool(poolId)
+      })
+    })
+
+    describe('claimRewards()', () => {
+      it('failure - pool does not exist', async () => {
+        const poolId = BigInt(MAX_BIGINT)
+        const loanId = BigInt(0)
+
+        await expect(
+          provider.contract.claimRewards(poolId, TESTING_PUBLIC_KEY, loanId)
+        ).rejects.toThrow(ecpErrorMessage.noExistPoolId(MAX_BIGINT))
+      })
+
+      it('failure - wrong address format', async () => {
+        // pending to be implemented
+      })
+      it('failure - lending id does not exist', async () => {
+        // pending to be implemented
+      })
+      it('failure - pool is not closed', async () => {
+        // pending to be implemented
+      })
+      it('failure - pool is not completed', async () => {
+        // pending to be implemented
+      })
+      it('failure - loan is already claimed', async () => {
+        // pending to be implemented
+      })
+
+      it('success - claim rewards', async () => {
+        const poolId = BigInt(0)
+        const loanId = BigInt(0)
+
+        await provider.contract.claimRewards(poolId, TESTING_PUBLIC_KEY, loanId)
       })
     })
   })

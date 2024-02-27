@@ -80,6 +80,14 @@ export class ERC20CollateralPool
     return await this.contract.borrows(poolId, borrowerAddress, borrowId)
   }
 
+  private _isPoolCompleted(pool: Pool) {
+    return (
+      pool.liquidatedCollateral > BigInt(0) ||
+      pool.collateralTokenAmount == BigInt(0) ||
+      pool.liquidated
+    )
+  }
+
   async getTotalPools(): Promise<bigint> {
     return await this.contract.poolsLength()
   }
@@ -440,11 +448,31 @@ export class ERC20CollateralPool
 
   async claimRewards(
     poolId: bigint,
+    address: string,
     lendingId: bigint
   ): Promise<ethers.ContractTransaction | ethers.TransactionResponse> {
-    throw new Error(
-      `Method not implemented. ${poolId.toString()}, ${lendingId.toString()}`
+    const pool = await this.getPool(poolId)
+
+    if (pool.endTime > Date.now() / 1000) {
+      throw new Error(ecpErrorMessage.poolIsNotClosed)
+    }
+
+    if (!this._isPoolCompleted(pool)) {
+      throw new Error(ecpErrorMessage.poolIsNotCompleted)
+    }
+
+    const loan = await this.getLoan(poolId, address, lendingId)
+
+    if (loan.claimed) {
+      throw new Error(ecpErrorMessage.loanAlreadyClaimed)
+    }
+
+    const pop = await this.contract.claimRewards.populateTransaction(
+      poolId,
+      lendingId
     )
+
+    return this.signer ? await this.signer.sendTransaction(pop) : pop
   }
 
   claimMultiple(poolId: bigint): Promise<void> {
@@ -500,11 +528,7 @@ export class ERC20CollateralPool
       throw new Error(ecpErrorMessage.poolIsNotClosed)
     }
 
-    if (
-      pool.liquidatedCollateral > BigInt(0) ||
-      pool.collateralTokenAmount == BigInt(0) ||
-      pool.liquidated
-    ) {
+    if (this._isPoolCompleted(pool)) {
       throw new Error(ecpErrorMessage.poolCannotBeLiquidated)
     }
 
