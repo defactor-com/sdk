@@ -110,6 +110,7 @@ export interface Functions {
   ): Promise<ethers.ContractTransaction | ethers.TransactionResponse>
   claimRewards(
     poolId: bigint,
+    address: string,
     lendingId: bigint
   ): Promise<ethers.ContractTransaction | ethers.TransactionResponse>
   claimMultiple(poolId: bigint): Promise<void>
