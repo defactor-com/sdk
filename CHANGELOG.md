@@ -1,5 +1,11 @@
 # @defactor-com/defactor-sdk
 
+## 0.2.2
+
+### Patch Changes
+
+- b34ee17: implement claimRewards method
+
 ## 0.2.1
 
 ### Patch Changes
