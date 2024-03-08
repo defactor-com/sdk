@@ -1,5 +1,11 @@
 # @defactor-com/defactor-sdk
 
+## 0.2.3
+
+### Patch Changes
+
+- 3b92891: Update abi
+
 ## 0.2.2
 
 ### Patch Changes
