@@ -11,7 +11,6 @@ import {
 jest.setTimeout(50000)
 
 describe('SelfProvider - Pools', () => {
-  let providerUrl: string
   let provider: SelfProvider<Pools>
 
   beforeAll(async () => {
@@ -21,14 +20,10 @@ describe('SelfProvider - Pools', () => {
       throw new Error('PROVIDER_URL is not defined')
     }
 
-    providerUrl = process.env.PROVIDER_URL
-  })
-
-  beforeEach(() => {
     provider = new SelfProvider(
       Pools,
       POOLS_ETH_ADDRESS,
-      providerUrl,
+      process.env.PROVIDER_URL,
       TESTING_PRIVATE_KEY
     )
   })
