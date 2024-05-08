@@ -34,7 +34,7 @@ describe('SelfProvider - Pools', () => {
   })
 
   describe('Constant Variables', () => {
-    it('get usd token address', async () => {
+    it('success - get usd token address', async () => {
       const usdTokenAddress = await provider.contract.USD_ADDRESS()
 
       expect(usdTokenAddress).toBe(USD_TOKEN_ADDRESS)
@@ -42,74 +42,79 @@ describe('SelfProvider - Pools', () => {
   })
 
   describe('Views', () => {
-    it('get a pool by id', async () => {
-      const pool = await provider.contract.getPool(BigInt(0))
+    describe('getPool()', () => {
+      it('failure - wrong pool id', async () => {
+        await expect(
+          provider.contract.getPool(BigInt(MAX_BIGINT))
+        ).rejects.toThrow(`Pool id ${MAX_BIGINT.toString()} does not exist`)
+      })
+      it('success - get a pool by id', async () => {
+        const pool = await provider.contract.getPool(BigInt(0))
 
-      const coldPoolData = {
-        softCap: pool.softCap,
-        hardCap: pool.hardCap,
-        deadline: pool.deadline
-      }
+        const coldPoolData = {
+          softCap: pool.softCap,
+          hardCap: pool.hardCap,
+          deadline: pool.deadline
+        }
 
-      expect({
-        softCap: BigInt(230),
-        hardCap: BigInt(300),
-        deadline: BigInt(1911925999)
-      }).toEqual(coldPoolData)
+        expect({
+          softCap: BigInt(230),
+          hardCap: BigInt(300),
+          deadline: BigInt(1911925999)
+        }).toEqual(coldPoolData)
+      })
     })
+    describe('getPools()', () => {
+      it('success - fetch pools by pagination', async () => {
+        const { data: pools } = await provider.contract.getPools(
+          BigInt(0),
+          BigInt(10)
+        )
+        expect(pools.length).toBe(10)
 
-    it('get error because wrong pool id', async () => {
-      await expect(
-        provider.contract.getPool(BigInt(MAX_BIGINT))
-      ).rejects.toThrow(`Pool id ${MAX_BIGINT.toString()} does not exist`)
-    })
+        const { data: tempPools } = await provider.contract.getPools(
+          BigInt(10),
+          BigInt(10)
+        )
+        pools.push(...tempPools)
+        expect(pools.length).toBe(20)
 
-    it('fetch pools by pagination', async () => {
-      const { data: pools } = await provider.contract.getPools(
-        BigInt(0),
-        BigInt(10)
-      )
-      expect(pools.length).toBe(10)
+        const { data: tempPools2 } = await provider.contract.getPools(
+          BigInt(20),
+          BigInt(10)
+        )
+        pools.push(...tempPools2)
+        expect(pools.length).toBe(30)
+      })
+      it('success - offset exceeds total pools', async () => {
+        const { data: pools } = await provider.contract.getPools(
+          MAX_BIGINT,
+          BigInt(10)
+        )
 
-      const { data: tempPools } = await provider.contract.getPools(
-        BigInt(10),
-        BigInt(10)
-      )
-      pools.push(...tempPools)
-      expect(pools.length).toBe(20)
-
-      const { data: tempPools2 } = await provider.contract.getPools(
-        BigInt(20),
-        BigInt(10)
-      )
-      pools.push(...tempPools2)
-      expect(pools.length).toBe(30)
-    })
-
-    it('get empty pool list because offset exceeds total pools', async () => {
-      const { data: pools } = await provider.contract.getPools(
-        MAX_BIGINT,
-        BigInt(10)
-      )
-
-      expect(pools.length).toBe(0)
+        expect(pools.length).toBe(0)
+      })
     })
   })
 
-  it('creates a pool', async () => {
-    // TODO: implement this test when the createPool function is full implemented
-    // await provider.contract.createPool({
-    //   softCap: BigInt(230),
-    //   hardCap: BigInt(300),
-    //   deadline: BigInt(1911925999),
-    //   collateralTokens: [
-    //     {
-    //       contractAddress: USD_TOKEN_ADDRESS,
-    //       amount: BigInt(500),
-    //       id: null
-    //     }
-    //   ]
-    // })
-    // expect(true).toBe(true)
+  describe('Functions', () => {
+    describe('createPool()', () => {
+      it('success - creates a pool', async () => {
+        // TODO: implement this test when the createPool function is full implemented
+        // await provider.contract.createPool({
+        //   softCap: BigInt(230),
+        //   hardCap: BigInt(300),
+        //   deadline: BigInt(1911925999),
+        //   collateralTokens: [
+        //     {
+        //       contractAddress: USD_TOKEN_ADDRESS,
+        //       amount: BigInt(500),
+        //       id: null
+        //     }
+        //   ]
+        // })
+        // expect(true).toBe(true)
+      })
+    })
   })
 })
