@@ -1,6 +1,6 @@
 import { ethers } from 'ethers'
 
-import { miscErc20, miscPools } from './artifacts'
+import { miscPools } from './artifacts'
 import {
   AdminFunctions,
   BaseContract,
@@ -11,7 +11,6 @@ import {
 import { poolCommonErrorMessage, tcpErrorMessage } from './error-messages'
 import { Functions, Pool, PoolCommit, PoolInput } from './types/pools'
 import { Abi, PrivateKey } from './types/types'
-import { sleep } from './util'
 
 export class Pools
   extends BaseContract
@@ -105,24 +104,6 @@ export class Pools
         token.id ? token.id.toString() : 0
       ])
     }
-
-    for (const token of pool.collateralTokens) {
-      const erc20Contract = new ethers.Contract(
-        token.contractAddress,
-        miscErc20.abi,
-        this.signer
-      )
-
-      // TODO: instead of hardcoding 200_000000 POOL_FEES, read the value from the contract
-      // TODO: provide this function as a populateTransaction and signed transaction
-      // TODO: adapt this logic to accept this.signer be null (assisted-provider)
-      await erc20Contract.approve(
-        this.address,
-        (token.amount + BigInt(200_000000)).toString()
-      )
-    }
-
-    await sleep(3000)
 
     const pop = await this.contract.createPool.populateTransaction(
       formattedPool.softCap,
