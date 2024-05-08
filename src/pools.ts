@@ -8,6 +8,7 @@ import {
   Pagination,
   Views
 } from './base-contract'
+import { poolCommonErrorMessage, tcpErrorMessage } from './error-messages'
 import { Functions, Pool, PoolCommit, PoolInput } from './types/pools'
 import { Abi, PrivateKey } from './types/types'
 import { sleep } from './util'
@@ -39,7 +40,7 @@ export class Pools
     const pool = await this._getPoolById(poolId)
 
     if (!pool) {
-      throw new Error(`Pool id ${poolId.toString()} does not exist`)
+      throw new Error(poolCommonErrorMessage.noExistPoolId(poolId))
     }
 
     return pool
@@ -81,15 +82,15 @@ export class Pools
   async createPool(
     pool: PoolInput
   ): Promise<ethers.ContractTransaction | ethers.TransactionResponse> {
-    if (pool.softCap >= pool.hardCap) {
-      throw new Error('Hard cap must be greater than soft cap')
+    if (pool.hardCap < pool.softCap) {
+      throw new Error(tcpErrorMessage.softCapMustBeLessThanHardCap)
     }
 
     // TODO: Validate contract has <= validation, should this logic use the same validation
     // since the time when the library is called is different than the time when the contract is called
     // and execute the transaction
-    if (pool.deadline > BigInt(Date.now())) {
-      throw new Error('Deadline must be greater than current time')
+    if (pool.deadline <= BigInt(Math.floor(Date.now() / 1000))) {
+      throw new Error(tcpErrorMessage.deadlineMustBeInFuture)
     }
 
     // TODO: add validation of balance
