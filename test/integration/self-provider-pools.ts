@@ -7,6 +7,7 @@ import {
 } from '../../src/error-messages'
 import { Pools } from '../../src/pools'
 import { SelfProvider } from '../../src/self-provider'
+import { PoolInput } from '../../src/types/pools'
 import {
   MAX_BIGINT,
   POOLS_ETH_ADDRESS,
@@ -22,6 +23,12 @@ describe('SelfProvider - Pools', () => {
   let provider: SelfProvider<Pools>
   let usdcTokenContract: Erc20
   const POOL_FEE = BigInt(200_000000)
+  const firstPool: PoolInput = {
+    softCap: BigInt(1_000000),
+    hardCap: BigInt(5_000000),
+    deadline: BigInt(getUnixEpochTimeInFuture(BigInt(86400 * 90))),
+    collateralTokens: []
+  }
 
   const approveTokenAmount = async (
     contract: Erc20,
@@ -61,62 +68,6 @@ describe('SelfProvider - Pools', () => {
       const usdTokenAddress = await provider.contract.USD_ADDRESS()
 
       expect(usdTokenAddress).toBe(USD_TOKEN_ADDRESS)
-    })
-  })
-
-  describe('Views', () => {
-    describe('getPool()', () => {
-      it('failure - wrong pool id', async () => {
-        await expect(
-          provider.contract.getPool(BigInt(MAX_BIGINT))
-        ).rejects.toThrow(`Pool id ${MAX_BIGINT.toString()} does not exist`)
-      })
-      it('success - get a pool by id', async () => {
-        const pool = await provider.contract.getPool(BigInt(0))
-
-        const coldPoolData = {
-          softCap: pool.softCap,
-          hardCap: pool.hardCap,
-          deadline: pool.deadline
-        }
-
-        expect({
-          softCap: BigInt(230),
-          hardCap: BigInt(300),
-          deadline: BigInt(1911925999)
-        }).toEqual(coldPoolData)
-      })
-    })
-    describe('getPools()', () => {
-      it('success - fetch pools by pagination', async () => {
-        const { data: pools } = await provider.contract.getPools(
-          BigInt(0),
-          BigInt(10)
-        )
-        expect(pools.length).toBe(10)
-
-        const { data: tempPools } = await provider.contract.getPools(
-          BigInt(10),
-          BigInt(10)
-        )
-        pools.push(...tempPools)
-        expect(pools.length).toBe(20)
-
-        const { data: tempPools2 } = await provider.contract.getPools(
-          BigInt(20),
-          BigInt(10)
-        )
-        pools.push(...tempPools2)
-        expect(pools.length).toBe(30)
-      })
-      it('success - offset exceeds total pools', async () => {
-        const { data: pools } = await provider.contract.getPools(
-          MAX_BIGINT,
-          BigInt(10)
-        )
-
-        expect(pools.length).toBe(0)
-      })
     })
   })
 
@@ -262,16 +213,11 @@ describe('SelfProvider - Pools', () => {
           await approveTokenAmount(usdcTokenContract, provider, POOL_FEE)
         }
 
-        await provider.contract.createPool({
-          softCap: BigInt(1_000000),
-          hardCap: BigInt(5_000000),
-          deadline: BigInt(getUnixEpochTimeInFuture(BigInt(86400 * 90))),
-          collateralTokens: []
-        })
+        await provider.contract.createPool(firstPool)
 
         expect(true).toBe(true)
       })
-      it('success - create a pool with many collateral amounts', async () => {
+      it('success - create a pool with many collateral amounts of the same token', async () => {
         expect.assertions(1)
 
         const usdcApproved = await usdcTokenContract.balanceOf(
@@ -321,6 +267,61 @@ describe('SelfProvider - Pools', () => {
         })
 
         expect(true).toBe(true)
+      })
+    })
+  })
+
+  describe('Views', () => {
+    describe('getPool()', () => {
+      it('failure - wrong pool id', async () => {
+        await expect(
+          provider.contract.getPool(BigInt(MAX_BIGINT))
+        ).rejects.toThrow(`Pool id ${MAX_BIGINT.toString()} does not exist`)
+      })
+      it('success - get a pool by id', async () => {
+        const pool = await provider.contract.getPool(BigInt(0))
+
+        const coldPoolData = {
+          softCap: pool.softCap,
+          hardCap: pool.hardCap,
+          deadline: pool.deadline,
+          collateralTokens: Array.isArray(pool.collateralToken)
+            ? pool.collateralToken
+            : []
+        }
+
+        expect(firstPool).toEqual(coldPoolData)
+      })
+    })
+    describe('getPools()', () => {
+      it('success - fetch pools by pagination', async () => {
+        const { data: pools } = await provider.contract.getPools(
+          BigInt(0),
+          BigInt(1)
+        )
+        expect(pools.length).toBe(1)
+
+        const { data: tempPools } = await provider.contract.getPools(
+          BigInt(0),
+          BigInt(10)
+        )
+
+        expect(tempPools.length).toBe(2)
+
+        const { data: tempPools2 } = await provider.contract.getPools(
+          BigInt(20),
+          BigInt(10)
+        )
+
+        expect(tempPools2.length).toBe(0)
+      })
+      it('success - offset exceeds total pools', async () => {
+        const { data: pools } = await provider.contract.getPools(
+          MAX_BIGINT,
+          BigInt(10)
+        )
+
+        expect(pools.length).toBe(0)
       })
     })
   })
