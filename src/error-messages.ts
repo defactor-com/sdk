@@ -1,7 +1,8 @@
 export const poolCommonErrorMessage = {
   noExistPoolId: (poolId: bigint) =>
     `Pool id ${poolId.toString()} does not exist`,
-  wrongAddressFormat: `Address does not follow the ethereum address format`
+  wrongAddressFormat: `Address does not follow the ethereum address format`,
+  noNegativeAmountOrZero: 'Amount cannot be negative or 0'
 }
 
 export const ecpErrorMessage = {
@@ -30,7 +31,8 @@ export const ecpErrorMessage = {
   borrowAlreadyRepaid: 'Borrow already repaid'
 }
 
-export const tcpErrorMessage = {
+export const cppErrorMessage = {
   softCapMustBeLessThanHardCap: 'Soft cap must be less than hard cap',
-  deadlineMustBeInFuture: 'Deadline must be in the future'
+  deadlineMustBeInFuture: 'Deadline must be in the future',
+  noNegativeSoftCapOrZero: 'Amount cannot be negative or 0'
 }

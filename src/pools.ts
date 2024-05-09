@@ -8,7 +8,7 @@ import {
   Pagination,
   Views
 } from './base-contract'
-import { poolCommonErrorMessage, tcpErrorMessage } from './error-messages'
+import { cppErrorMessage, poolCommonErrorMessage } from './error-messages'
 import { Functions, Pool, PoolCommit, PoolInput } from './types/pools'
 import { Abi, PrivateKey } from './types/types'
 
@@ -81,15 +81,28 @@ export class Pools
   async createPool(
     pool: PoolInput
   ): Promise<ethers.ContractTransaction | ethers.TransactionResponse> {
+    if (pool.softCap <= BigInt(0)) {
+      throw new Error(cppErrorMessage.noNegativeSoftCapOrZero)
+    }
+
     if (pool.hardCap < pool.softCap) {
-      throw new Error(tcpErrorMessage.softCapMustBeLessThanHardCap)
+      throw new Error(cppErrorMessage.softCapMustBeLessThanHardCap)
     }
 
     // TODO: Validate contract has <= validation, should this logic use the same validation
     // since the time when the library is called is different than the time when the contract is called
     // and execute the transaction
     if (pool.deadline <= BigInt(Math.floor(Date.now() / 1000))) {
-      throw new Error(tcpErrorMessage.deadlineMustBeInFuture)
+      throw new Error(cppErrorMessage.deadlineMustBeInFuture)
+    }
+
+    for (const token of pool.collateralTokens) {
+      if (!ethers.isAddress(token.contractAddress)) {
+        throw new Error(poolCommonErrorMessage.wrongAddressFormat)
+      }
+      if (token.amount <= BigInt(0)) {
+        throw new Error(poolCommonErrorMessage.noNegativeAmountOrZero)
+      }
     }
 
     // TODO: add validation of balance
