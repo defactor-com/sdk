@@ -1,3 +1,5 @@
+import { isError } from 'ethers'
+
 import {
   cppErrorMessage,
   poolCommonErrorMessage
@@ -9,6 +11,7 @@ import {
   POOLS_ETH_ADDRESS,
   TESTING_PRIVATE_KEY,
   USD_TOKEN_ADDRESS,
+  getUnixEpochTimeInFuture,
   loadEnv
 } from '../test-util'
 
@@ -99,6 +102,7 @@ describe('SelfProvider - Pools', () => {
   describe('Functions', () => {
     describe('createPool()', () => {
       it('failure - softCap no positive', async () => {
+        expect.assertions(1)
         await expect(
           provider.contract.createPool({
             softCap: BigInt(-10_000000),
@@ -109,6 +113,7 @@ describe('SelfProvider - Pools', () => {
         ).rejects.toThrow(cppErrorMessage.noNegativeSoftCapOrZero)
       })
       it('failure - hardCap is less than softCap', async () => {
+        expect.assertions(1)
         await expect(
           provider.contract.createPool({
             softCap: BigInt(10_000000),
@@ -119,6 +124,7 @@ describe('SelfProvider - Pools', () => {
         ).rejects.toThrow(cppErrorMessage.softCapMustBeLessThanHardCap)
       })
       it('failure - deadline is in the past', async () => {
+        expect.assertions(1)
         await expect(
           provider.contract.createPool({
             softCap: BigInt(1_000000),
@@ -129,12 +135,12 @@ describe('SelfProvider - Pools', () => {
         ).rejects.toThrow(cppErrorMessage.deadlineMustBeInFuture)
       })
       it('failure - one or more collateral token has invalid addresses', async () => {
-        const timeInFuture = Math.floor(Date.now() / 1000) + 60 * 5
+        expect.assertions(1)
         await expect(
           provider.contract.createPool({
             softCap: BigInt(1_000000),
             hardCap: BigInt(5_000000),
-            deadline: BigInt(timeInFuture),
+            deadline: BigInt(getUnixEpochTimeInFuture(BigInt(60))),
             collateralTokens: [
               {
                 contractAddress: USD_TOKEN_ADDRESS,
@@ -156,12 +162,12 @@ describe('SelfProvider - Pools', () => {
         ).rejects.toThrow(poolCommonErrorMessage.wrongAddressFormat)
       })
       it('failure - one or more collateral token has invalid amounts', async () => {
-        const timeInFuture = Math.floor(Date.now() / 1000) + 60 * 5
+        expect.assertions(1)
         await expect(
           provider.contract.createPool({
             softCap: BigInt(1_000000),
             hardCap: BigInt(5_000000),
-            deadline: BigInt(timeInFuture),
+            deadline: BigInt(getUnixEpochTimeInFuture(BigInt(60))),
             collateralTokens: [
               {
                 contractAddress: USD_TOKEN_ADDRESS,
@@ -176,6 +182,38 @@ describe('SelfProvider - Pools', () => {
             ]
           })
         ).rejects.toThrow(poolCommonErrorMessage.noNegativeAmountOrZero)
+      })
+      it('failure - the amount of 200 fee base tokens (USDC) was not approved', async () => {
+        expect.assertions(1)
+        try {
+          await provider.contract.createPool({
+            softCap: BigInt(1_000000),
+            hardCap: BigInt(5_000000),
+            deadline: BigInt(getUnixEpochTimeInFuture(BigInt(60))),
+            collateralTokens: []
+          })
+        } catch (error) {
+          expect(isError(error, 'CALL_EXCEPTION')).toBeTruthy()
+        }
+      })
+      it('failure - the amount of one or more collateral token was not approved', async () => {
+        expect.assertions(1)
+        try {
+          await provider.contract.createPool({
+            softCap: BigInt(1_000000),
+            hardCap: BigInt(5_000000),
+            deadline: getUnixEpochTimeInFuture(BigInt(60)),
+            collateralTokens: [
+              {
+                contractAddress: USD_TOKEN_ADDRESS,
+                amount: BigInt(5_000000),
+                id: null
+              }
+            ]
+          })
+        } catch (error) {
+          expect(isError(error, 'CALL_EXCEPTION')).toBeTruthy()
+        }
       })
     })
   })

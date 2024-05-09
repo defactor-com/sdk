@@ -34,3 +34,9 @@ export const waitUntilConfirmationCompleted = async (
     await provider.waitForTransaction(tx.hash)
   }
 }
+
+export const getUnixEpochTimeInFuture = (seconds: bigint) => {
+  if (seconds <= 0) throw new Error('seconds must be positive')
+
+  return BigInt(Math.floor(Date.now() / 1000)) + seconds
+}
