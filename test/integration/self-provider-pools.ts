@@ -238,7 +238,7 @@ describe('SelfProvider - Pools', () => {
           expect(isError(error, 'CALL_EXCEPTION')).toBeTruthy()
         }
       })
-      it('success - create a pool with the softCap equal than hardCap', async () => {
+      it('success - with the softCap equal than hardCap', async () => {
         expect.assertions(1)
 
         await approveCreationFee(
@@ -257,7 +257,7 @@ describe('SelfProvider - Pools', () => {
 
         expect(true).toBe(true)
       })
-      it('success - create a pool without collaterals', async () => {
+      it('success - without collaterals', async () => {
         expect.assertions(1)
 
         await approveCreationFee(
@@ -271,7 +271,7 @@ describe('SelfProvider - Pools', () => {
 
         expect(true).toBe(true)
       })
-      it('success - create a pool with many collateral amounts of the same token (base token USDC)', async () => {
+      it('success - with many collateral amounts of the same token (USDC)', async () => {
         expect.assertions(1)
 
         await approveCreationFee(
@@ -298,7 +298,7 @@ describe('SelfProvider - Pools', () => {
 
         expect(true).toBe(true)
       })
-      it('success - create a pool with different collaterals', async () => {
+      it('success - with different collaterals', async () => {
         expect.assertions(1)
 
         const collaterals = getRandomERC20Collaterals(5)
