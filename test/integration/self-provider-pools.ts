@@ -240,6 +240,27 @@ describe('SelfProvider - Pools', () => {
           expect(isError(error, 'CALL_EXCEPTION')).toBeTruthy()
         }
       })
+      it('failure - the amount to transfer exceeds balance', async () => {
+        expect.assertions(1)
+        try {
+          const balance = await usdcTokenContract.balanceOf(signerAddress)
+
+          await provider.contract.createPool({
+            softCap: BigInt(1_000000),
+            hardCap: BigInt(5_000000),
+            deadline: BigInt(getUnixEpochTimeInFuture(BigInt(60))),
+            collateralTokens: [
+              {
+                contractAddress: USD_TOKEN_ADDRESS,
+                amount: BigInt(balance + BigInt(10 ** 6)),
+                id: null
+              }
+            ]
+          })
+        } catch (error) {
+          expect(isError(error, 'CALL_EXCEPTION')).toBeTruthy()
+        }
+      })
       it('success - create a pool with the softCap equal than hardCap', async () => {
         expect.assertions(1)
 
