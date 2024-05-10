@@ -1,5 +1,9 @@
 import { ethers } from 'ethers'
 
+import { Erc20, Pools } from '../src'
+import { SelfProvider } from '../src/self-provider'
+import { CollateralToken } from '../src/types/pools'
+
 export const ERC20_COLLATERAL_POOL_ETH_ADDRESS =
   '0x615e1f7970363Fbf7A1843eFc16f0E4e685610F9'
 export const POOLS_ETH_ADDRESS = '0xc9BB84fCE54C27C159Cbef4cb45A922018cFF675'
@@ -43,4 +47,92 @@ export const getUnixEpochTimeInFuture = (seconds: bigint) => {
   if (seconds <= 0) throw new Error('seconds must be positive')
 
   return BigInt(Math.floor(Date.now() / 1000)) + seconds
+}
+
+export const approveTokenAmount = async (
+  contract: Erc20,
+  provider: SelfProvider<Pools>,
+  amount: bigint
+) => {
+  const tx = await contract.approve(provider.contract.address, BigInt(amount))
+
+  await waitUntilConfirmationCompleted(provider.contract.jsonRpcProvider, tx)
+}
+
+export const approveCreationFee = async (
+  contract: Erc20,
+  provider: SelfProvider<Pools>,
+  signerAddress: string,
+  creationFee: bigint
+) => {
+  const usdcApproved = await contract.allowance(
+    signerAddress,
+    provider.contract.address
+  )
+
+  if (usdcApproved < creationFee) {
+    await approveTokenAmount(contract, provider, creationFee)
+  }
+}
+
+export const approveCollateral = async (
+  provider: SelfProvider<Pools>,
+  signerAddress: string,
+  collaterals: Array<CollateralToken>,
+  creationFee: bigint
+) => {
+  const amountByCollateral = collaterals.reduce(
+    (res: Record<string, bigint>, curr) => {
+      if (!res[curr.contractAddress]) {
+        res[curr.contractAddress] = BigInt(0)
+      }
+
+      res[curr.contractAddress] += curr.amount
+
+      return res
+    },
+    {}
+  )
+
+  for (const address of Object.keys(amountByCollateral)) {
+    const isUsdc = USD_TOKEN_ADDRESS === address
+    const erc20Contract = new Erc20(
+      address,
+      provider.contract.apiUrl,
+      TESTING_PRIVATE_KEY
+    )
+
+    const erc20Approved = await erc20Contract.allowance(
+      signerAddress,
+      provider.contract.address
+    )
+
+    const amountRequired =
+      amountByCollateral[address] + (isUsdc ? creationFee : BigInt(0))
+
+    if (erc20Approved < amountRequired) {
+      await approveTokenAmount(erc20Contract, provider, amountRequired)
+    }
+  }
+}
+
+export const getRandomERC20Collaterals = (
+  max: number
+): Array<CollateralToken> => {
+  const collaterals = []
+
+  for (let index = 0; index < max; index++) {
+    const token =
+      COLLATERAL_ERC20_TOKENS[
+        Math.floor(index / (max / COLLATERAL_ERC20_TOKENS.length))
+      ]
+
+    collaterals.push({
+      contractAddress: token.address,
+      amount: BigInt(10 ** token.precision),
+      id: null
+    })
+  }
+
+  return collaterals
 }
