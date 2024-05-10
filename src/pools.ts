@@ -89,9 +89,6 @@ export class Pools
       throw new Error(cppErrorMessage.softCapMustBeLessThanHardCap)
     }
 
-    // TODO: Validate contract has <= validation, should this logic use the same validation
-    // since the time when the library is called is different than the time when the contract is called
-    // and execute the transaction
     if (pool.deadline <= BigInt(Math.floor(Date.now() / 1000))) {
       throw new Error(cppErrorMessage.deadlineMustBeInFuture)
     }
