@@ -217,6 +217,10 @@ describe('SelfProvider - Pools', () => {
           provider.contract.address
         )
 
+        if (usdcApproved < POOL_FEE) {
+          await approveTokenAmount(usdcTokenContract, provider, POOL_FEE)
+        }
+
         if (usdcApproved >= POOL_FEE + collateralAmount) return
 
         try {
