@@ -105,8 +105,6 @@ export class Pools
       }
     }
 
-    // TODO: add validation of balance
-    // Convert BigInt values to strings
     const formattedPool = {
       softCap: pool.softCap.toString(),
       hardCap: pool.hardCap.toString(),
