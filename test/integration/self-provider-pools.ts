@@ -1,4 +1,4 @@
-import { TransactionResponse, isError } from 'ethers'
+import { isError } from 'ethers'
 
 import { Erc20 } from '../../src'
 import {
@@ -14,13 +14,15 @@ import {
   TESTING_PRIVATE_KEY,
   USD_TOKEN_ADDRESS,
   getUnixEpochTimeInFuture,
-  loadEnv
+  loadEnv,
+  waitUntilConfirmationCompleted
 } from '../test-util'
 
 jest.setTimeout(50000)
 
 describe('SelfProvider - Pools', () => {
   let provider: SelfProvider<Pools>
+  let signerAddress: string
   let usdcTokenContract: Erc20
   const POOL_FEE = BigInt(200_000000)
   const firstPool: PoolInput = {
@@ -37,9 +39,7 @@ describe('SelfProvider - Pools', () => {
   ) => {
     const tx = await contract.approve(provider.contract.address, BigInt(amount))
 
-    if (tx instanceof TransactionResponse) {
-      await tx.wait()
-    }
+    await waitUntilConfirmationCompleted(provider.contract.jsonRpcProvider, tx)
   }
 
   beforeAll(async () => {
@@ -61,6 +61,12 @@ describe('SelfProvider - Pools', () => {
       process.env.PROVIDER_URL,
       TESTING_PRIVATE_KEY
     )
+
+    signerAddress = provider.contract.signer?.address || ''
+
+    if (!signerAddress) {
+      throw new Error('signer address is not defined')
+    }
   })
 
   describe('Constant Variables', () => {
@@ -158,11 +164,12 @@ describe('SelfProvider - Pools', () => {
       it('failure - the amount of 200 fee base tokens (USDC) was not approved', async () => {
         expect.assertions(1)
 
-        const approvedAmount = await usdcTokenContract.balanceOf(
+        const usdcApproved = await usdcTokenContract.allowance(
+          signerAddress,
           provider.contract.address
         )
 
-        if (approvedAmount >= POOL_FEE) return
+        if (usdcApproved >= POOL_FEE) return
 
         try {
           await provider.contract.createPool({
@@ -179,11 +186,12 @@ describe('SelfProvider - Pools', () => {
         expect.assertions(1)
 
         const collateralAmount = BigInt(5_000000)
-        const approvedAmount = await usdcTokenContract.balanceOf(
+        const usdcApproved = await usdcTokenContract.allowance(
+          signerAddress,
           provider.contract.address
         )
 
-        if (approvedAmount >= POOL_FEE + collateralAmount) return
+        if (usdcApproved >= POOL_FEE + collateralAmount) return
 
         try {
           await provider.contract.createPool({
@@ -202,10 +210,32 @@ describe('SelfProvider - Pools', () => {
           expect(isError(error, 'CALL_EXCEPTION')).toBeTruthy()
         }
       })
+      it('success - create a pool with the softCap equal than hardCap', async () => {
+        expect.assertions(1)
+
+        const usdcApproved = await usdcTokenContract.allowance(
+          signerAddress,
+          provider.contract.address
+        )
+
+        if (usdcApproved < POOL_FEE) {
+          await approveTokenAmount(usdcTokenContract, provider, POOL_FEE)
+        }
+
+        await provider.contract.createPool({
+          softCap: BigInt(5_000000),
+          hardCap: BigInt(5_000000),
+          deadline: getUnixEpochTimeInFuture(BigInt(86400 * 90)),
+          collateralTokens: []
+        })
+
+        expect(true).toBe(true)
+      })
       it('success - create a pool without collaterals', async () => {
         expect.assertions(1)
 
-        const usdcApproved = await usdcTokenContract.balanceOf(
+        const usdcApproved = await usdcTokenContract.allowance(
+          signerAddress,
           provider.contract.address
         )
 
@@ -220,7 +250,8 @@ describe('SelfProvider - Pools', () => {
       it('success - create a pool with many collateral amounts of the same token', async () => {
         expect.assertions(1)
 
-        const usdcApproved = await usdcTokenContract.balanceOf(
+        const usdcApproved = await usdcTokenContract.allowance(
+          signerAddress,
           provider.contract.address
         )
 

@@ -19,6 +19,10 @@ export class Erc20 extends BaseContract {
     return await this.contract.balanceOf(address)
   }
 
+  async allowance(owner: string, spender: string): Promise<bigint> {
+    return await this.contract.allowance(owner, spender)
+  }
+
   async approve(
     address: string,
     amount: bigint
