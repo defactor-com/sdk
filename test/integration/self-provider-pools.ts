@@ -1,4 +1,4 @@
-import { isError } from 'ethers'
+import { isAddress, isError } from 'ethers'
 
 import { Erc20 } from '../../src'
 import {
@@ -9,6 +9,7 @@ import { Pools } from '../../src/pools'
 import { SelfProvider } from '../../src/self-provider'
 import { PoolInput } from '../../src/types/pools'
 import {
+  COLLATERAL_ERC20_TOKENS,
   MAX_BIGINT,
   POOLS_ETH_ADDRESS,
   TESTING_PRIVATE_KEY,
@@ -42,6 +43,25 @@ describe('SelfProvider - Pools', () => {
     await waitUntilConfirmationCompleted(provider.contract.jsonRpcProvider, tx)
   }
 
+  const getRandomCollaterals = (max: number) => {
+    const collaterals = []
+
+    for (let index = 0; index < max; index++) {
+      const token =
+        COLLATERAL_ERC20_TOKENS[
+          Math.floor(index / (max / COLLATERAL_ERC20_TOKENS.length))
+        ]
+
+      collaterals.push({
+        contractAddress: token.address,
+        amount: BigInt(10 ** token.precision),
+        id: null
+      })
+    }
+
+    return collaterals
+  }
+
   beforeAll(async () => {
     await loadEnv()
 
@@ -66,6 +86,12 @@ describe('SelfProvider - Pools', () => {
 
     if (!signerAddress) {
       throw new Error('signer address is not defined')
+    }
+
+    for (const collateral of COLLATERAL_ERC20_TOKENS) {
+      if (!isAddress(collateral.address) || collateral.precision <= 0) {
+        throw new Error(`the collateral ${collateral.address} is invalid`)
+      }
     }
   })
 
@@ -247,7 +273,7 @@ describe('SelfProvider - Pools', () => {
 
         expect(true).toBe(true)
       })
-      it('success - create a pool with many collateral amounts of the same token', async () => {
+      it('success - create a pool with many collateral amounts of the same token (base token USDC)', async () => {
         expect.assertions(1)
 
         const usdcApproved = await usdcTokenContract.allowance(
@@ -259,40 +285,83 @@ describe('SelfProvider - Pools', () => {
           await approveTokenAmount(usdcTokenContract, provider, POOL_FEE)
         }
 
-        const collaterals = [
-          {
-            contractAddress: USD_TOKEN_ADDRESS,
-            amount: BigInt(1_000000),
-            id: null
-          },
-          {
-            contractAddress: USD_TOKEN_ADDRESS,
-            amount: BigInt(2_000000),
-            id: null
-          },
-          {
-            contractAddress: USD_TOKEN_ADDRESS,
-            amount: BigInt(1_000000),
-            id: null
-          }
-        ]
+        const collaterals = [1, 2, 1].map(amount => ({
+          contractAddress: USD_TOKEN_ADDRESS,
+          amount: BigInt(amount * 10 ** 6),
+          id: null
+        }))
 
         const collateralsAmount = collaterals.reduce(
           (a, b) => a + b.amount,
           BigInt(0)
         )
 
-        if (usdcApproved < POOL_FEE + collateralsAmount) {
-          await approveTokenAmount(
-            usdcTokenContract,
-            provider,
-            collateralsAmount
-          )
+        const amountRequired = POOL_FEE + collateralsAmount
+
+        if (usdcApproved < amountRequired) {
+          await approveTokenAmount(usdcTokenContract, provider, amountRequired)
         }
 
         await provider.contract.createPool({
-          softCap: BigInt(1_000000),
-          hardCap: BigInt(5_000000),
+          softCap: BigInt(3_000000),
+          hardCap: BigInt(6_000000),
+          deadline: BigInt(getUnixEpochTimeInFuture(BigInt(86400 * 90))),
+          collateralTokens: collaterals
+        })
+
+        expect(true).toBe(true)
+      })
+      it('success - create a pool with different collaterals', async () => {
+        expect.assertions(1)
+
+        const collaterals = getRandomCollaterals(5)
+
+        const amountByCollateral = collaterals.reduce(
+          (res: Record<string, bigint>, curr) => {
+            if (!res[curr.contractAddress]) {
+              res[curr.contractAddress] = BigInt(0)
+            }
+
+            res[curr.contractAddress] += curr.amount
+
+            return res
+          },
+          {}
+        )
+
+        const usdcApproved = await usdcTokenContract.allowance(
+          signerAddress,
+          provider.contract.address
+        )
+
+        if (usdcApproved < POOL_FEE) {
+          await approveTokenAmount(usdcTokenContract, provider, POOL_FEE)
+        }
+
+        for (const address of Object.keys(amountByCollateral)) {
+          const isUsdc = USD_TOKEN_ADDRESS === address
+          const erc20Contract = new Erc20(
+            address,
+            provider.contract.apiUrl,
+            TESTING_PRIVATE_KEY
+          )
+
+          const erc20Approved = await erc20Contract.allowance(
+            signerAddress,
+            provider.contract.address
+          )
+
+          const amountRequired =
+            amountByCollateral[address] + (isUsdc ? POOL_FEE : BigInt(0))
+
+          if (erc20Approved < amountRequired) {
+            await approveTokenAmount(erc20Contract, provider, amountRequired)
+          }
+        }
+
+        await provider.contract.createPool({
+          softCap: BigInt(4_000000),
+          hardCap: BigInt(10_000000),
           deadline: BigInt(getUnixEpochTimeInFuture(BigInt(86400 * 90))),
           collateralTokens: collaterals
         })
@@ -337,7 +406,7 @@ describe('SelfProvider - Pools', () => {
           BigInt(10)
         )
 
-        expect(tempPools.length).toBe(2)
+        expect(tempPools.length).toBe(4)
 
         const { data: tempPools2 } = await provider.contract.getPools(
           BigInt(20),

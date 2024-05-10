@@ -12,6 +12,10 @@ export const COLLATERAL_TOKEN = '0x81da82b49CD9Ee7b7d67B4655784581f30590eA1'
 export const COLLATERAL_TOKEN_CHAINLINK =
   '0x997a6BCe1372baca6Bbb8db382Cb12F2dDca2b45'
 export const USD_TOKEN_ADDRESS = '0x80D9E7bC3D962878b292F9536b38E52e266a77Fd'
+export const COLLATERAL_ERC20_TOKENS = [
+  { address: '0x60E87395b0101F85C623c38Be010574f958496db', precision: 6 },
+  { address: '0x122336B4c95d8061A8b280e2Ccf221eC6A9A6aE8', precision: 4 }
+]
 
 export const loadEnv = async (): Promise<void> => {
   const dotenv = await import('dotenv')
