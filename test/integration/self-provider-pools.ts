@@ -18,7 +18,8 @@ import {
   approveCreationFee,
   getRandomERC20Collaterals,
   getUnixEpochTimeInFuture,
-  loadEnv
+  loadEnv,
+  waitUntilConfirmationCompleted
 } from '../test-util'
 
 jest.setTimeout(50000)
@@ -65,6 +66,17 @@ describe('SelfProvider - Pools', () => {
       if (!isAddress(collateral.address) || collateral.precision <= 0) {
         throw new Error(`the collateral ${collateral.address} is invalid`)
       }
+    }
+
+    const usdcApproved = await usdcTokenContract.allowance(
+      signerAddress,
+      provider.contract.address
+    )
+
+    if (usdcApproved >= POOL_FEE) {
+      throw new Error(
+        `the contract already has an allowance of ${usdcApproved / BigInt(10 ** 6)} USDC`
+      )
     }
   })
 
@@ -238,25 +250,6 @@ describe('SelfProvider - Pools', () => {
           expect(isError(error, 'CALL_EXCEPTION')).toBeTruthy()
         }
       })
-      it('success - with the softCap equal than hardCap', async () => {
-        expect.assertions(1)
-
-        await approveCreationFee(
-          usdcTokenContract,
-          provider,
-          signerAddress,
-          POOL_FEE
-        )
-
-        await provider.contract.createPool({
-          softCap: BigInt(5_000000),
-          hardCap: BigInt(5_000000),
-          deadline: getUnixEpochTimeInFuture(BigInt(86400 * 90)),
-          collateralTokens: []
-        })
-
-        expect(true).toBe(true)
-      })
       it('success - without collaterals', async () => {
         expect.assertions(1)
 
@@ -267,7 +260,36 @@ describe('SelfProvider - Pools', () => {
           POOL_FEE
         )
 
-        await provider.contract.createPool(firstPool)
+        const tx = await provider.contract.createPool(firstPool)
+
+        await waitUntilConfirmationCompleted(
+          provider.contract.jsonRpcProvider,
+          tx
+        )
+
+        expect(true).toBe(true)
+      })
+      it('success - with the softCap equal than hardCap', async () => {
+        expect.assertions(1)
+
+        await approveCreationFee(
+          usdcTokenContract,
+          provider,
+          signerAddress,
+          POOL_FEE
+        )
+
+        const tx = await provider.contract.createPool({
+          softCap: BigInt(5_000000),
+          hardCap: BigInt(5_000000),
+          deadline: getUnixEpochTimeInFuture(BigInt(86400 * 90)),
+          collateralTokens: []
+        })
+
+        await waitUntilConfirmationCompleted(
+          provider.contract.jsonRpcProvider,
+          tx
+        )
 
         expect(true).toBe(true)
       })
@@ -289,12 +311,17 @@ describe('SelfProvider - Pools', () => {
 
         await approveCollateral(provider, signerAddress, collaterals, POOL_FEE)
 
-        await provider.contract.createPool({
+        const tx = await provider.contract.createPool({
           softCap: BigInt(3_000000),
           hardCap: BigInt(6_000000),
           deadline: BigInt(getUnixEpochTimeInFuture(BigInt(86400 * 90))),
           collateralTokens: collaterals
         })
+
+        await waitUntilConfirmationCompleted(
+          provider.contract.jsonRpcProvider,
+          tx
+        )
 
         expect(true).toBe(true)
       })
@@ -311,12 +338,17 @@ describe('SelfProvider - Pools', () => {
         )
         await approveCollateral(provider, signerAddress, collaterals, POOL_FEE)
 
-        await provider.contract.createPool({
+        const tx = await provider.contract.createPool({
           softCap: BigInt(4_000000),
           hardCap: BigInt(10_000000),
           deadline: BigInt(getUnixEpochTimeInFuture(BigInt(86400 * 90))),
           collateralTokens: collaterals
         })
+
+        await waitUntilConfirmationCompleted(
+          provider.contract.jsonRpcProvider,
+          tx
+        )
 
         expect(true).toBe(true)
       })
