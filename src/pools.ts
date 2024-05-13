@@ -97,6 +97,7 @@ export class Pools
       if (!ethers.isAddress(token.contractAddress)) {
         throw new Error(poolCommonErrorMessage.wrongAddressFormat)
       }
+
       if (token.amount <= BigInt(0)) {
         throw new Error(poolCommonErrorMessage.noNegativeAmountOrZero)
       }
