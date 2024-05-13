@@ -269,7 +269,7 @@ describe('SelfProvider - Pools', () => {
 
         expect(true).toBe(true)
       })
-      it('success - with the softCap equal than hardCap', async () => {
+      it('success - softCap is equal to hardCap', async () => {
         expect.assertions(1)
 
         await approveCreationFee(
@@ -293,7 +293,7 @@ describe('SelfProvider - Pools', () => {
 
         expect(true).toBe(true)
       })
-      it('success - with many collateral amounts of the same token (USDC)', async () => {
+      it('success - many collateral amounts of the same token (USDC)', async () => {
         expect.assertions(1)
 
         await approveCreationFee(
@@ -325,7 +325,7 @@ describe('SelfProvider - Pools', () => {
 
         expect(true).toBe(true)
       })
-      it('success - with different collaterals', async () => {
+      it('success - different collaterals', async () => {
         expect.assertions(1)
 
         const collaterals = getRandomERC20Collaterals(5)
