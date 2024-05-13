@@ -1,6 +1,6 @@
 import { ethers } from 'ethers'
 
-import { miscErc20, miscPools } from './artifacts'
+import { miscPools } from './artifacts'
 import {
   AdminFunctions,
   BaseContract,
@@ -8,9 +8,9 @@ import {
   Pagination,
   Views
 } from './base-contract'
+import { cppErrorMessage, poolCommonErrorMessage } from './error-messages'
 import { Functions, Pool, PoolCommit, PoolInput } from './types/pools'
 import { Abi, PrivateKey } from './types/types'
-import { sleep } from './util'
 
 export class Pools
   extends BaseContract
@@ -39,7 +39,7 @@ export class Pools
     const pool = await this._getPoolById(poolId)
 
     if (!pool) {
-      throw new Error(`Pool id ${poolId.toString()} does not exist`)
+      throw new Error(poolCommonErrorMessage.noExistPoolId(poolId))
     }
 
     return pool
@@ -81,19 +81,28 @@ export class Pools
   async createPool(
     pool: PoolInput
   ): Promise<ethers.ContractTransaction | ethers.TransactionResponse> {
-    if (pool.softCap >= pool.hardCap) {
-      throw new Error('Hard cap must be greater than soft cap')
+    if (pool.softCap <= BigInt(0)) {
+      throw new Error(cppErrorMessage.noNegativeSoftCapOrZero)
     }
 
-    // TODO: Validate contract has <= validation, should this logic use the same validation
-    // since the time when the library is called is different than the time when the contract is called
-    // and execute the transaction
-    if (pool.deadline > BigInt(Date.now())) {
-      throw new Error('Deadline must be greater than current time')
+    if (pool.hardCap < pool.softCap) {
+      throw new Error(cppErrorMessage.softCapMustBeLessThanHardCap)
     }
 
-    // TODO: add validation of balance
-    // Convert BigInt values to strings
+    if (pool.deadline <= BigInt(Math.floor(Date.now() / 1000))) {
+      throw new Error(cppErrorMessage.deadlineMustBeInFuture)
+    }
+
+    for (const token of pool.collateralTokens) {
+      if (!ethers.isAddress(token.contractAddress)) {
+        throw new Error(poolCommonErrorMessage.wrongAddressFormat)
+      }
+
+      if (token.amount <= BigInt(0)) {
+        throw new Error(poolCommonErrorMessage.noNegativeAmountOrZero)
+      }
+    }
+
     const formattedPool = {
       softCap: pool.softCap.toString(),
       hardCap: pool.hardCap.toString(),
@@ -104,24 +113,6 @@ export class Pools
         token.id ? token.id.toString() : 0
       ])
     }
-
-    for (const token of pool.collateralTokens) {
-      const erc20Contract = new ethers.Contract(
-        token.contractAddress,
-        miscErc20.abi,
-        this.signer
-      )
-
-      // TODO: instead of hardcoding 200_000000 POOL_FEES, read the value from the contract
-      // TODO: provide this function as a populateTransaction and signed transaction
-      // TODO: adapt this logic to accept this.signer be null (assisted-provider)
-      await erc20Contract.approve(
-        this.address,
-        (token.amount + BigInt(200_000000)).toString()
-      )
-    }
-
-    await sleep(3000)
 
     const pop = await this.contract.createPool.populateTransaction(
       formattedPool.softCap,
