@@ -44,6 +44,20 @@ export type Pool = {
   collateralToken: Array<CollateralToken>
 }
 
+export type ContractPool = {
+  softCap: bigint
+  hardCap: bigint
+  totalCommitted: bigint
+  totalRewards: bigint
+  rewardsPaidOut: bigint
+  createdAt: bigint
+  deadline: bigint
+  closedTime: bigint
+  poolStatus: bigint
+  poolOwner: string
+  collateralToken: Array<CollateralToken>
+}
+
 export interface Functions {
   createPool(
     pool: PoolInput
@@ -52,7 +66,10 @@ export interface Functions {
   depositRewards(poolId: bigint, amount: bigint): Promise<void>
   closePool(poolId: bigint): Promise<void>
   archivePool(poolId: bigint): Promise<void>
-  commitToPool(poolId: bigint, amount: bigint): Promise<void>
+  commitToPool(
+    poolId: bigint,
+    amount: bigint
+  ): Promise<ethers.ContractTransaction | ethers.TransactionResponse>
   uncommitFromPool(poolId: bigint): Promise<void>
   claim(poolId: bigint): Promise<void>
 }

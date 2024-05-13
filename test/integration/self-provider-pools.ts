@@ -353,6 +353,34 @@ describe('SelfProvider - Pools', () => {
         expect(true).toBe(true)
       })
     })
+
+    describe('commitToPool()', () => {
+      it('failure - non-existed pool', async () => {
+        await expect(
+          provider.contract.commitToPool(BigInt(MAX_BIGINT), BigInt(1_000000))
+        ).rejects.toThrow(
+          poolCommonErrorMessage.noExistPoolId(BigInt(MAX_BIGINT))
+        )
+      })
+      it('failure - amount no positive', async () => {
+        await expect(
+          provider.contract.commitToPool(BigInt(1), BigInt(-15_000000))
+        ).rejects.toThrow(poolCommonErrorMessage.noNegativeAmountOrZero)
+      })
+      it('failure - deadline has passed', async () => {
+        await expect(
+          provider.contract.commitToPool(BigInt(0), BigInt(1_000000))
+        ).rejects.toThrow(cppErrorMessage.deadlineReached)
+      })
+      it('failure - amount was not approved', async () => {
+        expect.assertions(1)
+        try {
+          await provider.contract.commitToPool(BigInt(1), BigInt(1_000000))
+        } catch (error) {
+          expect(isError(error, 'CALL_EXCEPTION')).toBeTruthy()
+        }
+      })
+    })
   })
 
   describe('Views', () => {

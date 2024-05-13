@@ -1,6 +1,8 @@
 export const poolCommonErrorMessage = {
   noExistPoolId: (poolId: bigint) =>
     `Pool id ${poolId.toString()} does not exist`,
+  noSupportedPoolStatus: (poolId: bigint, poolStatus: bigint) =>
+    `Pool id ${poolId.toString()} has a not supported status ${poolStatus.toString()}`,
   wrongAddressFormat: `Address does not follow the ethereum address format`,
   noNegativeAmountOrZero: 'Amount cannot be negative or 0'
 }
@@ -34,5 +36,9 @@ export const ecpErrorMessage = {
 export const cppErrorMessage = {
   softCapMustBeLessThanHardCap: 'Soft cap must be less than hard cap',
   deadlineMustBeInFuture: 'Deadline must be in the future',
-  noNegativeSoftCapOrZero: 'Amount cannot be negative or 0'
+  noNegativeSoftCapOrZero: 'Amount cannot be negative or 0',
+  deadlineReached: 'Deadline has been reached',
+  poolIsNotCreated: (status?: string) =>
+    `Pool status is ${status}, it must be created`,
+  amountExceedsHardCap: 'The amount exceeds the harp cap'
 }

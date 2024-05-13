@@ -9,8 +9,17 @@ import {
   Views
 } from './base-contract'
 import { cppErrorMessage, poolCommonErrorMessage } from './error-messages'
-import { Functions, Pool, PoolCommit, PoolInput } from './types/pools'
+import {
+  ContractPool,
+  Functions,
+  Pool,
+  PoolCommit,
+  PoolInput,
+  PoolStatus,
+  PoolStatusOption
+} from './types/pools'
 import { Abi, PrivateKey } from './types/types'
+import { getUnixEpochTime } from './util'
 
 export class Pools
   extends BaseContract
@@ -30,9 +39,32 @@ export class Pools
   }
 
   private async _getPoolById(poolId: bigint): Promise<Pool | null> {
-    const pool: Pool = await this.contract.pools(poolId)
+    const pool: ContractPool = await this.contract.pools(poolId)
 
-    return pool.createdAt !== BigInt(0) ? pool : null
+    const statuses = Object.keys(PoolStatusOption)
+    const status = Number(pool.poolStatus)
+
+    if (status < 0 || status >= statuses.length) {
+      throw new Error(
+        poolCommonErrorMessage.noSupportedPoolStatus(poolId, pool.poolStatus)
+      )
+    }
+
+    const formattedPool: Pool = {
+      softCap: pool.softCap,
+      hardCap: pool.hardCap,
+      totalCommitted: pool.totalCommitted,
+      totalRewards: pool.totalRewards,
+      rewardsPaidOut: pool.rewardsPaidOut,
+      createdAt: pool.createdAt,
+      deadline: pool.deadline,
+      closedTime: pool.closedTime,
+      poolOwner: pool.poolOwner,
+      collateralToken: pool.collateralToken,
+      poolStatus: statuses[status] as PoolStatus
+    }
+
+    return pool.createdAt !== BigInt(0) ? formattedPool : null
   }
 
   async getPool(poolId: bigint): Promise<Pool> {
@@ -89,7 +121,7 @@ export class Pools
       throw new Error(cppErrorMessage.softCapMustBeLessThanHardCap)
     }
 
-    if (pool.deadline <= BigInt(Math.floor(Date.now() / 1000))) {
+    if (pool.deadline <= getUnixEpochTime()) {
       throw new Error(cppErrorMessage.deadlineMustBeInFuture)
     }
 
@@ -140,8 +172,36 @@ export class Pools
     throw new Error(`Method not implemented. ${poolId.toString()}`)
   }
 
-  commitToPool(poolId: bigint, amount: bigint): Promise<void> {
-    throw new Error(`Method not implemented. ${poolId}, ${amount}`)
+  async commitToPool(
+    poolId: bigint,
+    amount: bigint
+  ): Promise<ethers.ContractTransaction | ethers.TransactionResponse> {
+    const pool = await this.getPool(poolId)
+
+    if (amount <= BigInt(0)) {
+      throw new Error(poolCommonErrorMessage.noNegativeAmountOrZero)
+    }
+
+    if (pool.poolStatus !== PoolStatusOption.CREATED) {
+      throw new Error(
+        cppErrorMessage.poolIsNotCreated(pool.poolStatus.toLowerCase())
+      )
+    }
+
+    if (pool.deadline < getUnixEpochTime()) {
+      throw new Error(cppErrorMessage.deadlineReached)
+    }
+
+    if (pool.hardCap < pool.totalCommitted + amount) {
+      throw new Error(cppErrorMessage.amountExceedsHardCap)
+    }
+
+    const pop = await this.contract.commitToPool.populateTransaction(
+      poolId,
+      amount
+    )
+
+    return this.signer ? await this.signer.sendTransaction(pop) : pop
   }
 
   uncommitFromPool(poolId: bigint): Promise<void> {
