@@ -39,8 +39,9 @@ export class Pools
   }
 
   private async _getPoolById(poolId: bigint): Promise<Pool | null> {
-    const pool: ContractPool = await this.contract.pools(poolId)
+    if (poolId < 0) return null
 
+    const pool: ContractPool = await this.contract.pools(poolId)
     const statuses = Object.keys(PoolStatusOption)
     const status = Number(pool.poolStatus)
 
@@ -60,7 +61,9 @@ export class Pools
       deadline: pool.deadline,
       closedTime: pool.closedTime,
       poolOwner: pool.poolOwner,
-      collateralToken: pool.collateralToken,
+      collateralToken: Array.isArray(pool.collateralToken)
+        ? pool.collateralToken
+        : [],
       poolStatus: statuses[status] as PoolStatus
     }
 

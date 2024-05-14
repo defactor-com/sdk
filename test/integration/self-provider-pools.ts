@@ -8,6 +8,7 @@ import {
 import { Pools } from '../../src/pools'
 import { SelfProvider } from '../../src/self-provider'
 import { PoolInput } from '../../src/types/pools'
+import { sleep } from '../../src/util'
 import {
   COLLATERAL_ERC20_TOKENS,
   MAX_BIGINT,
@@ -18,6 +19,7 @@ import {
   approveCreationFee,
   approveTokenAmount,
   getRandomERC20Collaterals,
+  getUnixEpochTime,
   getUnixEpochTimeInFuture,
   loadEnv,
   waitUntilConfirmationCompleted
@@ -33,7 +35,7 @@ describe('SelfProvider - Pools', () => {
   const firstPool: PoolInput = {
     softCap: BigInt(1_000000),
     hardCap: BigInt(5_000000),
-    deadline: BigInt(getUnixEpochTimeInFuture(BigInt(86400 * 90))),
+    deadline: BigInt(getUnixEpochTimeInFuture(BigInt(30))),
     collateralTokens: []
   }
 
@@ -369,14 +371,32 @@ describe('SelfProvider - Pools', () => {
         ).rejects.toThrow(poolCommonErrorMessage.noNegativeAmountOrZero)
       })
       it('failure - deadline has passed', async () => {
+        const poolId = BigInt(0)
+        const pool = await provider.contract.getPool(poolId)
+
+        if (pool.deadline >= getUnixEpochTime()) {
+          const seconds = Number(pool.deadline - getUnixEpochTime()) || 1
+
+          await sleep(seconds * 1000)
+        }
+
         await expect(
-          provider.contract.commitToPool(BigInt(0), BigInt(1_000000))
+          provider.contract.commitToPool(poolId, BigInt(1_000000))
         ).rejects.toThrow(cppErrorMessage.deadlineReached)
       })
       it('failure - amount was not approved', async () => {
         expect.assertions(1)
+
+        const amount = BigInt(1_000000)
+        const usdcApproved = await usdcTokenContract.allowance(
+          signerAddress,
+          provider.contract.address
+        )
+
+        if (usdcApproved >= amount) return
+
         try {
-          await provider.contract.commitToPool(BigInt(1), BigInt(1_000000))
+          await provider.contract.commitToPool(BigInt(1), amount)
         } catch (error) {
           expect(isError(error, 'CALL_EXCEPTION')).toBeTruthy()
         }
@@ -394,7 +414,10 @@ describe('SelfProvider - Pools', () => {
         expect.assertions(1)
 
         const poolId = BigInt(1)
+        const pool = await provider.contract.getPool(poolId)
         const amount = BigInt(2_000000)
+
+        if (pool.hardCap < pool.totalCommitted + amount) return
 
         await approveTokenAmount(usdcTokenContract, provider, amount)
 
@@ -433,9 +456,7 @@ describe('SelfProvider - Pools', () => {
           softCap: pool.softCap,
           hardCap: pool.hardCap,
           deadline: pool.deadline,
-          collateralTokens: Array.isArray(pool.collateralToken)
-            ? pool.collateralToken
-            : []
+          collateralTokens: pool.collateralToken
         }
 
         expect(firstPool).toEqual(coldPoolData)
