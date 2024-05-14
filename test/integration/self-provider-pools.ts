@@ -16,6 +16,7 @@ import {
   USD_TOKEN_ADDRESS,
   approveCollateral,
   approveCreationFee,
+  approveTokenAmount,
   getRandomERC20Collaterals,
   getUnixEpochTimeInFuture,
   loadEnv,
@@ -379,6 +380,41 @@ describe('SelfProvider - Pools', () => {
         } catch (error) {
           expect(isError(error, 'CALL_EXCEPTION')).toBeTruthy()
         }
+      })
+      it('failure - amount exceeds the hardCap', async () => {
+        const poolId = BigInt(1)
+        const pool = await provider.contract.getPool(poolId)
+        const amount = pool.hardCap + BigInt(1_000000)
+
+        await expect(
+          provider.contract.commitToPool(poolId, amount)
+        ).rejects.toThrow(cppErrorMessage.amountExceedsHardCap)
+      })
+      it('success - commit to pool', async () => {
+        expect.assertions(1)
+
+        const poolId = BigInt(1)
+        const amount = BigInt(2_000000)
+
+        await approveTokenAmount(usdcTokenContract, provider, amount)
+
+        const tx = await provider.contract.commitToPool(poolId, amount)
+
+        await waitUntilConfirmationCompleted(
+          provider.contract.jsonRpcProvider,
+          tx
+        )
+
+        expect(true).toBe(true)
+      })
+      it('failure - amount plus total committed exceeds the hardCap', async () => {
+        const poolId = BigInt(1)
+        const pool = await provider.contract.getPool(poolId)
+        const amount = pool.hardCap + BigInt(1_000000) - pool.totalCommitted
+
+        await expect(
+          provider.contract.commitToPool(poolId, amount)
+        ).rejects.toThrow(cppErrorMessage.amountExceedsHardCap)
       })
     })
   })
