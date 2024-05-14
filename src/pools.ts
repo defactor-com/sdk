@@ -194,7 +194,7 @@ export class Pools
 
     if (pool.poolStatus !== PoolStatusOption.CREATED) {
       throw new Error(
-        cppErrorMessage.poolIsNotCreated(pool.poolStatus.toLowerCase())
+        cppErrorMessage.poolIsNotCreated(poolId, pool.poolStatus.toLowerCase())
       )
     }
 

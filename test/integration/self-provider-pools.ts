@@ -370,6 +370,16 @@ describe('SelfProvider - Pools', () => {
           provider.contract.commitToPool(BigInt(1), BigInt(-15_000000))
         ).rejects.toThrow(poolCommonErrorMessage.noNegativeAmountOrZero)
       })
+      it.skip('failure - status is different to CREATED', async () => {
+        const poolId = BigInt(0)
+        const pool = await provider.contract.getPool(poolId)
+
+        if (pool.poolStatus === 'CREATED') return
+
+        await expect(
+          provider.contract.commitToPool(poolId, BigInt(1_000000))
+        ).rejects.toThrow(cppErrorMessage.poolIsNotCreated(poolId, 'ACTIVE'))
+      })
       it('failure - deadline has passed', async () => {
         const poolId = BigInt(0)
         const pool = await provider.contract.getPool(poolId)
