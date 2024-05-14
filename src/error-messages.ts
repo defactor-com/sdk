@@ -39,6 +39,6 @@ export const cppErrorMessage = {
   noNegativeSoftCapOrZero: 'Amount cannot be negative or 0',
   deadlineReached: 'Deadline has been reached',
   poolIsNotCreated: (poolId: bigint, status: string) =>
-    `Pool ${poolId.toString()} status is ${status}, it must be created`,
+    `Pool ${poolId.toString()} status is ${status}, it must be CREATED`,
   amountExceedsHardCap: 'The amount exceeds the harp cap'
 }
