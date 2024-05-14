@@ -19,7 +19,7 @@ import {
   PoolStatusOption
 } from './types/pools'
 import { Abi, PrivateKey } from './types/types'
-import { getUnixEpochTime } from './util'
+import { Role, getUnixEpochTime } from './util'
 
 export class Pools
   extends BaseContract
@@ -38,7 +38,27 @@ export class Pools
     return await this.contract.USDC()
   }
 
-  private getStatusByIndex = (index: bigint) => {
+  async isPaused(): Promise<boolean> {
+    return await this.contract.paused()
+  }
+
+  private _checkIsNotPaused = async () => {
+    if (await this.isPaused()) {
+      throw new Error(poolCommonErrorMessage.contractIsPaused)
+    }
+  }
+
+  private _checkIsAdmin = async () => {
+    if (this.signer) {
+      const isAdmin = await this.contract.hasRole(Role.ADMIN, this.signer)
+
+      if (!isAdmin) {
+        throw new Error(poolCommonErrorMessage.addressIsNotAdmin)
+      }
+    }
+  }
+
+  private _getStatusByIndex = (index: bigint) => {
     const statusOptions = Object.keys(PoolStatusOption)
     const status = Number(index)
 
@@ -64,7 +84,7 @@ export class Pools
       deadline: pool.deadline,
       closedTime: pool.closedTime,
       poolOwner: pool.poolOwner,
-      poolStatus: this.getStatusByIndex(pool.poolStatus),
+      poolStatus: this._getStatusByIndex(pool.poolStatus),
       collateralTokens: Array.isArray(pool.collateralTokens)
         ? pool.collateralTokens.map(collateral => ({
             contractAddress: collateral.contractAddress,
@@ -112,17 +132,31 @@ export class Pools
     )
   }
 
-  pause(): Promise<void> {
-    throw new Error('Method not implemented.')
+  async pause(): Promise<
+    ethers.ContractTransaction | ethers.TransactionResponse
+  > {
+    await this._checkIsAdmin()
+
+    const pop = await this.contract.pause.populateTransaction()
+
+    return this.signer ? await this.signer.sendTransaction(pop) : pop
   }
 
-  unpause(): Promise<void> {
-    throw new Error('Method not implemented.')
+  async unpause(): Promise<
+    ethers.ContractTransaction | ethers.TransactionResponse
+  > {
+    await this._checkIsAdmin()
+
+    const pop = await this.contract.unpause.populateTransaction()
+
+    return this.signer ? await this.signer.sendTransaction(pop) : pop
   }
 
   async createPool(
     pool: PoolInput
   ): Promise<ethers.ContractTransaction | ethers.TransactionResponse> {
+    await this._checkIsNotPaused()
+
     if (pool.softCap <= BigInt(0)) {
       throw new Error(cppErrorMessage.noNegativeSoftCapOrZero)
     }
@@ -186,6 +220,8 @@ export class Pools
     poolId: bigint,
     amount: bigint
   ): Promise<ethers.ContractTransaction | ethers.TransactionResponse> {
+    await this._checkIsNotPaused()
+
     const pool = await this.getPool(poolId)
 
     if (amount <= BigInt(0)) {

@@ -10,6 +10,7 @@ import { SelfProvider } from '../../src/self-provider'
 import { PoolInput, PoolStatusOption } from '../../src/types/pools'
 import { sleep } from '../../src/util'
 import {
+  ADMIN_TESTING_PRIVATE_KEY,
   COLLATERAL_ERC20_TOKENS,
   MAX_BIGINT,
   POOLS_ETH_ADDRESS,
@@ -22,6 +23,7 @@ import {
   getUnixEpochTime,
   getUnixEpochTimeInFuture,
   loadEnv,
+  setPause,
   waitUntilConfirmationCompleted
 } from '../test-util'
 
@@ -29,6 +31,7 @@ jest.setTimeout(50000)
 
 describe('SelfProvider - Pools', () => {
   let provider: SelfProvider<Pools>
+  let notAdminProvider: SelfProvider<Pools>
   let signerAddress: string
   let usdcTokenContract: Erc20
   const POOL_FEE = BigInt(200_000000)
@@ -49,10 +52,17 @@ describe('SelfProvider - Pools', () => {
     usdcTokenContract = new Erc20(
       USD_TOKEN_ADDRESS,
       process.env.PROVIDER_URL,
-      TESTING_PRIVATE_KEY
+      ADMIN_TESTING_PRIVATE_KEY
     )
 
     provider = new SelfProvider(
+      Pools,
+      POOLS_ETH_ADDRESS,
+      process.env.PROVIDER_URL,
+      ADMIN_TESTING_PRIVATE_KEY
+    )
+
+    notAdminProvider = new SelfProvider(
       Pools,
       POOLS_ETH_ADDRESS,
       process.env.PROVIDER_URL,
@@ -64,6 +74,8 @@ describe('SelfProvider - Pools', () => {
     if (!signerAddress) {
       throw new Error('signer address is not defined')
     }
+
+    await setPause(provider, false)
 
     for (const collateral of COLLATERAL_ERC20_TOKENS) {
       if (!isAddress(collateral.address) || collateral.precision <= 0) {
@@ -91,8 +103,65 @@ describe('SelfProvider - Pools', () => {
     })
   })
 
+  describe('AdminFunctions', () => {
+    describe('pause()', () => {
+      it('failure - the signer is not admin', async () => {
+        expect.assertions(1)
+
+        await expect(notAdminProvider.contract.pause()).rejects.toThrow(
+          poolCommonErrorMessage.addressIsNotAdmin
+        )
+      })
+      it('success - pause contract', async () => {
+        expect.assertions(1)
+
+        const tx = await provider.contract.pause()
+
+        await waitUntilConfirmationCompleted(
+          provider.contract.jsonRpcProvider,
+          tx
+        )
+
+        const isPaused = await provider.contract.isPaused()
+
+        expect(isPaused).toBe(true)
+      })
+    })
+    describe('unpause()', () => {
+      it('failure - the signer is not admin', async () => {
+        expect.assertions(1)
+
+        await expect(notAdminProvider.contract.unpause()).rejects.toThrow(
+          poolCommonErrorMessage.addressIsNotAdmin
+        )
+      })
+      it('success - unpause the contract', async () => {
+        expect.assertions(1)
+
+        const tx = await provider.contract.unpause()
+
+        await waitUntilConfirmationCompleted(
+          provider.contract.jsonRpcProvider,
+          tx
+        )
+
+        const isPaused = await provider.contract.isPaused()
+
+        expect(isPaused).toBe(false)
+      })
+    })
+  })
+
   describe('Functions', () => {
     describe('createPool()', () => {
+      it('failure - the contract is paused', async () => {
+        expect.assertions(1)
+        await setPause(provider, true)
+        await expect(provider.contract.createPool(firstPool)).rejects.toThrow(
+          poolCommonErrorMessage.contractIsPaused
+        )
+        await setPause(provider, false)
+      })
       it('failure - softCap no positive', async () => {
         expect.assertions(1)
         await expect(
@@ -364,6 +433,14 @@ describe('SelfProvider - Pools', () => {
     })
 
     describe('commitToPool()', () => {
+      it('failure - the contract is paused', async () => {
+        expect.assertions(1)
+        await setPause(provider, true)
+        await expect(
+          provider.contract.commitToPool(BigInt(1), BigInt(1_000000))
+        ).rejects.toThrow(poolCommonErrorMessage.contractIsPaused)
+        await setPause(provider, false)
+      })
       it('failure - non-existed pool', async () => {
         expect.assertions(1)
         await expect(

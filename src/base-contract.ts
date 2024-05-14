@@ -35,8 +35,8 @@ export interface Views {
 }
 
 export interface AdminFunctions {
-  pause(): Promise<void>
-  unpause(): Promise<void>
+  pause(): Promise<ethers.ContractTransaction | ethers.TransactionResponse>
+  unpause(): Promise<ethers.ContractTransaction | ethers.TransactionResponse>
 }
 
 export abstract class BaseContract {

@@ -239,11 +239,11 @@ export class ERC20CollateralPool
     )
   }
 
-  pause(): Promise<void> {
+  pause(): Promise<ethers.ContractTransaction | ethers.TransactionResponse> {
     throw new Error('Method not implemented.')
   }
 
-  unpause(): Promise<void> {
+  unpause(): Promise<ethers.ContractTransaction | ethers.TransactionResponse> {
     throw new Error('Method not implemented.')
   }
 

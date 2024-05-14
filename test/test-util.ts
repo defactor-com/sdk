@@ -138,3 +138,21 @@ export const getRandomERC20Collaterals = (
 
   return collaterals
 }
+
+export const setPause = async (
+  provider: SelfProvider<Pools>,
+  value: boolean
+) => {
+  const isPaused = await provider.contract.isPaused()
+
+  if (isPaused === value) return
+
+  const txPause = value
+    ? await provider.contract.pause()
+    : await provider.contract.unpause()
+
+  await waitUntilConfirmationCompleted(
+    provider.contract.jsonRpcProvider,
+    txPause
+  )
+}

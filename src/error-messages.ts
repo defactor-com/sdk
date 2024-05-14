@@ -1,4 +1,6 @@
 export const poolCommonErrorMessage = {
+  contractIsPaused: 'The contract is paused',
+  addressIsNotAdmin: 'Sender address is not admin',
   noExistPoolId: (poolId: bigint) =>
     `Pool id ${poolId.toString()} does not exist`,
   noSupportedPoolStatus: (poolStatus: bigint) =>
