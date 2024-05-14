@@ -41,7 +41,7 @@ export type Pool = {
   closedTime: bigint
   poolStatus: PoolStatus
   poolOwner: string
-  collateralToken: Array<CollateralToken>
+  collateralTokens: Array<CollateralToken>
 }
 
 export type ContractPool = {
@@ -55,7 +55,7 @@ export type ContractPool = {
   closedTime: bigint
   poolStatus: bigint
   poolOwner: string
-  collateralToken: Array<CollateralToken>
+  collateralTokens: Array<CollateralToken>
 }
 
 export interface Functions {

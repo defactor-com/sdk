@@ -456,7 +456,7 @@ describe('SelfProvider - Pools', () => {
           softCap: pool.softCap,
           hardCap: pool.hardCap,
           deadline: pool.deadline,
-          collateralTokens: pool.collateralToken
+          collateralTokens: pool.collateralTokens
         }
 
         expect(firstPool).toEqual(coldPoolData)

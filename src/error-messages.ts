@@ -1,8 +1,8 @@
 export const poolCommonErrorMessage = {
   noExistPoolId: (poolId: bigint) =>
     `Pool id ${poolId.toString()} does not exist`,
-  noSupportedPoolStatus: (poolId: bigint, poolStatus: bigint) =>
-    `Pool id ${poolId.toString()} has a not supported status ${poolStatus.toString()}`,
+  noSupportedPoolStatus: (poolStatus: bigint) =>
+    `The status ${poolStatus.toString()} is not supported`,
   wrongAddressFormat: `Address does not follow the ethereum address format`,
   noNegativeAmountOrZero: 'Amount cannot be negative or 0'
 }

@@ -38,18 +38,21 @@ export class Pools
     return await this.contract.USDC()
   }
 
-  private async _getPoolById(poolId: bigint): Promise<Pool | null> {
-    if (poolId < 0) return null
+  private getStatusByIndex = (index: bigint) => {
+    const statusOptions = Object.keys(PoolStatusOption)
+    const status = Number(index)
 
-    const pool: ContractPool = await this.contract.pools(poolId)
-    const statuses = Object.keys(PoolStatusOption)
-    const status = Number(pool.poolStatus)
-
-    if (status < 0 || status >= statuses.length) {
-      throw new Error(
-        poolCommonErrorMessage.noSupportedPoolStatus(poolId, pool.poolStatus)
-      )
+    if (status < 0 || status >= statusOptions.length) {
+      throw new Error(poolCommonErrorMessage.noSupportedPoolStatus(index))
     }
+
+    return statusOptions[status] as PoolStatus
+  }
+
+  private async _getPoolById(poolId: bigint): Promise<Pool | null> {
+    if (poolId < 0 || poolId >= (await this.contract.poolIndex())) return null
+
+    const pool: ContractPool = await this.contract.getPool(poolId)
 
     const formattedPool: Pool = {
       softCap: pool.softCap,
@@ -61,10 +64,14 @@ export class Pools
       deadline: pool.deadline,
       closedTime: pool.closedTime,
       poolOwner: pool.poolOwner,
-      collateralToken: Array.isArray(pool.collateralToken)
-        ? pool.collateralToken
-        : [],
-      poolStatus: statuses[status] as PoolStatus
+      poolStatus: this.getStatusByIndex(pool.poolStatus),
+      collateralTokens: Array.isArray(pool.collateralTokens)
+        ? pool.collateralTokens.map(collateral => ({
+            contractAddress: collateral.contractAddress,
+            amount: collateral.amount,
+            id: collateral.id
+          }))
+        : []
     }
 
     return pool.createdAt !== BigInt(0) ? formattedPool : null
