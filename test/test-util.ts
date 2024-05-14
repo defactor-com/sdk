@@ -43,10 +43,12 @@ export const waitUntilConfirmationCompleted = async (
   }
 }
 
+export const getUnixEpochTime = () => BigInt(Math.floor(Date.now() / 1000))
+
 export const getUnixEpochTimeInFuture = (seconds: bigint) => {
   if (seconds <= 0) throw new Error('seconds must be positive')
 
-  return BigInt(Math.floor(Date.now() / 1000)) + seconds
+  return getUnixEpochTime() + seconds
 }
 
 export const approveTokenAmount = async (
