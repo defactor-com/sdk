@@ -43,10 +43,12 @@ export const waitUntilConfirmationCompleted = async (
   }
 }
 
+export const getUnixEpochTime = () => BigInt(Math.floor(Date.now() / 1000))
+
 export const getUnixEpochTimeInFuture = (seconds: bigint) => {
   if (seconds <= 0) throw new Error('seconds must be positive')
 
-  return BigInt(Math.floor(Date.now() / 1000)) + seconds
+  return getUnixEpochTime() + seconds
 }
 
 export const approveTokenAmount = async (
@@ -135,4 +137,22 @@ export const getRandomERC20Collaterals = (
   }
 
   return collaterals
+}
+
+export const setPause = async (
+  provider: SelfProvider<Pools>,
+  value: boolean
+) => {
+  const isPaused = await provider.contract.isPaused()
+
+  if (isPaused === value) return
+
+  const txPause = value
+    ? await provider.contract.pause()
+    : await provider.contract.unpause()
+
+  await waitUntilConfirmationCompleted(
+    provider.contract.jsonRpcProvider,
+    txPause
+  )
 }

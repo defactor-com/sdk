@@ -20,6 +20,10 @@ export const sleep = (ms: number): Promise<void> => {
   return new Promise(resolve => setTimeout(resolve, ms))
 }
 
+export const getUnixEpochTime = () => {
+  return BigInt(Math.floor(Date.now() / 1000))
+}
+
 export const normalizePool = (pool: Pool) => {
   const normalizedPool = normalizer<Pool>(pool, poolKeys)
   normalizedPool.collateralDetails = normalizer<CollateralDetails>(
