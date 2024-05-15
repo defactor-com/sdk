@@ -250,10 +250,11 @@ describe('SelfProvider - Pools', () => {
           provider.contract.address
         )
 
-        if (usdcApproved >= POOL_FEE)
+        if (usdcApproved >= POOL_FEE) {
           throw new Error(
             'Precondition Failed: There are already USDC tokens approved'
           )
+        }
 
         expect.assertions(1)
 
@@ -283,10 +284,11 @@ describe('SelfProvider - Pools', () => {
           provider.contract.address
         )
 
-        if (usdcApproved >= POOL_FEE + collateralAmount)
+        if (usdcApproved >= POOL_FEE + collateralAmount) {
           throw new Error(
-            'Precondition Failed: there are already collateral tokens approved'
+            'Precondition Failed: There are already collateral tokens approved'
           )
+        }
 
         expect.assertions(1)
 
@@ -459,8 +461,9 @@ describe('SelfProvider - Pools', () => {
         const poolId = BigInt(0)
         const pool = await provider.contract.getPool(poolId)
 
-        if (pool.poolStatus === PoolStatusOption.CREATED)
+        if (pool.poolStatus === PoolStatusOption.CREATED) {
           throw new Error('Precondition failed: The status is CREATED')
+        }
 
         expect.assertions(1)
         await expect(
@@ -476,7 +479,11 @@ describe('SelfProvider - Pools', () => {
         if (pool.deadline >= getUnixEpochTime()) {
           const seconds = Number(pool.deadline - getUnixEpochTime()) || 1
 
-          await sleep(seconds * 1000)
+          await sleep(Math.min(seconds, 60) * 1000)
+        }
+
+        if (pool.deadline >= getUnixEpochTime()) {
+          throw new Error('Precondition failed: The deadline has not passed')
         }
 
         expect.assertions(1)
@@ -491,10 +498,11 @@ describe('SelfProvider - Pools', () => {
           provider.contract.address
         )
 
-        if (usdcApproved >= amount)
+        if (usdcApproved >= amount) {
           throw new Error(
             'Precondition Failed: There are already USDC tokens approved'
           )
+        }
 
         expect.assertions(1)
 
@@ -520,10 +528,11 @@ describe('SelfProvider - Pools', () => {
         const pool = await provider.contract.getPool(poolId)
         const amount = BigInt(2_000000)
 
-        if (pool.hardCap < pool.totalCommitted + amount)
+        if (pool.hardCap < pool.totalCommitted + amount) {
           throw new Error(
             'Precondition failed: There is already a total committed'
           )
+        }
 
         expect.assertions(1)
 
