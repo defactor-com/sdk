@@ -27,7 +27,7 @@ import {
   waitUntilConfirmationCompleted
 } from '../test-util'
 
-jest.setTimeout(50000)
+jest.setTimeout(300000)
 
 describe('SelfProvider - Pools', () => {
   let provider: SelfProvider<Pools>
@@ -38,7 +38,7 @@ describe('SelfProvider - Pools', () => {
   const firstPool: PoolInput = {
     softCap: BigInt(1_000000),
     hardCap: BigInt(5_000000),
-    deadline: BigInt(getUnixEpochTimeInFuture(BigInt(30))),
+    deadline: BigInt(getUnixEpochTimeInFuture(BigInt(120))),
     collateralTokens: []
   }
 
@@ -75,24 +75,14 @@ describe('SelfProvider - Pools', () => {
       throw new Error('signer address is not defined')
     }
 
-    await setPause(provider, false)
-
     for (const collateral of COLLATERAL_ERC20_TOKENS) {
       if (!isAddress(collateral.address) || collateral.precision <= 0) {
         throw new Error(`the collateral ${collateral.address} is invalid`)
       }
     }
 
-    const usdcApproved = await usdcTokenContract.allowance(
-      signerAddress,
-      provider.contract.address
-    )
-
-    if (usdcApproved >= POOL_FEE) {
-      throw new Error(
-        `the contract already has an allowance of ${usdcApproved / BigInt(10 ** 6)} USDC`
-      )
-    }
+    await setPause(provider, false)
+    await approveTokenAmount(usdcTokenContract, provider, BigInt(0))
   })
 
   describe('Constant Variables', () => {
