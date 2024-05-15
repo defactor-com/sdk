@@ -1,9 +1,9 @@
 import { ethers } from 'ethers'
 
-import { miscErc20 } from './artifacts'
-import { BaseContract } from './base-contract'
-import { ecpErrorMessage } from './error-messages'
-import { Abi, PrivateKey } from './types/types'
+import { miscErc20 } from '../artifacts'
+import { BaseContract } from '../base-classes/base-contract'
+import { ecpErrorMessage } from '../errors/error-messages'
+import { Abi, PrivateKey } from '../types/types'
 
 export class Erc20 extends BaseContract {
   constructor(

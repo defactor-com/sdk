@@ -1,18 +1,19 @@
 import * as Artifacts from './artifacts'
-import * as AssistedProvider from './assisted-provider'
-import { Erc20 } from './erc20'
-import { ERC20CollateralPool } from './erc20-collateral-pool'
-import * as generics from './generics'
-import { Pools } from './pools'
-import * as SelfProvider from './self-provider'
+import * as AssistedProvider from './pools/assisted-provider'
+import { ERC20CollateralPool } from './pools/erc20-collateral-pool'
+import { Pools } from './pools/pools'
+import * as SelfProvider from './pools/self-provider'
 import * as TypesErc20CollateralToken from './types/erc20-collateral-token'
 import * as TypesPools from './types/pools'
 import * as TypesGeneral from './types/types'
-import * as util from './util'
+import { Erc20 } from './utilities/erc20'
+import * as generics from './utilities/generics'
+import * as util from './utilities/util'
 
 const Utilities = {
   util,
-  generics
+  generics,
+  Erc20
 }
 
 const types = {

@@ -1,7 +1,7 @@
 import { ethers } from 'ethers'
 
-import { ERC20CollateralPool } from '../erc20-collateral-pool'
-import { Pools } from '../pools'
+import { ERC20CollateralPool } from '../pools/erc20-collateral-pool'
+import { Pools } from '../pools/pools'
 
 export type ERC20CollateralPoolConstructorParams = ConstructorParameters<
   typeof ERC20CollateralPool

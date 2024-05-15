@@ -1,13 +1,13 @@
 import { Contract, ethers } from 'ethers'
 
-import { miscErc20CollateralPool } from './artifacts'
+import { miscErc20CollateralPool } from '../artifacts'
 import {
   Borrow,
   PoolInput as ERC20CollateralPool,
   Lend
-} from './types/erc20-collateral-token'
-import { PoolCommit, Pool as PoolObject } from './types/pools'
-import { Abi, PrivateKey } from './types/types'
+} from '../types/erc20-collateral-token'
+import { PoolCommit, Pool as PoolObject } from '../types/pools'
+import { Abi, PrivateKey } from '../types/types'
 
 export type BaseContractConstructorParams = ConstructorParameters<
   typeof BaseContract

@@ -4,11 +4,11 @@ import { Erc20 } from '../../src'
 import {
   cppErrorMessage,
   poolCommonErrorMessage
-} from '../../src/error-messages'
-import { Pools } from '../../src/pools'
-import { SelfProvider } from '../../src/self-provider'
+} from '../../src/errors/error-messages'
+import { Pools } from '../../src/pools/pools'
+import { SelfProvider } from '../../src/pools/self-provider'
 import { PoolInput, PoolStatusOption } from '../../src/types/pools'
-import { sleep } from '../../src/util'
+import { sleep } from '../../src/utilities/util'
 import {
   ADMIN_TESTING_PRIVATE_KEY,
   COLLATERAL_ERC20_TOKENS,

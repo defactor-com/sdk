@@ -1,14 +1,14 @@
 import { ethers } from 'ethers'
 
-import { miscErc20CollateralPool } from './artifacts'
+import { miscErc20CollateralPool } from '../artifacts'
 import {
   AdminFunctions,
   BaseContract,
   Erc20CollateralTokenPoolDetail,
   Pagination,
   Views
-} from './base-contract'
-import { ecpErrorMessage } from './error-messages'
+} from '../base-classes/base-contract'
+import { ecpErrorMessage } from '../errors/error-messages'
 import {
   Borrow,
   Functions,
@@ -16,9 +16,9 @@ import {
   Pool,
   PoolInput,
   PoolLiquidationInfo
-} from './types/erc20-collateral-token'
-import { Abi, PrivateKey } from './types/types'
-import { NULL_ADDRESS, Role } from './util'
+} from '../types/erc20-collateral-token'
+import { Abi, PrivateKey } from '../types/types'
+import { NULL_ADDRESS, Role } from '../utilities/util'
 
 export class ERC20CollateralPool
   extends BaseContract

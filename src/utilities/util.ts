@@ -1,4 +1,3 @@
-import { convertBigIntToString, normalizer } from './generics'
 import {
   Borrow,
   CollateralDetails,
@@ -8,7 +7,8 @@ import {
   collateralDetailsKeys,
   lendingKeys,
   poolKeys
-} from './types/erc20-collateral-token'
+} from '../types/erc20-collateral-token'
+import { convertBigIntToString, normalizer } from './generics'
 
 export const NULL_ADDRESS = '0x0000000000000000000000000000000000000000'
 

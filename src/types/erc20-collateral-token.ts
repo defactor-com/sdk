@@ -1,6 +1,9 @@
 import { ethers } from 'ethers'
 
-import { Erc20CollateralTokenPoolDetail, Pagination } from '../base-contract'
+import {
+  Erc20CollateralTokenPoolDetail,
+  Pagination
+} from '../base-classes/base-contract'
 
 // TODO: use uint48 instead of number
 export type Borrow = {

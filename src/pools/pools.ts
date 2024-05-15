@@ -1,14 +1,17 @@
 import { ethers } from 'ethers'
 
-import { miscPools } from './artifacts'
+import { miscPools } from '../artifacts'
 import {
   AdminFunctions,
   BaseContract,
   Erc20CollateralTokenPoolDetail,
   Pagination,
   Views
-} from './base-contract'
-import { cppErrorMessage, poolCommonErrorMessage } from './error-messages'
+} from '../base-classes/base-contract'
+import {
+  cppErrorMessage,
+  poolCommonErrorMessage
+} from '../errors/error-messages'
 import {
   ContractPool,
   Functions,
@@ -17,9 +20,9 @@ import {
   PoolInput,
   PoolStatus,
   PoolStatusOption
-} from './types/pools'
-import { Abi, PrivateKey } from './types/types'
-import { Role, getUnixEpochTime } from './util'
+} from '../types/pools'
+import { Abi, PrivateKey } from '../types/types'
+import { Role, getUnixEpochTime } from '../utilities/util'
 
 export class Pools
   extends BaseContract
