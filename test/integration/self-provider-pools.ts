@@ -93,7 +93,7 @@ describe('SelfProvider - Pools', () => {
     })
   })
 
-  describe('AdminFunctions', () => {
+  describe('Admin Functions', () => {
     describe('pause()', () => {
       it('failure - the signer is not admin', async () => {
         expect.assertions(1)

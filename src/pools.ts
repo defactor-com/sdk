@@ -43,7 +43,9 @@ export class Pools
   }
 
   private _checkIsNotPaused = async () => {
-    if (await this.isPaused()) {
+    const isPaused = await this.isPaused()
+
+    if (isPaused) {
       throw new Error(poolCommonErrorMessage.contractIsPaused)
     }
   }
@@ -70,7 +72,9 @@ export class Pools
   }
 
   private async _getPoolById(poolId: bigint): Promise<Pool | null> {
-    if (poolId < 0 || poolId >= (await this.contract.poolIndex())) return null
+    const poolIndex = await this.contract.poolIndex()
+
+    if (poolId < 0 || poolId >= poolIndex) return null
 
     const pool: ContractPool = await this.contract.getPool(poolId)
 
