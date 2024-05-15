@@ -8,10 +8,7 @@ import {
   Pagination,
   Views
 } from '../base-classes/base-contract'
-import {
-  cppErrorMessage,
-  poolCommonErrorMessage
-} from '../errors/error-messages'
+import { cppErrorMessage, poolCommonErrorMessage } from '../errors'
 import {
   ContractPool,
   Functions,

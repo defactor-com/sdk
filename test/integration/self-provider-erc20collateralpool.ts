@@ -1,4 +1,4 @@
-import { ecpErrorMessage } from '../../src/errors/error-messages'
+import { ecpErrorMessage } from '../../src/errors'
 import { ERC20CollateralPool } from '../../src/pools/erc20-collateral-pool'
 import { SelfProvider } from '../../src/pools/self-provider'
 import { Lend, Pool } from '../../src/types/erc20-collateral-token'

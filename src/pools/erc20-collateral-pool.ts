@@ -8,7 +8,7 @@ import {
   Pagination,
   Views
 } from '../base-classes/base-contract'
-import { ecpErrorMessage } from '../errors/error-messages'
+import { ecpErrorMessage } from '../errors'
 import {
   Borrow,
   Functions,
