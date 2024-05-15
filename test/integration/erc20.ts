@@ -1,6 +1,5 @@
 import { ecpErrorMessage } from '../../src/errors'
-import { ERC20CollateralPool } from '../../src/pools/erc20-collateral-pool'
-import { SelfProvider } from '../../src/pools/self-provider'
+import { ERC20CollateralPool, SelfProvider } from '../../src/pools'
 import { Erc20 } from '../../src/utilities/erc20'
 import { sleep } from '../../src/utilities/util'
 import {

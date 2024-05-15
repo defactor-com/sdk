@@ -2,8 +2,7 @@ import { isAddress, isError } from 'ethers'
 
 import { Erc20 } from '../../src'
 import { cppErrorMessage, poolCommonErrorMessage } from '../../src/errors'
-import { Pools } from '../../src/pools/pools'
-import { SelfProvider } from '../../src/pools/self-provider'
+import { Pools, SelfProvider } from '../../src/pools'
 import { PoolInput, PoolStatusOption } from '../../src/types/pools'
 import { sleep } from '../../src/utilities/util'
 import {

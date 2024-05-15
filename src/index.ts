@@ -1,8 +1,10 @@
 import * as Artifacts from './artifacts'
-import * as AssistedProvider from './pools/assisted-provider'
-import { ERC20CollateralPool } from './pools/erc20-collateral-pool'
-import { Pools } from './pools/pools'
-import * as SelfProvider from './pools/self-provider'
+import {
+  AssistedProvider,
+  ERC20CollateralPool,
+  Pools,
+  SelfProvider
+} from './pools'
 import * as TypesErc20CollateralToken from './types/erc20-collateral-token'
 import * as TypesPools from './types/pools'
 import * as TypesGeneral from './types/types'

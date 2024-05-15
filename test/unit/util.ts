@@ -1,5 +1,4 @@
-import { ERC20CollateralPool } from '../../src/pools/erc20-collateral-pool'
-import { SelfProvider } from '../../src/pools/self-provider'
+import { ERC20CollateralPool, SelfProvider } from '../../src/pools'
 import { Borrow, Lend, Pool } from '../../src/types/erc20-collateral-token'
 import {
   normalizeBorrow,
