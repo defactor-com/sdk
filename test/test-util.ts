@@ -1,8 +1,8 @@
 import { ethers } from 'ethers'
 
-import { Erc20, Pools } from '../src'
-import { SelfProvider } from '../src/self-provider'
+import { Pools, SelfProvider } from '../src/pools'
 import { CollateralToken } from '../src/types/pools'
+import { Erc20 } from '../src/utilities/erc20'
 
 export const ERC20_COLLATERAL_POOL_ETH_ADDRESS =
   '0x615e1f7970363Fbf7A1843eFc16f0E4e685610F9'

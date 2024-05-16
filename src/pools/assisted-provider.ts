@@ -1,12 +1,12 @@
-import { miscErc20CollateralPool } from './artifacts'
-import { BaseProvider } from './base-provider'
-import { ERC20CollateralPool } from './erc20-collateral-pool'
-import { Pools as PoolsClass } from './pools'
+import { miscErc20CollateralPool } from '../artifacts'
+import { BaseProvider } from '../base-classes'
 import {
   Abi,
   ERC20CollateralPoolConstructorParams,
   PoolsConstructorParams
-} from './types/types'
+} from '../types/types'
+import { ERC20CollateralPool } from './erc20-collateral-pool'
+import { Pools as PoolsClass } from './pools'
 
 export class AssistedProvider<
   T extends PoolsClass | ERC20CollateralPool

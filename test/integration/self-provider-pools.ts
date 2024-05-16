@@ -1,14 +1,10 @@
 import { isAddress, isError } from 'ethers'
 
 import { Erc20 } from '../../src'
-import {
-  cppErrorMessage,
-  poolCommonErrorMessage
-} from '../../src/error-messages'
-import { Pools } from '../../src/pools'
-import { SelfProvider } from '../../src/self-provider'
+import { cppErrorMessage, poolCommonErrorMessage } from '../../src/errors'
+import { Pools, SelfProvider } from '../../src/pools'
 import { PoolInput, PoolStatusOption } from '../../src/types/pools'
-import { sleep } from '../../src/util'
+import { sleep } from '../../src/utilities/util'
 import {
   ADMIN_TESTING_PRIVATE_KEY,
   COLLATERAL_ERC20_TOKENS,

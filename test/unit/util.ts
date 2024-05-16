@@ -1,11 +1,10 @@
-import { ERC20CollateralPool } from '../../src/erc20-collateral-pool'
-import { SelfProvider } from '../../src/self-provider'
+import { ERC20CollateralPool, SelfProvider } from '../../src/pools'
 import { Borrow, Lend, Pool } from '../../src/types/erc20-collateral-token'
 import {
   normalizeBorrow,
   normalizeLending,
   normalizePool
-} from '../../src/util'
+} from '../../src/utilities/util'
 import {
   ERC20_COLLATERAL_POOL_ETH_ADDRESS,
   TESTING_PRIVATE_KEY,

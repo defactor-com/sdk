@@ -1,9 +1,8 @@
-import { Erc20 } from '../../src/erc20'
-import { ERC20CollateralPool } from '../../src/erc20-collateral-pool'
-import { ecpErrorMessage } from '../../src/error-messages'
-import { SelfProvider } from '../../src/self-provider'
+import { ecpErrorMessage } from '../../src/errors'
+import { ERC20CollateralPool, SelfProvider } from '../../src/pools'
 import { Lend, Pool } from '../../src/types/erc20-collateral-token'
-import { sleep } from '../../src/util'
+import { Erc20 } from '../../src/utilities/erc20'
+import { sleep } from '../../src/utilities/util'
 import {
   ADMIN_TESTING_PRIVATE_KEY,
   COLLATERAL_TOKEN,

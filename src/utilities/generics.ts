@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { WithoutBigInt } from './types/types'
+import { WithoutBigInt } from '../types/types'
 
 export const normalizer = <T extends { [K in keyof T]: T[K] }>(
   input: T,
