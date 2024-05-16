@@ -545,6 +545,56 @@ describe('SelfProvider - Pools', () => {
         ).rejects.toThrow(cppErrorMessage.amountExceedsHardCap)
       })
     })
+
+    describe('collectPool()', () => {
+      it('failure - the contract is paused', async () => {
+        expect.assertions(1)
+        await setPause(provider, true)
+        await expect(provider.contract.collectPool(BigInt(1))).rejects.toThrow(
+          poolCommonErrorMessage.contractIsPaused
+        )
+        await setPause(provider, false)
+      })
+      it('failure - non-existed pool', async () => {
+        expect.assertions(1)
+        await expect(
+          provider.contract.collectPool(BigInt(MAX_BIGINT))
+        ).rejects.toThrow(
+          poolCommonErrorMessage.noExistPoolId(BigInt(MAX_BIGINT))
+        )
+      })
+      it('failure - not owner address', async () => {
+        expect.assertions(1)
+        await expect(
+          notAdminProvider.contract.collectPool(BigInt(1))
+        ).rejects.toThrow(cppErrorMessage.addressIsNotOwner)
+      })
+      it.skip('failure - status is different to CREATED', async () => {
+        const poolId = BigInt(0)
+        const pool = await provider.contract.getPool(poolId)
+
+        if (pool.poolStatus === PoolStatusOption.CREATED) {
+          throw new Error('Precondition failed: The status is CREATED')
+        }
+
+        expect.assertions(1)
+        await expect(provider.contract.collectPool(poolId)).rejects.toThrow(
+          cppErrorMessage.poolIsNotCreated(poolId, pool.poolStatus)
+        )
+      })
+      it('failure - softCap not reached', async () => {
+        expect.assertions(1)
+        await expect(provider.contract.collectPool(BigInt(2))).rejects.toThrow(
+          cppErrorMessage.softCapNotReached
+        )
+      })
+      it('failure - deadline not reached', async () => {
+        expect.assertions(1)
+        await expect(provider.contract.collectPool(BigInt(1))).rejects.toThrow(
+          cppErrorMessage.deadlineNotReached
+        )
+      })
+    })
   })
 
   describe('Views', () => {
