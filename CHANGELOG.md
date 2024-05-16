@@ -1,5 +1,11 @@
 # @defactor-com/defactor-sdk
 
+## 0.3.0
+
+### Minor Changes
+
+- 73a901c: Implement createPool, commitToPool and fix getPool for the Counter Party Pool (CPP)
+
 ## 0.2.3
 
 ### Patch Changes
