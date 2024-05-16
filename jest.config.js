@@ -8,5 +8,5 @@ module.exports = {
     // '**/unit/**/*.[jt]s?(x)'
     // '**/integration/**/*.[jt]s?(x)'
   ],
-  testPathIgnorePatterns: ['/node_modules/', '/dist/']
+  testPathIgnorePatterns: ['/node_modules/', '/dist/', '/']
 }
