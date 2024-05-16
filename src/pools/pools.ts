@@ -7,7 +7,7 @@ import {
   Erc20CollateralTokenPoolDetail,
   Pagination,
   Views
-} from '../base-classes/base-contract'
+} from '../base-classes'
 import { cppErrorMessage, poolCommonErrorMessage } from '../errors'
 import {
   ContractPool,

@@ -7,7 +7,7 @@ import {
   Erc20CollateralTokenPoolDetail,
   Pagination,
   Views
-} from '../base-classes/base-contract'
+} from '../base-classes'
 import { ecpErrorMessage } from '../errors'
 import {
   Borrow,

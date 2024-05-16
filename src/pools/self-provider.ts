@@ -1,4 +1,4 @@
-import { BaseProvider } from '../base-classes/base-provider'
+import { BaseProvider } from '../base-classes'
 import {
   Abi,
   ERC20CollateralPoolConstructorParams,
