@@ -443,29 +443,15 @@ describe('SelfProvider - Pools', () => {
           provider.contract.commitToPool(BigInt(1), BigInt(-15_000000))
         ).rejects.toThrow(poolCommonErrorMessage.noNegativeAmountOrZero)
       })
-      it.skip('failure - status is different to CREATED', async () => {
-        const poolId = BigInt(0)
-        const pool = await provider.contract.getPool(poolId)
-
-        if (pool.poolStatus === PoolStatusOption.CREATED) {
-          throw new Error('Precondition failed: The status is CREATED')
-        }
-
-        expect.assertions(1)
-        await expect(
-          provider.contract.commitToPool(poolId, BigInt(1_000000))
-        ).rejects.toThrow(
-          cppErrorMessage.poolIsNotCreated(poolId, pool.poolStatus)
-        )
-      })
       it('failure - deadline has passed', async () => {
         const poolId = BigInt(0)
         const pool = await provider.contract.getPool(poolId)
 
         if (pool.deadline >= getUnixEpochTime()) {
-          const seconds = Number(pool.deadline - getUnixEpochTime()) || 1
+          const diff = Number(pool.deadline - getUnixEpochTime())
+          const seconds = diff + 1 || 2
 
-          await sleep(Math.min(seconds, 60) * 1000)
+          await sleep(Math.min(seconds, 180) * 1000)
         }
 
         if (pool.deadline >= getUnixEpochTime()) {
@@ -569,8 +555,86 @@ describe('SelfProvider - Pools', () => {
           notAdminProvider.contract.collectPool(BigInt(1))
         ).rejects.toThrow(cppErrorMessage.addressIsNotOwner)
       })
-      it.skip('failure - status is different to CREATED', async () => {
-        const poolId = BigInt(0)
+      it('failure - softCap not reached', async () => {
+        expect.assertions(1)
+        await expect(provider.contract.collectPool(BigInt(2))).rejects.toThrow(
+          cppErrorMessage.softCapNotReached
+        )
+      })
+      it('failure - deadline not reached', async () => {
+        expect.assertions(1)
+        await expect(provider.contract.collectPool(BigInt(1))).rejects.toThrow(
+          cppErrorMessage.deadlineNotReached
+        )
+      })
+      it('success - collectPool', async () => {
+        // STEP 1. CREATE POOL
+        const pool: PoolInput = {
+          softCap: BigInt(1_000000),
+          hardCap: BigInt(3_000000),
+          deadline: getUnixEpochTimeInFuture(BigInt(60)),
+          collateralTokens: []
+        }
+
+        await approveCreationFee(
+          usdcTokenContract,
+          provider,
+          signerAddress,
+          POOL_FEE
+        )
+
+        const createPoolTx = await provider.contract.createPool(pool)
+
+        await waitUntilConfirmationCompleted(
+          provider.contract.jsonRpcProvider,
+          createPoolTx
+        )
+
+        // STEP 2. COMMIT TO POOL
+        const poolId: bigint =
+          (await provider.contract.contract.poolIndex()) - BigInt(1)
+
+        const amount = BigInt(1_000000)
+
+        await approveTokenAmount(usdcTokenContract, notAdminProvider, amount)
+
+        const commitToPoolTx = await notAdminProvider.contract.commitToPool(
+          poolId,
+          amount
+        )
+
+        await waitUntilConfirmationCompleted(
+          notAdminProvider.contract.jsonRpcProvider,
+          commitToPoolTx
+        )
+
+        // STEP 3. WAIT UNTIL DEADLINE
+        if (pool.deadline >= getUnixEpochTime()) {
+          const diff = Number(pool.deadline - getUnixEpochTime())
+          const seconds = diff + 1 || 2
+
+          await sleep(Math.min(seconds, 120) * 1000)
+        }
+
+        if (pool.deadline >= getUnixEpochTime()) {
+          throw new Error('Precondition failed: The deadline has not passed')
+        }
+
+        // STEP 4. COLLECT TO POOL
+        expect.assertions(1)
+
+        const collectPoolTx = await provider.contract.collectPool(poolId)
+
+        await waitUntilConfirmationCompleted(
+          notAdminProvider.contract.jsonRpcProvider,
+          collectPoolTx
+        )
+
+        expect(true).toBe(true)
+      })
+      it('failure - status is different to CREATED', async () => {
+        const poolId =
+          (await provider.contract.contract.poolIndex()) - BigInt(1)
         const pool = await provider.contract.getPool(poolId)
 
         if (pool.poolStatus === PoolStatusOption.CREATED) {
@@ -582,16 +646,23 @@ describe('SelfProvider - Pools', () => {
           cppErrorMessage.poolIsNotCreated(poolId, pool.poolStatus)
         )
       })
-      it('failure - softCap not reached', async () => {
+    })
+
+    describe('commitToPool()', () => {
+      it('failure - status is different to CREATED', async () => {
+        const poolId =
+          (await provider.contract.contract.poolIndex()) - BigInt(1)
+        const pool = await provider.contract.getPool(poolId)
+
+        if (pool.poolStatus === PoolStatusOption.CREATED) {
+          throw new Error('Precondition failed: The status is CREATED')
+        }
+
         expect.assertions(1)
-        await expect(provider.contract.collectPool(BigInt(2))).rejects.toThrow(
-          cppErrorMessage.softCapNotReached
-        )
-      })
-      it('failure - deadline not reached', async () => {
-        expect.assertions(1)
-        await expect(provider.contract.collectPool(BigInt(1))).rejects.toThrow(
-          cppErrorMessage.deadlineNotReached
+        await expect(
+          provider.contract.commitToPool(poolId, BigInt(1_000000))
+        ).rejects.toThrow(
+          cppErrorMessage.poolIsNotCreated(poolId, pool.poolStatus)
         )
       })
     })
