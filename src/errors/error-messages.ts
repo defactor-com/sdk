@@ -36,11 +36,16 @@ export const ecpErrorMessage = {
 }
 
 export const cppErrorMessage = {
+  addressIsNotOwner: 'Sender address is not the owner of the pool',
   softCapMustBeLessThanHardCap: 'Soft cap must be less than hard cap',
   deadlineMustBeInFuture: 'Deadline must be in the future',
   noNegativeSoftCapOrZero: 'Amount cannot be negative or 0',
   deadlineReached: 'Deadline has been reached',
+  deadlineNotReached: 'Deadline not reached',
+  softCapNotReached: 'Soft cap not reached',
   poolIsNotCreated: (poolId: bigint, status: string) =>
     `Pool ${poolId.toString()} status is ${status}, it must be CREATED`,
-  amountExceedsHardCap: 'The amount exceeds the harp cap'
+  amountExceedsHardCap: 'The amount exceeds the harp cap',
+  cannotCollectDaysAfterDeadline: (days: bigint) =>
+    `Cannot collect ${days} days after deadline`
 }

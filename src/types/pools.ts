@@ -71,7 +71,9 @@ export interface Functions {
   createPool(
     pool: PoolInput
   ): Promise<ethers.ContractTransaction | ethers.TransactionResponse>
-  collectPool(poolId: bigint): Promise<void>
+  collectPool(
+    poolId: bigint
+  ): Promise<ethers.ContractTransaction | ethers.TransactionResponse>
   depositRewards(poolId: bigint, amount: bigint): Promise<void>
   closePool(poolId: bigint): Promise<void>
   archivePool(poolId: bigint): Promise<void>
