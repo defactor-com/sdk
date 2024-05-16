@@ -1,6 +1,8 @@
 import { ethers } from 'ethers'
 
-import { Erc20CollateralTokenPoolDetail, Pagination } from '../base-classes'
+import { Pagination } from './types'
+
+export type Erc20CollateralTokenPoolDetail = Borrow | Lend
 
 // TODO: use uint48 instead of number
 export type Borrow = {
@@ -56,8 +58,12 @@ export type PoolLiquidationInfo = {
   liquidatableAmountWithLiquidationFee: bigint
 }
 
-export interface Views {
-  calculateRepayInterest(poolId: bigint, amount: bigint): Promise<bigint>
+export interface ERC20CollateralPoolViews {
+  calculateRepayInterest(
+    poolId: bigint,
+    borrowerAddress: string,
+    borrowId: bigint
+  ): Promise<bigint>
   calculateCollateralTokenAmount(
     poolId: bigint,
     amount: bigint

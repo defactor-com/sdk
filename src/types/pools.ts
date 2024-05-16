@@ -1,5 +1,9 @@
 import { ethers } from 'ethers'
 
+import { ERC20CollateralPool } from '../pools'
+import { Erc20CollateralTokenPoolDetail } from './erc20-collateral-token'
+import { Pagination } from './types'
+
 export const PoolStatusOption = {
   CREATED: 'CREATED',
   ACTIVE: 'ACTIVE',
@@ -58,6 +62,11 @@ export type ContractPool = {
   collateralTokens: Array<CollateralToken>
 }
 
+export interface AdminFunctions {
+  pause(): Promise<ethers.ContractTransaction | ethers.TransactionResponse>
+  unpause(): Promise<ethers.ContractTransaction | ethers.TransactionResponse>
+}
+
 export interface Functions {
   createPool(
     pool: PoolInput
@@ -72,4 +81,18 @@ export interface Functions {
   ): Promise<ethers.ContractTransaction | ethers.TransactionResponse>
   uncommitFromPool(poolId: bigint): Promise<void>
   claim(poolId: bigint): Promise<void>
+}
+
+export interface PoolViews {
+  getPool(poolId: bigint): Promise<ERC20CollateralPool | Pool>
+
+  getPools(
+    offset: bigint,
+    limit: bigint
+  ): Promise<Pagination<ERC20CollateralPool | Pool>>
+
+  getPoolDetails(
+    poolId: bigint,
+    walletAddress: string
+  ): Promise<Erc20CollateralTokenPoolDetail | PoolCommit>
 }

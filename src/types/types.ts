@@ -18,3 +18,8 @@ type BigIntToString<T> = {
 }
 
 export type WithoutBigInt<T> = BigIntToString<T>
+
+export type Pagination<T> = {
+  data: Array<T>
+  more: boolean
+}

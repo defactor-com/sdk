@@ -1,43 +1,11 @@
 import { Contract, ethers } from 'ethers'
 
 import { miscErc20CollateralPool } from '../artifacts'
-import {
-  Borrow,
-  PoolInput as ERC20CollateralPool,
-  Lend
-} from '../types/erc20-collateral-token'
-import { PoolCommit, Pool as PoolObject } from '../types/pools'
 import { Abi, PrivateKey } from '../types/types'
 
 export type BaseContractConstructorParams = ConstructorParameters<
   typeof BaseContract
 >
-
-export type Erc20CollateralTokenPoolDetail = Borrow | Lend
-
-export type Pagination<T> = {
-  data: Array<T>
-  more: boolean
-}
-
-export interface Views {
-  getPool(poolId: bigint): Promise<ERC20CollateralPool | PoolObject>
-
-  getPools(
-    offset: bigint,
-    limit: bigint
-  ): Promise<Pagination<ERC20CollateralPool | PoolObject>>
-
-  getPoolDetails(
-    poolId: bigint,
-    walletAddress: string
-  ): Promise<Erc20CollateralTokenPoolDetail | PoolCommit>
-}
-
-export interface AdminFunctions {
-  pause(): Promise<ethers.ContractTransaction | ethers.TransactionResponse>
-  unpause(): Promise<ethers.ContractTransaction | ethers.TransactionResponse>
-}
 
 export abstract class BaseContract {
   readonly address: string
