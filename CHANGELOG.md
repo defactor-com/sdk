@@ -1,5 +1,11 @@
 # @defactor-com/defactor-sdk
 
+## 0.3.1
+
+### Patch Changes
+
+- 3ead5a6: Reorganize the folder structure
+
 ## 0.3.0
 
 ### Minor Changes
