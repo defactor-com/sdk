@@ -17,7 +17,7 @@ jobs:
           node-version: 18.x
       - run: npm install -g yarn
       - run: yarn install --frozen-lockfile
-      - run: yarn lint && yarn build
+      - run: yarn lint && yarn build && yarn test
     env:
         PROVIDER_URL: ${{ secrets.PROVIDER_URL }}
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
