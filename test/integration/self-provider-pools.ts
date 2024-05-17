@@ -36,7 +36,8 @@ describe('SelfProvider - Pools', () => {
   let notAdminProvider: SelfProvider<Pools>
   let signerAddress: string
   let usdcTokenContract: Erc20
-  const POOL_FEE = BigInt(200_000000)
+  let POOL_FEE: bigint
+
   const firstPool: PoolInput = {
     softCap: BigInt(1_000000),
     hardCap: BigInt(5_000000),
@@ -82,6 +83,8 @@ describe('SelfProvider - Pools', () => {
         throw new Error(`the collateral ${collateral.address} is invalid`)
       }
     }
+
+    POOL_FEE = provider.contract.POOL_FEE
 
     await setPause(provider, false)
     await approveTokenAmount(usdcTokenContract, provider, BigInt(0))

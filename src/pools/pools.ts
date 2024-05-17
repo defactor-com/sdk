@@ -25,6 +25,7 @@ export class Pools
   extends BaseContract
   implements Functions, Views, AdminFunctions
 {
+  readonly POOL_FEE = BigInt(200_000000)
   readonly COLLECT_POOL_MAX_DAYS = BigInt(30)
   readonly COLLECT_POOL_MAX_SECS = BigInt(
     this.COLLECT_POOL_MAX_DAYS * BigInt(86400)
