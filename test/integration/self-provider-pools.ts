@@ -4,7 +4,6 @@ import { Erc20 } from '../../src'
 import { cppErrorMessage, poolCommonErrorMessage } from '../../src/errors'
 import { Pools, SelfProvider } from '../../src/pools'
 import { PoolInput, PoolStatusOption } from '../../src/types/pools'
-import { sleep } from '../../src/utilities/util'
 import {
   ADMIN_TESTING_PRIVATE_KEY,
   COLLATERAL_ERC20_TOKENS,
@@ -20,7 +19,8 @@ import {
   getUnixEpochTimeInFuture,
   loadEnv,
   setPause,
-  waitUntilConfirmationCompleted
+  waitUntilConfirmationCompleted,
+  waitUntilEpochPasses
 } from '../test-util'
 
 jest.setTimeout(300000)
@@ -447,12 +447,7 @@ describe('SelfProvider - Pools', () => {
         const poolId = BigInt(0)
         const pool = await provider.contract.getPool(poolId)
 
-        if (pool.deadline >= getUnixEpochTime()) {
-          const diff = Number(pool.deadline - getUnixEpochTime())
-          const seconds = diff + 1 || 2
-
-          await sleep(Math.min(seconds, 180) * 1000)
-        }
+        await waitUntilEpochPasses(pool.deadline, BigInt(180))
 
         if (pool.deadline >= getUnixEpochTime()) {
           throw new Error('Precondition failed: The deadline has not passed')
@@ -609,12 +604,7 @@ describe('SelfProvider - Pools', () => {
         )
 
         // STEP 3. WAIT UNTIL DEADLINE
-        if (pool.deadline >= getUnixEpochTime()) {
-          const diff = Number(pool.deadline - getUnixEpochTime())
-          const seconds = diff + 1 || 2
-
-          await sleep(Math.min(seconds, 120) * 1000)
-        }
+        await waitUntilEpochPasses(pool.deadline, BigInt(60))
 
         if (pool.deadline >= getUnixEpochTime()) {
           throw new Error('Precondition failed: The deadline has not passed')
