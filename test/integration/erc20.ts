@@ -1,4 +1,7 @@
-import { erc20CollateralPoolErrorMessage as ecpErrorMessage } from '../../src/errors'
+import {
+  erc20CollateralPoolErrorMessage as ecpErrorMessage,
+  poolCommonErrorMessage
+} from '../../src/errors'
 import { ERC20CollateralPool, SelfProvider } from '../../src/pools'
 import { Erc20 } from '../../src/utilities/erc20'
 import { sleep } from '../../src/utilities/util'
@@ -52,7 +55,7 @@ describe('SelfProvider - ERC20CollateralPool', () => {
       const negativeApproveAmount = BigInt(-10)
       await expect(
         erc20Contract.approve(TESTING_PUBLIC_KEY, negativeApproveAmount)
-      ).rejects.toThrow(ecpErrorMessage.noNegativeAmountOrZero)
+      ).rejects.toThrow(poolCommonErrorMessage.noNegativeAmountOrZero)
     })
 
     it('success - approve and transfer amount', async () => {

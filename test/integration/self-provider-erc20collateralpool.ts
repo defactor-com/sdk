@@ -1,4 +1,7 @@
-import { erc20CollateralPoolErrorMessage as ecpErrorMessage } from '../../src/errors'
+import {
+  erc20CollateralPoolErrorMessage as ecpErrorMessage,
+  poolCommonErrorMessage
+} from '../../src/errors'
 import { ERC20CollateralPool, SelfProvider } from '../../src/pools'
 import { Lend, Pool } from '../../src/types/erc20-collateral-token'
 import { Erc20 } from '../../src/utilities/erc20'
@@ -84,7 +87,7 @@ describe('SelfProvider - ERC20CollateralPool', () => {
     })
     it('get error because wrong pool id', async () => {
       await expect(provider.contract.getPool(MAX_BIGINT)).rejects.toThrow(
-        ecpErrorMessage.noExistPoolId(MAX_BIGINT)
+        poolCommonErrorMessage.noExistPoolId(MAX_BIGINT)
       )
     })
     describe('calculateCollateralTokenAmount()', () => {
@@ -94,18 +97,18 @@ describe('SelfProvider - ERC20CollateralPool', () => {
             MAX_BIGINT,
             BigInt(0)
           )
-        ).rejects.toThrow(ecpErrorMessage.noExistPoolId(MAX_BIGINT))
+        ).rejects.toThrow(poolCommonErrorMessage.noExistPoolId(MAX_BIGINT))
       })
       it('failure - amount is equal to 0 or negative', async () => {
         await expect(
           provider.contract.calculateCollateralTokenAmount(BigInt(0), BigInt(0))
-        ).rejects.toThrow(ecpErrorMessage.noNegativeAmountOrZero)
+        ).rejects.toThrow(poolCommonErrorMessage.noNegativeAmountOrZero)
         await expect(
           provider.contract.calculateCollateralTokenAmount(
             BigInt(0),
             BigInt(-1)
           )
-        ).rejects.toThrow(ecpErrorMessage.noNegativeAmountOrZero)
+        ).rejects.toThrow(poolCommonErrorMessage.noNegativeAmountOrZero)
       })
       it('success - get the collateral amount', async () => {
         const collateralAmount =
@@ -120,12 +123,12 @@ describe('SelfProvider - ERC20CollateralPool', () => {
       it('failure - pool id does not exist', async () => {
         await expect(
           provider.contract.getBorrow(MAX_BIGINT, TESTING_PUBLIC_KEY, BigInt(0))
-        ).rejects.toThrow(ecpErrorMessage.noExistPoolId(MAX_BIGINT))
+        ).rejects.toThrow(poolCommonErrorMessage.noExistPoolId(MAX_BIGINT))
       })
       it('failure - wrong address format', async () => {
         await expect(
           provider.contract.getBorrow(BigInt(0), '0xinvalid', BigInt(0))
-        ).rejects.toThrow(ecpErrorMessage.wrongAddressFormat)
+        ).rejects.toThrow(poolCommonErrorMessage.wrongAddressFormat)
       })
       it('failure - borrow id does not exist', async () => {
         await expect(
@@ -158,7 +161,7 @@ describe('SelfProvider - ERC20CollateralPool', () => {
             BigInt(0),
             BigInt(10)
           )
-        ).rejects.toThrow(ecpErrorMessage.noExistPoolId(MAX_BIGINT))
+        ).rejects.toThrow(poolCommonErrorMessage.noExistPoolId(MAX_BIGINT))
       })
       it('failure - wrong address format', async () => {
         await expect(
@@ -168,7 +171,7 @@ describe('SelfProvider - ERC20CollateralPool', () => {
             BigInt(0),
             BigInt(10)
           )
-        ).rejects.toThrow(ecpErrorMessage.wrongAddressFormat)
+        ).rejects.toThrow(poolCommonErrorMessage.wrongAddressFormat)
       })
       it('failure - limit = 0, negative and max limit reached', async () => {
         await expect(
@@ -403,7 +406,7 @@ describe('SelfProvider - ERC20CollateralPool', () => {
             TESTING_PUBLIC_KEY,
             BigInt(0)
           )
-        ).rejects.toThrow(ecpErrorMessage.noExistPoolId(MAX_BIGINT))
+        ).rejects.toThrow(poolCommonErrorMessage.noExistPoolId(MAX_BIGINT))
       })
       it('failure - wrong address format', async () => {
         await expect(
@@ -412,7 +415,7 @@ describe('SelfProvider - ERC20CollateralPool', () => {
             '0xinvalid',
             BigInt(0)
           )
-        ).rejects.toThrow(ecpErrorMessage.wrongAddressFormat)
+        ).rejects.toThrow(poolCommonErrorMessage.wrongAddressFormat)
       })
       it('failure - borrow id does not exist', async () => {
         await expect(
@@ -436,12 +439,12 @@ describe('SelfProvider - ERC20CollateralPool', () => {
       it('failure - pool does not exist', async () => {
         await expect(
           provider.contract.getTotalLending(MAX_BIGINT, TESTING_PUBLIC_KEY)
-        ).rejects.toThrow(ecpErrorMessage.noExistPoolId(MAX_BIGINT))
+        ).rejects.toThrow(poolCommonErrorMessage.noExistPoolId(MAX_BIGINT))
       })
       it('failure - wrong address format', async () => {
         await expect(
           provider.contract.getTotalLending(BigInt(0), '0xinvalid')
-        ).rejects.toThrow(ecpErrorMessage.wrongAddressFormat)
+        ).rejects.toThrow(poolCommonErrorMessage.wrongAddressFormat)
       })
       it('success - get total loans', async () => {
         const totalLoans = await provider.contract.getTotalLending(
@@ -455,12 +458,12 @@ describe('SelfProvider - ERC20CollateralPool', () => {
       it('failure - pool does not exist', async () => {
         await expect(
           provider.contract.getLoan(MAX_BIGINT, TESTING_PUBLIC_KEY, BigInt(0))
-        ).rejects.toThrow(ecpErrorMessage.noExistPoolId(MAX_BIGINT))
+        ).rejects.toThrow(poolCommonErrorMessage.noExistPoolId(MAX_BIGINT))
       })
       it('failure - wrong address format', async () => {
         await expect(
           provider.contract.getLoan(BigInt(0), '0xinvalid', BigInt(0))
-        ).rejects.toThrow(ecpErrorMessage.wrongAddressFormat)
+        ).rejects.toThrow(poolCommonErrorMessage.wrongAddressFormat)
       })
       it('failure - loan object does not exist', async () => {
         await expect(
@@ -485,7 +488,7 @@ describe('SelfProvider - ERC20CollateralPool', () => {
             MAX_BIGINT,
             TESTING_PUBLIC_KEY
           )
-        ).rejects.toThrow(ecpErrorMessage.noExistPoolId(MAX_BIGINT))
+        ).rejects.toThrow(poolCommonErrorMessage.noExistPoolId(MAX_BIGINT))
       })
       it('failure - wrong address format', async () => {
         await expect(
@@ -495,7 +498,7 @@ describe('SelfProvider - ERC20CollateralPool', () => {
             BigInt(0),
             '0xinvalid'
           )
-        ).rejects.toThrow(ecpErrorMessage.wrongAddressFormat)
+        ).rejects.toThrow(poolCommonErrorMessage.wrongAddressFormat)
       })
       it('failure - limit is less or equal than 0 and exceeds max limit', async () => {
         await expect(
@@ -786,17 +789,17 @@ describe('SelfProvider - ERC20CollateralPool', () => {
       it('failure - pool id does not exist', async () => {
         await expect(
           provider.contract.borrow(MAX_BIGINT, BigInt(10))
-        ).rejects.toThrow(ecpErrorMessage.noExistPoolId(MAX_BIGINT))
+        ).rejects.toThrow(poolCommonErrorMessage.noExistPoolId(MAX_BIGINT))
       })
 
       it('failure - amount is equal to 0 or negative', async () => {
         await expect(
           provider.contract.borrow(BigInt(0), BigInt(0))
-        ).rejects.toThrow(ecpErrorMessage.noNegativeAmountOrZero)
+        ).rejects.toThrow(poolCommonErrorMessage.noNegativeAmountOrZero)
 
         await expect(
           provider.contract.borrow(BigInt(0), BigInt(-1))
-        ).rejects.toThrow(ecpErrorMessage.noNegativeAmountOrZero)
+        ).rejects.toThrow(poolCommonErrorMessage.noNegativeAmountOrZero)
       })
 
       it('failure - pool end time has been reached or overpassed', async () => {
@@ -841,7 +844,7 @@ describe('SelfProvider - ERC20CollateralPool', () => {
 
         await expect(
           provider.contract.lend(MAX_BIGINT, lendingAmount)
-        ).rejects.toThrow(ecpErrorMessage.noExistPoolId(MAX_BIGINT))
+        ).rejects.toThrow(poolCommonErrorMessage.noExistPoolId(MAX_BIGINT))
       })
 
       it('failure - pool is closed', async () => {
@@ -858,11 +861,11 @@ describe('SelfProvider - ERC20CollateralPool', () => {
 
         await expect(
           provider.contract.lend(BigInt(0), lendingAmount)
-        ).rejects.toThrow(ecpErrorMessage.noNegativeAmountOrZero)
+        ).rejects.toThrow(poolCommonErrorMessage.noNegativeAmountOrZero)
 
         await expect(
           provider.contract.lend(BigInt(0), negativeLendingAmount)
-        ).rejects.toThrow(ecpErrorMessage.noNegativeAmountOrZero)
+        ).rejects.toThrow(poolCommonErrorMessage.noNegativeAmountOrZero)
       })
 
       it('success - lend tokens', async () => {
@@ -932,7 +935,7 @@ describe('SelfProvider - ERC20CollateralPool', () => {
               collateralTokenPercentage: 15
             }
           })
-        ).rejects.toThrow(ecpErrorMessage.addressIsNotAdmin)
+        ).rejects.toThrow(poolCommonErrorMessage.addressIsNotAdmin)
       })
 
       it('failure - create pool with end time in the pass', async () => {
@@ -984,13 +987,13 @@ describe('SelfProvider - ERC20CollateralPool', () => {
       it('failure - pool id does not exist', async () => {
         await expect(
           provider.contract.repay(MAX_BIGINT, TESTING_PUBLIC_KEY, BigInt(0))
-        ).rejects.toThrow(ecpErrorMessage.noExistPoolId(MAX_BIGINT))
+        ).rejects.toThrow(poolCommonErrorMessage.noExistPoolId(MAX_BIGINT))
       })
 
       it('failure - wrong address format', async () => {
         await expect(
           provider.contract.repay(BigInt(0), '0xinvalid', BigInt(0))
-        ).rejects.toThrow(ecpErrorMessage.wrongAddressFormat)
+        ).rejects.toThrow(poolCommonErrorMessage.wrongAddressFormat)
       })
 
       it('failure - borrow id does not exist', async () => {
@@ -1092,7 +1095,7 @@ describe('SelfProvider - ERC20CollateralPool', () => {
       it('failure - pool id does not exist', async () => {
         await expect(
           provider.contract.liquidatePool(BigInt(MAX_BIGINT))
-        ).rejects.toThrow(ecpErrorMessage.noExistPoolId(MAX_BIGINT))
+        ).rejects.toThrow(poolCommonErrorMessage.noExistPoolId(MAX_BIGINT))
       })
 
       it('failure - pool is not closed', async () => {
@@ -1219,7 +1222,7 @@ describe('SelfProvider - ERC20CollateralPool', () => {
 
         await expect(
           provider.contract.claimRewards(poolId, TESTING_PUBLIC_KEY, loanId)
-        ).rejects.toThrow(ecpErrorMessage.noExistPoolId(MAX_BIGINT))
+        ).rejects.toThrow(poolCommonErrorMessage.noExistPoolId(MAX_BIGINT))
       })
 
       it('failure - wrong address format', async () => {
