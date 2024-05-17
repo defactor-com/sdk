@@ -2,7 +2,10 @@ import { ethers } from 'ethers'
 
 import { miscPools } from '../artifacts'
 import { BaseContract } from '../base-classes'
-import { cppErrorMessage, poolCommonErrorMessage } from '../errors'
+import {
+  counterPartyPoolErrorMessage as cppErrorMessage,
+  poolCommonErrorMessage
+} from '../errors'
 import { Erc20CollateralTokenPoolDetail } from '../types/erc20-collateral-token'
 import {
   AdminFunctions,

@@ -9,7 +9,7 @@ export const poolCommonErrorMessage = {
   noNegativeAmountOrZero: 'Amount cannot be negative or 0'
 }
 
-export const ecpErrorMessage = {
+export const erc20CollateralPoolErrorMessage = {
   wrongAddressFormat: `Address does not follow the ethereum address format`,
   wrongAddressFormatCustom: (text?: string) =>
     `Collateral token${text ? ' ' + text : ''} does not follow the ethereum address format`,
@@ -35,7 +35,7 @@ export const ecpErrorMessage = {
   borrowAlreadyRepaid: 'Borrow already repaid'
 }
 
-export const cppErrorMessage = {
+export const counterPartyPoolErrorMessage = {
   addressIsNotOwner: 'Sender address is not the owner of the pool',
   softCapMustBeLessThanHardCap: 'Soft cap must be less than hard cap',
   deadlineMustBeInFuture: 'Deadline must be in the future',

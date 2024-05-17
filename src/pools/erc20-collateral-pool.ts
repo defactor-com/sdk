@@ -2,7 +2,7 @@ import { ethers } from 'ethers'
 
 import { miscErc20CollateralPool } from '../artifacts'
 import { BaseContract } from '../base-classes'
-import { ecpErrorMessage } from '../errors'
+import { erc20CollateralPoolErrorMessage as ecpErrorMessage } from '../errors'
 import {
   Borrow,
   Erc20CollateralTokenPoolDetail,

@@ -2,7 +2,7 @@ import { ethers } from 'ethers'
 
 import { miscErc20 } from '../artifacts'
 import { BaseContract } from '../base-classes'
-import { ecpErrorMessage } from '../errors'
+import { erc20CollateralPoolErrorMessage as ecpErrorMessage } from '../errors'
 import { Abi, PrivateKey } from '../types/types'
 
 export class Erc20 extends BaseContract {
