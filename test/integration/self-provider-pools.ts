@@ -1,4 +1,5 @@
 import { isAddress, isError } from 'ethers'
+import timekeeper from 'timekeeper'
 
 import { Erc20 } from '../../src'
 import {
@@ -11,6 +12,8 @@ import {
   ADMIN_TESTING_PRIVATE_KEY,
   COLLATERAL_ERC20_TOKENS,
   MAX_BIGINT,
+  ONE_DAY_MS,
+  ONE_DAY_SEC,
   POOLS_ETH_ADDRESS,
   TESTING_PRIVATE_KEY,
   USD_TOKEN_ADDRESS,
@@ -351,7 +354,7 @@ describe('SelfProvider - Pools', () => {
         const tx = await provider.contract.createPool({
           softCap: BigInt(5_000000),
           hardCap: BigInt(5_000000),
-          deadline: getUnixEpochTimeInFuture(BigInt(86400 * 90)),
+          deadline: getUnixEpochTimeInFuture(BigInt(ONE_DAY_SEC * 90)),
           collateralTokens: []
         })
 
@@ -383,7 +386,7 @@ describe('SelfProvider - Pools', () => {
         const tx = await provider.contract.createPool({
           softCap: BigInt(3_000000),
           hardCap: BigInt(6_000000),
-          deadline: BigInt(getUnixEpochTimeInFuture(BigInt(86400 * 90))),
+          deadline: BigInt(getUnixEpochTimeInFuture(BigInt(ONE_DAY_SEC * 90))),
           collateralTokens: collaterals
         })
 
@@ -410,7 +413,7 @@ describe('SelfProvider - Pools', () => {
         const tx = await provider.contract.createPool({
           softCap: BigInt(4_000000),
           hardCap: BigInt(10_000000),
-          deadline: BigInt(getUnixEpochTimeInFuture(BigInt(86400 * 90))),
+          deadline: BigInt(getUnixEpochTimeInFuture(BigInt(ONE_DAY_SEC * 90))),
           collateralTokens: collaterals
         })
 
@@ -564,6 +567,25 @@ describe('SelfProvider - Pools', () => {
         await expect(provider.contract.collectPool(BigInt(1))).rejects.toThrow(
           cppErrorMessage.deadlineNotReached
         )
+      })
+      it('failure - after deadline + 30 days', async () => {
+        const poolId = BigInt(1)
+        const pool = await provider.contract.getPool(poolId)
+
+        const maxDays = Number(provider.contract.COLLECT_POOL_MAX_DAYS)
+        const deadlineMs = Number(pool.deadline) * 1000
+        const invalidCollectTimeMs = deadlineMs + ONE_DAY_MS * maxDays + 500
+
+        timekeeper.travel(new Date(invalidCollectTimeMs))
+
+        expect.assertions(1)
+        await expect(provider.contract.collectPool(poolId)).rejects.toThrow(
+          cppErrorMessage.cannotCollectDaysAfterDeadline(
+            provider.contract.COLLECT_POOL_MAX_DAYS
+          )
+        )
+
+        timekeeper.reset()
       })
       it('success - collectPool', async () => {
         // STEP 1. CREATE POOL
