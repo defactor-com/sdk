@@ -614,8 +614,8 @@ describe('SelfProvider - Pools', () => {
         )
 
         // STEP 2. COMMIT TO POOL
-        const poolId: bigint =
-          (await provider.contract.contract.poolIndex()) - BigInt(1)
+        const poolIndex: bigint = await provider.contract.contract.poolIndex()
+        const poolId = poolIndex - BigInt(1)
 
         const amount = BigInt(1_000000)
 
@@ -651,8 +651,8 @@ describe('SelfProvider - Pools', () => {
         expect(true).toBe(true)
       })
       it('failure - status is different to CREATED', async () => {
-        const poolId =
-          (await provider.contract.contract.poolIndex()) - BigInt(1)
+        const poolIndex: bigint = await provider.contract.contract.poolIndex()
+        const poolId = poolIndex - BigInt(1)
         const pool = await provider.contract.getPool(poolId)
 
         if (pool.poolStatus === PoolStatusOption.CREATED) {
@@ -668,8 +668,8 @@ describe('SelfProvider - Pools', () => {
 
     describe('commitToPool()', () => {
       it('failure - status is different to CREATED', async () => {
-        const poolId =
-          (await provider.contract.contract.poolIndex()) - BigInt(1)
+        const poolIndex: bigint = await provider.contract.contract.poolIndex()
+        const poolId = poolIndex - BigInt(1)
         const pool = await provider.contract.getPool(poolId)
 
         if (pool.poolStatus === PoolStatusOption.CREATED) {
