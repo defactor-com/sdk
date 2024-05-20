@@ -205,6 +205,7 @@ export class Pools
       softCap: pool.softCap.toString(),
       hardCap: pool.hardCap.toString(),
       deadline: pool.deadline,
+      minimumAPR: pool.minimumAPR,
       collateralTokens: pool.collateralTokens.map(token => [
         token.contractAddress,
         token.amount.toString(),
@@ -216,6 +217,7 @@ export class Pools
       formattedPool.softCap,
       formattedPool.hardCap,
       formattedPool.deadline,
+      formattedPool.minimumAPR,
       formattedPool.collateralTokens
     )
 

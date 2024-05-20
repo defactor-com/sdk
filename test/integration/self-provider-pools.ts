@@ -702,6 +702,7 @@ describe('SelfProvider - Pools', () => {
           softCap: pool.softCap,
           hardCap: pool.hardCap,
           deadline: pool.deadline,
+          minimumAPR: pool.minimumAPR,
           collateralTokens: pool.collateralTokens
         }
 
