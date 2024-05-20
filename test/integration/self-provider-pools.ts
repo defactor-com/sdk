@@ -638,7 +638,7 @@ describe('SelfProvider - Pools', () => {
           throw new Error('Precondition failed: The deadline has not passed')
         }
 
-        // STEP 4. COLLECT TO POOL
+        // STEP 4. COLLECT FROM POOL
         expect.assertions(1)
 
         const collectPoolTx = await provider.contract.collectPool(poolId)

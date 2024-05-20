@@ -231,11 +231,13 @@ export class Pools
       throw new Error(cppErrorMessage.softCapNotReached)
     }
 
-    if (pool.deadline > getUnixEpochTime()) {
+    const currentTimestamp = getUnixEpochTime()
+
+    if (pool.deadline > currentTimestamp) {
       throw new Error(cppErrorMessage.deadlineNotReached)
     }
 
-    if (pool.deadline + this.COLLECT_POOL_MAX_SECS < getUnixEpochTime()) {
+    if (pool.deadline + this.COLLECT_POOL_MAX_SECS < currentTimestamp) {
       throw new Error(
         cppErrorMessage.cannotCollectDaysAfterDeadline(
           this.COLLECT_POOL_MAX_DAYS
