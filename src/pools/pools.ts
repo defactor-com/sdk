@@ -25,10 +25,11 @@ export class Pools
   extends BaseContract
   implements Functions, Views, AdminFunctions
 {
+  private readonly ONE_DAY_SEC = 86400
   readonly POOL_FEE = BigInt(200_000000)
   readonly COLLECT_POOL_MAX_DAYS = BigInt(30)
   readonly COLLECT_POOL_MAX_SECS = BigInt(
-    this.COLLECT_POOL_MAX_DAYS * BigInt(86400)
+    this.COLLECT_POOL_MAX_DAYS * BigInt(this.ONE_DAY_SEC)
   )
 
   constructor(
@@ -92,6 +93,7 @@ export class Pools
       rewardsPaidOut: pool.rewardsPaidOut,
       createdAt: pool.createdAt,
       deadline: pool.deadline,
+      minimumAPR: pool.minimumAPR,
       closedTime: pool.closedTime,
       poolOwner: pool.poolOwner,
       poolStatus: this._getStatusByIndex(pool.poolStatus),
@@ -171,12 +173,22 @@ export class Pools
       throw new Error(cppErrorMessage.noNegativeSoftCapOrZero)
     }
 
+    if (pool.minimumAPR < BigInt(0)) {
+      throw new Error(cppErrorMessage.noNegativeMinimumAPR)
+    }
+
     if (pool.hardCap < pool.softCap) {
       throw new Error(cppErrorMessage.softCapMustBeLessThanHardCap)
     }
 
-    if (pool.deadline <= getUnixEpochTime()) {
+    const currentTimestamp = getUnixEpochTime()
+
+    if (pool.deadline <= currentTimestamp) {
       throw new Error(cppErrorMessage.deadlineMustBeInFuture)
+    }
+
+    if (pool.deadline > currentTimestamp + BigInt(this.ONE_DAY_SEC * 365)) {
+      throw new Error(cppErrorMessage.deadlineMustNotBeMoreThan1YearInTheFuture)
     }
 
     for (const token of pool.collateralTokens) {

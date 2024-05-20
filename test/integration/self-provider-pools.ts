@@ -41,6 +41,7 @@ describe('SelfProvider - Pools', () => {
     softCap: BigInt(1_000000),
     hardCap: BigInt(5_000000),
     deadline: BigInt(getUnixEpochTimeInFuture(BigInt(120))),
+    minimumAPR: BigInt(2_000000),
     collateralTokens: []
   }
 
@@ -163,9 +164,22 @@ describe('SelfProvider - Pools', () => {
             softCap: BigInt(-10_000000),
             hardCap: BigInt(5_000000),
             deadline: BigInt(1715269435),
+            minimumAPR: BigInt(2_000000),
             collateralTokens: []
           })
         ).rejects.toThrow(cppErrorMessage.noNegativeSoftCapOrZero)
+      })
+      it('failure - minimumAPR is negative', async () => {
+        expect.assertions(1)
+        await expect(
+          provider.contract.createPool({
+            softCap: BigInt(1_000000),
+            hardCap: BigInt(5_000000),
+            deadline: BigInt(1715269435),
+            minimumAPR: BigInt(-2_000000),
+            collateralTokens: []
+          })
+        ).rejects.toThrow(cppErrorMessage.noNegativeMinimumAPR)
       })
       it('failure - hardCap is less than softCap', async () => {
         expect.assertions(1)
@@ -174,6 +188,7 @@ describe('SelfProvider - Pools', () => {
             softCap: BigInt(10_000000),
             hardCap: BigInt(5_000000),
             deadline: BigInt(1715269435),
+            minimumAPR: BigInt(2_000000),
             collateralTokens: []
           })
         ).rejects.toThrow(cppErrorMessage.softCapMustBeLessThanHardCap)
@@ -185,9 +200,26 @@ describe('SelfProvider - Pools', () => {
             softCap: BigInt(1_000000),
             hardCap: BigInt(5_000000),
             deadline: BigInt(1715269435),
+            minimumAPR: BigInt(2_000000),
             collateralTokens: []
           })
         ).rejects.toThrow(cppErrorMessage.deadlineMustBeInFuture)
+      })
+      it('failure - deadline is more than one year in the future', async () => {
+        expect.assertions(1)
+        await expect(
+          provider.contract.createPool({
+            softCap: BigInt(1_000000),
+            hardCap: BigInt(5_000000),
+            deadline: BigInt(
+              getUnixEpochTimeInFuture(BigInt(ONE_DAY_SEC * 365 + 1))
+            ),
+            minimumAPR: BigInt(2_000000),
+            collateralTokens: []
+          })
+        ).rejects.toThrow(
+          cppErrorMessage.deadlineMustNotBeMoreThan1YearInTheFuture
+        )
       })
       it('failure - one or more collateral token has invalid addresses', async () => {
         expect.assertions(1)
@@ -196,6 +228,7 @@ describe('SelfProvider - Pools', () => {
             softCap: BigInt(1_000000),
             hardCap: BigInt(5_000000),
             deadline: BigInt(getUnixEpochTimeInFuture(BigInt(60))),
+            minimumAPR: BigInt(2_000000),
             collateralTokens: [
               {
                 contractAddress: USD_TOKEN_ADDRESS,
@@ -223,6 +256,7 @@ describe('SelfProvider - Pools', () => {
             softCap: BigInt(1_000000),
             hardCap: BigInt(5_000000),
             deadline: BigInt(getUnixEpochTimeInFuture(BigInt(60))),
+            minimumAPR: BigInt(2_000000),
             collateralTokens: [
               {
                 contractAddress: USD_TOKEN_ADDRESS,
@@ -248,6 +282,7 @@ describe('SelfProvider - Pools', () => {
             softCap: BigInt(1_000000),
             hardCap: BigInt(5_000000),
             deadline: BigInt(getUnixEpochTimeInFuture(BigInt(60))),
+            minimumAPR: BigInt(2_000000),
             collateralTokens: []
           })
         } catch (error) {
@@ -272,6 +307,7 @@ describe('SelfProvider - Pools', () => {
             softCap: BigInt(1_000000),
             hardCap: BigInt(5_000000),
             deadline: getUnixEpochTimeInFuture(BigInt(60)),
+            minimumAPR: BigInt(2_000000),
             collateralTokens: [
               {
                 contractAddress: USD_TOKEN_ADDRESS,
@@ -293,6 +329,7 @@ describe('SelfProvider - Pools', () => {
             softCap: BigInt(1_000000),
             hardCap: BigInt(5_000000),
             deadline: BigInt(getUnixEpochTimeInFuture(BigInt(60))),
+            minimumAPR: BigInt(2_000000),
             collateralTokens: [
               {
                 contractAddress: USD_TOKEN_ADDRESS,
@@ -338,6 +375,7 @@ describe('SelfProvider - Pools', () => {
           softCap: BigInt(5_000000),
           hardCap: BigInt(5_000000),
           deadline: getUnixEpochTimeInFuture(BigInt(ONE_DAY_SEC * 90)),
+          minimumAPR: BigInt(2_000000),
           collateralTokens: []
         })
 
@@ -370,6 +408,7 @@ describe('SelfProvider - Pools', () => {
           softCap: BigInt(3_000000),
           hardCap: BigInt(6_000000),
           deadline: BigInt(getUnixEpochTimeInFuture(BigInt(ONE_DAY_SEC * 90))),
+          minimumAPR: BigInt(2_000000),
           collateralTokens: collaterals
         })
 
@@ -397,6 +436,7 @@ describe('SelfProvider - Pools', () => {
           softCap: BigInt(4_000000),
           hardCap: BigInt(10_000000),
           deadline: BigInt(getUnixEpochTimeInFuture(BigInt(ONE_DAY_SEC * 90))),
+          minimumAPR: BigInt(2_000000),
           collateralTokens: collaterals
         })
 
@@ -557,6 +597,7 @@ describe('SelfProvider - Pools', () => {
           softCap: BigInt(1_000000),
           hardCap: BigInt(3_000000),
           deadline: getUnixEpochTimeInFuture(BigInt(60)),
+          minimumAPR: BigInt(2_000000),
           collateralTokens: []
         }
 
