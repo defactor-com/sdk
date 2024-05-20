@@ -1,14 +1,19 @@
 import { isAddress, isError } from 'ethers'
+import timekeeper from 'timekeeper'
 
 import { Erc20 } from '../../src'
-import { cppErrorMessage, poolCommonErrorMessage } from '../../src/errors'
+import {
+  counterPartyPoolErrorMessage as cppErrorMessage,
+  poolCommonErrorMessage
+} from '../../src/errors'
 import { Pools, SelfProvider } from '../../src/pools'
-import { PoolInput, PoolStatusOption } from '../../src/types/pools'
-import { sleep } from '../../src/utilities/util'
+import { PoolInput } from '../../src/types/pools'
 import {
   ADMIN_TESTING_PRIVATE_KEY,
   COLLATERAL_ERC20_TOKENS,
   MAX_BIGINT,
+  ONE_DAY_MS,
+  ONE_DAY_SEC,
   POOLS_ETH_ADDRESS,
   TESTING_PRIVATE_KEY,
   USD_TOKEN_ADDRESS,
@@ -16,11 +21,11 @@ import {
   approveCreationFee,
   approveTokenAmount,
   getRandomERC20Collaterals,
-  getUnixEpochTime,
   getUnixEpochTimeInFuture,
   loadEnv,
   setPause,
-  waitUntilConfirmationCompleted
+  waitUntilConfirmationCompleted,
+  waitUntilEpochPasses
 } from '../test-util'
 
 jest.setTimeout(300000)
@@ -30,7 +35,8 @@ describe('SelfProvider - Pools', () => {
   let notAdminProvider: SelfProvider<Pools>
   let signerAddress: string
   let usdcTokenContract: Erc20
-  const POOL_FEE = BigInt(200_000000)
+  let POOL_FEE: bigint
+
   const firstPool: PoolInput = {
     softCap: BigInt(1_000000),
     hardCap: BigInt(5_000000),
@@ -76,6 +82,8 @@ describe('SelfProvider - Pools', () => {
         throw new Error(`the collateral ${collateral.address} is invalid`)
       }
     }
+
+    POOL_FEE = provider.contract.POOL_FEE
 
     await setPause(provider, false)
     await approveTokenAmount(usdcTokenContract, provider, BigInt(0))
@@ -231,16 +239,7 @@ describe('SelfProvider - Pools', () => {
         ).rejects.toThrow(poolCommonErrorMessage.noNegativeAmountOrZero)
       })
       it('failure - the amount of 200 fee base tokens (USDC) was not approved', async () => {
-        const usdcApproved = await usdcTokenContract.allowance(
-          signerAddress,
-          provider.contract.address
-        )
-
-        if (usdcApproved >= POOL_FEE) {
-          throw new Error(
-            'Precondition Failed: There are already USDC tokens approved'
-          )
-        }
+        await approveTokenAmount(usdcTokenContract, provider, BigInt(0))
 
         expect.assertions(1)
 
@@ -258,23 +257,13 @@ describe('SelfProvider - Pools', () => {
       it('failure - the amount of one or more collateral token was not approved', async () => {
         const collateralAmount = BigInt(5_000000)
 
+        await approveTokenAmount(usdcTokenContract, provider, BigInt(0))
         await approveCreationFee(
           usdcTokenContract,
           provider,
           signerAddress,
           POOL_FEE
         )
-
-        const usdcApproved = await usdcTokenContract.allowance(
-          signerAddress,
-          provider.contract.address
-        )
-
-        if (usdcApproved >= POOL_FEE + collateralAmount) {
-          throw new Error(
-            'Precondition Failed: There are already collateral tokens approved'
-          )
-        }
 
         expect.assertions(1)
 
@@ -348,7 +337,7 @@ describe('SelfProvider - Pools', () => {
         const tx = await provider.contract.createPool({
           softCap: BigInt(5_000000),
           hardCap: BigInt(5_000000),
-          deadline: getUnixEpochTimeInFuture(BigInt(86400 * 90)),
+          deadline: getUnixEpochTimeInFuture(BigInt(ONE_DAY_SEC * 90)),
           collateralTokens: []
         })
 
@@ -380,7 +369,7 @@ describe('SelfProvider - Pools', () => {
         const tx = await provider.contract.createPool({
           softCap: BigInt(3_000000),
           hardCap: BigInt(6_000000),
-          deadline: BigInt(getUnixEpochTimeInFuture(BigInt(86400 * 90))),
+          deadline: BigInt(getUnixEpochTimeInFuture(BigInt(ONE_DAY_SEC * 90))),
           collateralTokens: collaterals
         })
 
@@ -407,7 +396,7 @@ describe('SelfProvider - Pools', () => {
         const tx = await provider.contract.createPool({
           softCap: BigInt(4_000000),
           hardCap: BigInt(10_000000),
-          deadline: BigInt(getUnixEpochTimeInFuture(BigInt(86400 * 90))),
+          deadline: BigInt(getUnixEpochTimeInFuture(BigInt(ONE_DAY_SEC * 90))),
           collateralTokens: collaterals
         })
 
@@ -443,34 +432,11 @@ describe('SelfProvider - Pools', () => {
           provider.contract.commitToPool(BigInt(1), BigInt(-15_000000))
         ).rejects.toThrow(poolCommonErrorMessage.noNegativeAmountOrZero)
       })
-      it.skip('failure - status is different to CREATED', async () => {
-        const poolId = BigInt(0)
-        const pool = await provider.contract.getPool(poolId)
-
-        if (pool.poolStatus === PoolStatusOption.CREATED) {
-          throw new Error('Precondition failed: The status is CREATED')
-        }
-
-        expect.assertions(1)
-        await expect(
-          provider.contract.commitToPool(poolId, BigInt(1_000000))
-        ).rejects.toThrow(
-          cppErrorMessage.poolIsNotCreated(poolId, pool.poolStatus)
-        )
-      })
       it('failure - deadline has passed', async () => {
         const poolId = BigInt(0)
         const pool = await provider.contract.getPool(poolId)
 
-        if (pool.deadline >= getUnixEpochTime()) {
-          const seconds = Number(pool.deadline - getUnixEpochTime()) || 1
-
-          await sleep(Math.min(seconds, 60) * 1000)
-        }
-
-        if (pool.deadline >= getUnixEpochTime()) {
-          throw new Error('Precondition failed: The deadline has not passed')
-        }
+        await waitUntilEpochPasses(pool.deadline, BigInt(180))
 
         expect.assertions(1)
         await expect(
@@ -479,16 +445,8 @@ describe('SelfProvider - Pools', () => {
       })
       it('failure - amount was not approved', async () => {
         const amount = BigInt(1_000000)
-        const usdcApproved = await usdcTokenContract.allowance(
-          signerAddress,
-          provider.contract.address
-        )
 
-        if (usdcApproved >= amount) {
-          throw new Error(
-            'Precondition Failed: There are already USDC tokens approved'
-          )
-        }
+        await approveTokenAmount(usdcTokenContract, provider, BigInt(0))
 
         expect.assertions(1)
 
@@ -511,14 +469,7 @@ describe('SelfProvider - Pools', () => {
       })
       it('success - commit to pool', async () => {
         const poolId = BigInt(1)
-        const pool = await provider.contract.getPool(poolId)
         const amount = BigInt(2_000000)
-
-        if (pool.hardCap < pool.totalCommitted + amount) {
-          throw new Error(
-            'Precondition failed: There is already a total committed'
-          )
-        }
 
         expect.assertions(1)
 
@@ -543,6 +494,143 @@ describe('SelfProvider - Pools', () => {
         await expect(
           provider.contract.commitToPool(poolId, amount)
         ).rejects.toThrow(cppErrorMessage.amountExceedsHardCap)
+      })
+    })
+
+    describe('collectPool()', () => {
+      it('failure - the contract is paused', async () => {
+        expect.assertions(1)
+        await setPause(provider, true)
+        await expect(provider.contract.collectPool(BigInt(1))).rejects.toThrow(
+          poolCommonErrorMessage.contractIsPaused
+        )
+        await setPause(provider, false)
+      })
+      it('failure - non-existed pool', async () => {
+        expect.assertions(1)
+        await expect(
+          provider.contract.collectPool(BigInt(MAX_BIGINT))
+        ).rejects.toThrow(
+          poolCommonErrorMessage.noExistPoolId(BigInt(MAX_BIGINT))
+        )
+      })
+      it('failure - not owner address', async () => {
+        expect.assertions(1)
+        await expect(
+          notAdminProvider.contract.collectPool(BigInt(1))
+        ).rejects.toThrow(cppErrorMessage.addressIsNotOwner)
+      })
+      it('failure - softCap not reached', async () => {
+        expect.assertions(1)
+        await expect(provider.contract.collectPool(BigInt(2))).rejects.toThrow(
+          cppErrorMessage.softCapNotReached
+        )
+      })
+      it('failure - deadline not reached', async () => {
+        expect.assertions(1)
+        await expect(provider.contract.collectPool(BigInt(1))).rejects.toThrow(
+          cppErrorMessage.deadlineNotReached
+        )
+      })
+      it('failure - after deadline + 30 days', async () => {
+        const poolId = BigInt(1)
+        const pool = await provider.contract.getPool(poolId)
+
+        const maxDays = Number(provider.contract.COLLECT_POOL_MAX_DAYS)
+        const deadlineMs = Number(pool.deadline) * 1000
+        const invalidCollectTimeMs = deadlineMs + ONE_DAY_MS * maxDays + 500
+
+        timekeeper.travel(new Date(invalidCollectTimeMs))
+
+        expect.assertions(1)
+        await expect(provider.contract.collectPool(poolId)).rejects.toThrow(
+          cppErrorMessage.cannotCollectDaysAfterDeadline(
+            provider.contract.COLLECT_POOL_MAX_DAYS
+          )
+        )
+
+        timekeeper.reset()
+      })
+      it('success - collectPool', async () => {
+        // STEP 1. CREATE POOL
+        const pool: PoolInput = {
+          softCap: BigInt(1_000000),
+          hardCap: BigInt(3_000000),
+          deadline: getUnixEpochTimeInFuture(BigInt(60)),
+          collateralTokens: []
+        }
+
+        await approveCreationFee(
+          usdcTokenContract,
+          provider,
+          signerAddress,
+          POOL_FEE
+        )
+
+        const createPoolTx = await provider.contract.createPool(pool)
+
+        await waitUntilConfirmationCompleted(
+          provider.contract.jsonRpcProvider,
+          createPoolTx
+        )
+
+        // STEP 2. COMMIT TO POOL
+        const poolIndex: bigint = await provider.contract.contract.poolIndex()
+        const poolId = poolIndex - BigInt(1)
+
+        const amount = BigInt(1_000000)
+
+        await approveTokenAmount(usdcTokenContract, notAdminProvider, amount)
+
+        const commitToPoolTx = await notAdminProvider.contract.commitToPool(
+          poolId,
+          amount
+        )
+
+        await waitUntilConfirmationCompleted(
+          notAdminProvider.contract.jsonRpcProvider,
+          commitToPoolTx
+        )
+
+        // STEP 3. WAIT UNTIL DEADLINE
+        await waitUntilEpochPasses(pool.deadline, BigInt(60))
+
+        // STEP 4. COLLECT FROM POOL
+        expect.assertions(1)
+
+        const collectPoolTx = await provider.contract.collectPool(poolId)
+
+        await waitUntilConfirmationCompleted(
+          notAdminProvider.contract.jsonRpcProvider,
+          collectPoolTx
+        )
+
+        expect(true).toBe(true)
+      })
+      it('failure - status is different to CREATED', async () => {
+        const poolIndex: bigint = await provider.contract.contract.poolIndex()
+        const poolId = poolIndex - BigInt(1)
+        const pool = await provider.contract.getPool(poolId)
+
+        expect.assertions(1)
+        await expect(provider.contract.collectPool(poolId)).rejects.toThrow(
+          cppErrorMessage.poolIsNotCreated(poolId, pool.poolStatus)
+        )
+      })
+    })
+
+    describe('commitToPool()', () => {
+      it('failure - status is different to CREATED', async () => {
+        const poolIndex: bigint = await provider.contract.contract.poolIndex()
+        const poolId = poolIndex - BigInt(1)
+        const pool = await provider.contract.getPool(poolId)
+
+        expect.assertions(1)
+        await expect(
+          provider.contract.commitToPool(poolId, BigInt(1_000000))
+        ).rejects.toThrow(
+          cppErrorMessage.poolIsNotCreated(poolId, pool.poolStatus)
+        )
       })
     })
   })
