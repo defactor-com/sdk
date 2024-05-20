@@ -7,7 +7,7 @@ import {
   poolCommonErrorMessage
 } from '../../src/errors'
 import { Pools, SelfProvider } from '../../src/pools'
-import { PoolInput, PoolStatusOption } from '../../src/types/pools'
+import { PoolInput } from '../../src/types/pools'
 import {
   ADMIN_TESTING_PRIVATE_KEY,
   COLLATERAL_ERC20_TOKENS,
@@ -21,7 +21,6 @@ import {
   approveCreationFee,
   approveTokenAmount,
   getRandomERC20Collaterals,
-  getUnixEpochTime,
   getUnixEpochTimeInFuture,
   loadEnv,
   setPause,
@@ -240,16 +239,7 @@ describe('SelfProvider - Pools', () => {
         ).rejects.toThrow(poolCommonErrorMessage.noNegativeAmountOrZero)
       })
       it('failure - the amount of 200 fee base tokens (USDC) was not approved', async () => {
-        const usdcApproved = await usdcTokenContract.allowance(
-          signerAddress,
-          provider.contract.address
-        )
-
-        if (usdcApproved >= POOL_FEE) {
-          throw new Error(
-            'Precondition Failed: There are already USDC tokens approved'
-          )
-        }
+        await approveTokenAmount(usdcTokenContract, provider, BigInt(0))
 
         expect.assertions(1)
 
@@ -267,23 +257,13 @@ describe('SelfProvider - Pools', () => {
       it('failure - the amount of one or more collateral token was not approved', async () => {
         const collateralAmount = BigInt(5_000000)
 
+        await approveTokenAmount(usdcTokenContract, provider, BigInt(0))
         await approveCreationFee(
           usdcTokenContract,
           provider,
           signerAddress,
           POOL_FEE
         )
-
-        const usdcApproved = await usdcTokenContract.allowance(
-          signerAddress,
-          provider.contract.address
-        )
-
-        if (usdcApproved >= POOL_FEE + collateralAmount) {
-          throw new Error(
-            'Precondition Failed: There are already collateral tokens approved'
-          )
-        }
 
         expect.assertions(1)
 
@@ -458,10 +438,6 @@ describe('SelfProvider - Pools', () => {
 
         await waitUntilEpochPasses(pool.deadline, BigInt(180))
 
-        if (pool.deadline >= getUnixEpochTime()) {
-          throw new Error('Precondition failed: The deadline has not passed')
-        }
-
         expect.assertions(1)
         await expect(
           provider.contract.commitToPool(poolId, BigInt(1_000000))
@@ -469,16 +445,8 @@ describe('SelfProvider - Pools', () => {
       })
       it('failure - amount was not approved', async () => {
         const amount = BigInt(1_000000)
-        const usdcApproved = await usdcTokenContract.allowance(
-          signerAddress,
-          provider.contract.address
-        )
 
-        if (usdcApproved >= amount) {
-          throw new Error(
-            'Precondition Failed: There are already USDC tokens approved'
-          )
-        }
+        await approveTokenAmount(usdcTokenContract, provider, BigInt(0))
 
         expect.assertions(1)
 
@@ -501,14 +469,7 @@ describe('SelfProvider - Pools', () => {
       })
       it('success - commit to pool', async () => {
         const poolId = BigInt(1)
-        const pool = await provider.contract.getPool(poolId)
         const amount = BigInt(2_000000)
-
-        if (pool.hardCap < pool.totalCommitted + amount) {
-          throw new Error(
-            'Precondition failed: There is already a total committed'
-          )
-        }
 
         expect.assertions(1)
 
@@ -634,10 +595,6 @@ describe('SelfProvider - Pools', () => {
         // STEP 3. WAIT UNTIL DEADLINE
         await waitUntilEpochPasses(pool.deadline, BigInt(60))
 
-        if (pool.deadline >= getUnixEpochTime()) {
-          throw new Error('Precondition failed: The deadline has not passed')
-        }
-
         // STEP 4. COLLECT FROM POOL
         expect.assertions(1)
 
@@ -655,10 +612,6 @@ describe('SelfProvider - Pools', () => {
         const poolId = poolIndex - BigInt(1)
         const pool = await provider.contract.getPool(poolId)
 
-        if (pool.poolStatus === PoolStatusOption.CREATED) {
-          throw new Error('Precondition failed: The status is CREATED')
-        }
-
         expect.assertions(1)
         await expect(provider.contract.collectPool(poolId)).rejects.toThrow(
           cppErrorMessage.poolIsNotCreated(poolId, pool.poolStatus)
@@ -671,10 +624,6 @@ describe('SelfProvider - Pools', () => {
         const poolIndex: bigint = await provider.contract.contract.poolIndex()
         const poolId = poolIndex - BigInt(1)
         const pool = await provider.contract.getPool(poolId)
-
-        if (pool.poolStatus === PoolStatusOption.CREATED) {
-          throw new Error('Precondition failed: The status is CREATED')
-        }
 
         expect.assertions(1)
         await expect(
