@@ -2,7 +2,10 @@ import { ethers } from 'ethers'
 
 import { miscPools } from '../artifacts'
 import { BaseContract } from '../base-classes'
-import { cppErrorMessage, poolCommonErrorMessage } from '../errors'
+import {
+  counterPartyPoolErrorMessage as cppErrorMessage,
+  poolCommonErrorMessage
+} from '../errors'
 import { Erc20CollateralTokenPoolDetail } from '../types/erc20-collateral-token'
 import {
   AdminFunctions,
@@ -22,6 +25,12 @@ export class Pools
   extends BaseContract
   implements Functions, Views, AdminFunctions
 {
+  readonly POOL_FEE = BigInt(200_000000)
+  readonly COLLECT_POOL_MAX_DAYS = BigInt(30)
+  readonly COLLECT_POOL_MAX_SECS = BigInt(
+    this.COLLECT_POOL_MAX_DAYS * BigInt(86400)
+  )
+
   constructor(
     address: string,
     apiUrl: string,
@@ -201,8 +210,44 @@ export class Pools
     return this.signer ? await this.signer.sendTransaction(pop) : pop
   }
 
-  collectPool(poolId: bigint): Promise<void> {
-    throw new Error(`Method not implemented. ${poolId.toString()}`)
+  async collectPool(
+    poolId: bigint
+  ): Promise<ethers.ContractTransaction | ethers.TransactionResponse> {
+    await this._checkIsNotPaused()
+
+    const pool = await this.getPool(poolId)
+
+    if (this.signer && this.signer.address !== pool.poolOwner) {
+      throw new Error(cppErrorMessage.addressIsNotOwner)
+    }
+
+    if (pool.poolStatus !== PoolStatusOption.CREATED) {
+      throw new Error(
+        cppErrorMessage.poolIsNotCreated(poolId, pool.poolStatus.toUpperCase())
+      )
+    }
+
+    if (pool.softCap > pool.totalCommitted) {
+      throw new Error(cppErrorMessage.softCapNotReached)
+    }
+
+    const currentTimestamp = getUnixEpochTime()
+
+    if (pool.deadline > currentTimestamp) {
+      throw new Error(cppErrorMessage.deadlineNotReached)
+    }
+
+    if (pool.deadline + this.COLLECT_POOL_MAX_SECS < currentTimestamp) {
+      throw new Error(
+        cppErrorMessage.cannotCollectDaysAfterDeadline(
+          this.COLLECT_POOL_MAX_DAYS
+        )
+      )
+    }
+
+    const pop = await this.contract.collectPool.populateTransaction(poolId)
+
+    return this.signer ? await this.signer.sendTransaction(pop) : pop
   }
 
   depositRewards(poolId: bigint, amount: bigint): Promise<void> {

@@ -3,6 +3,7 @@ import { ethers } from 'ethers'
 import { Pools, SelfProvider } from '../src/pools'
 import { CollateralToken } from '../src/types/pools'
 import { Erc20 } from '../src/utilities/erc20'
+import { sleep } from '../src/utilities/util'
 
 export const ERC20_COLLATERAL_POOL_ETH_ADDRESS =
   '0x615e1f7970363Fbf7A1843eFc16f0E4e685610F9'
@@ -49,6 +50,20 @@ export const getUnixEpochTimeInFuture = (seconds: bigint) => {
   if (seconds <= 0) throw new Error('seconds must be positive')
 
   return getUnixEpochTime() + seconds
+}
+
+export const waitUntilEpochPasses = async (
+  unixEpochTime: bigint,
+  maxSeconds: bigint
+) => {
+  if (maxSeconds <= 0) throw new Error('maxSeconds must be positive')
+
+  if (unixEpochTime >= getUnixEpochTime()) {
+    const diff = Number(unixEpochTime - getUnixEpochTime()) || 1
+    const seconds = Math.min(diff, Number(maxSeconds)) + 1
+
+    await sleep(seconds * 1000)
+  }
 }
 
 export const approveTokenAmount = async (

@@ -2,7 +2,10 @@ import { ethers } from 'ethers'
 
 import { miscErc20CollateralPool } from '../artifacts'
 import { BaseContract } from '../base-classes'
-import { ecpErrorMessage } from '../errors'
+import {
+  erc20CollateralPoolErrorMessage as ecpErrorMessage,
+  poolCommonErrorMessage
+} from '../errors'
 import {
   Borrow,
   Erc20CollateralTokenPoolDetail,
@@ -111,7 +114,7 @@ export class ERC20CollateralPool
     await this.getPool(poolId)
 
     if (!ethers.isAddress(borrowerAddress)) {
-      throw new Error(ecpErrorMessage.wrongAddressFormat)
+      throw new Error(poolCommonErrorMessage.wrongAddressFormat)
     }
 
     return await this.contract.borrowsLength(poolId, borrowerAddress)
@@ -121,7 +124,7 @@ export class ERC20CollateralPool
     const pool = await this._getPoolById(poolId)
 
     if (!pool) {
-      throw new Error(ecpErrorMessage.noExistPoolId(poolId))
+      throw new Error(poolCommonErrorMessage.noExistPoolId(poolId))
     }
 
     return pool
@@ -161,7 +164,7 @@ export class ERC20CollateralPool
 
   async getTotalLending(poolId: bigint, address: string): Promise<bigint> {
     if (!ethers.isAddress(address)) {
-      throw new Error(ecpErrorMessage.wrongAddressFormat)
+      throw new Error(poolCommonErrorMessage.wrongAddressFormat)
     }
 
     await this.getPool(poolId)
@@ -175,7 +178,7 @@ export class ERC20CollateralPool
     lendingId: bigint
   ): Promise<Lend> {
     if (!ethers.isAddress(address)) {
-      throw new Error(ecpErrorMessage.wrongAddressFormat)
+      throw new Error(poolCommonErrorMessage.wrongAddressFormat)
     }
 
     const totalLending = await this._getTotalLending(poolId, address)
@@ -209,7 +212,7 @@ export class ERC20CollateralPool
     }
 
     if (!ethers.isAddress(lenderAddress)) {
-      throw new Error(ecpErrorMessage.wrongAddressFormat)
+      throw new Error(poolCommonErrorMessage.wrongAddressFormat)
     }
 
     await this.getPool(poolId)
@@ -263,7 +266,7 @@ export class ERC20CollateralPool
       const isAdmin = await this.contract.hasRole(Role.ADMIN, this.signer)
 
       if (!isAdmin) {
-        throw new Error(ecpErrorMessage.addressIsNotAdmin)
+        throw new Error(poolCommonErrorMessage.addressIsNotAdmin)
       }
     }
 
@@ -293,7 +296,7 @@ export class ERC20CollateralPool
     }
 
     if (amount <= 0) {
-      throw new Error(ecpErrorMessage.noNegativeAmountOrZero)
+      throw new Error(poolCommonErrorMessage.noNegativeAmountOrZero)
     }
 
     const pop = await this.contract.lend.populateTransaction(poolId, amount)
@@ -308,7 +311,7 @@ export class ERC20CollateralPool
     const pool = await this.getPool(poolId)
 
     if (amount <= 0) {
-      throw new Error(ecpErrorMessage.noNegativeAmountOrZero)
+      throw new Error(poolCommonErrorMessage.noNegativeAmountOrZero)
     }
 
     if (pool.endTime <= Date.now() / 1000) {
@@ -349,7 +352,7 @@ export class ERC20CollateralPool
     await this.getPool(poolId)
 
     if (amount <= 0) {
-      throw new Error(ecpErrorMessage.noNegativeAmountOrZero)
+      throw new Error(poolCommonErrorMessage.noNegativeAmountOrZero)
     }
 
     return await this.contract.calculateCollateralTokenAmount(poolId, amount)
@@ -375,7 +378,7 @@ export class ERC20CollateralPool
     }
 
     if (!ethers.isAddress(borrowerAddress)) {
-      throw new Error(ecpErrorMessage.wrongAddressFormat)
+      throw new Error(poolCommonErrorMessage.wrongAddressFormat)
     }
 
     await this.getPool(poolId)
@@ -401,7 +404,7 @@ export class ERC20CollateralPool
     await this.getPool(poolId)
 
     if (!ethers.isAddress(borrowerAddress)) {
-      throw new Error(ecpErrorMessage.wrongAddressFormat)
+      throw new Error(poolCommonErrorMessage.wrongAddressFormat)
     }
 
     const existBorrow = await this._existBorrow(
@@ -429,7 +432,7 @@ export class ERC20CollateralPool
     await this.getPool(poolId)
 
     if (!ethers.isAddress(borrowerAddress)) {
-      throw new Error(ecpErrorMessage.wrongAddressFormat)
+      throw new Error(poolCommonErrorMessage.wrongAddressFormat)
     }
 
     const borrow = await this.getBorrow(poolId, borrowerAddress, borrowId)
