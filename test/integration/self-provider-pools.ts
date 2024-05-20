@@ -454,22 +454,31 @@ describe('SelfProvider - Pools', () => {
         expect.assertions(1)
         await setPause(provider, true)
         await expect(
-          provider.contract.commitToPool(BigInt(1), BigInt(1_000000))
+          notAdminProvider.contract.commitToPool(BigInt(1), BigInt(1_000000))
         ).rejects.toThrow(poolCommonErrorMessage.contractIsPaused)
         await setPause(provider, false)
       })
       it('failure - non-existed pool', async () => {
         expect.assertions(1)
         await expect(
-          provider.contract.commitToPool(BigInt(MAX_BIGINT), BigInt(1_000000))
+          notAdminProvider.contract.commitToPool(
+            BigInt(MAX_BIGINT),
+            BigInt(1_000000)
+          )
         ).rejects.toThrow(
           poolCommonErrorMessage.noExistPoolId(BigInt(MAX_BIGINT))
         )
       })
+      it('failure - the signer is the owner of the pool', async () => {
+        expect.assertions(1)
+        await expect(
+          provider.contract.commitToPool(BigInt(1), BigInt(1_000000))
+        ).rejects.toThrow(cppErrorMessage.poolOwnerCannotCommitToHisOwnPool)
+      })
       it('failure - amount no positive', async () => {
         expect.assertions(1)
         await expect(
-          provider.contract.commitToPool(BigInt(1), BigInt(-15_000000))
+          notAdminProvider.contract.commitToPool(BigInt(1), BigInt(-15_000000))
         ).rejects.toThrow(poolCommonErrorMessage.noNegativeAmountOrZero)
       })
       it('failure - deadline has passed', async () => {
@@ -480,18 +489,18 @@ describe('SelfProvider - Pools', () => {
 
         expect.assertions(1)
         await expect(
-          provider.contract.commitToPool(poolId, BigInt(1_000000))
+          notAdminProvider.contract.commitToPool(poolId, BigInt(1_000000))
         ).rejects.toThrow(cppErrorMessage.deadlineReached)
       })
       it('failure - amount was not approved', async () => {
         const amount = BigInt(1_000000)
 
-        await approveTokenAmount(usdcTokenContract, provider, BigInt(0))
+        await approveTokenAmount(usdcTokenContract, notAdminProvider, BigInt(0))
 
         expect.assertions(1)
 
         try {
-          await provider.contract.commitToPool(BigInt(1), amount)
+          await notAdminProvider.contract.commitToPool(BigInt(1), amount)
         } catch (error) {
           expect(isError(error, 'CALL_EXCEPTION')).toBeTruthy()
         }
@@ -504,7 +513,7 @@ describe('SelfProvider - Pools', () => {
         const amount = pool.hardCap + BigInt(1_000000)
 
         await expect(
-          provider.contract.commitToPool(poolId, amount)
+          notAdminProvider.contract.commitToPool(poolId, amount)
         ).rejects.toThrow(cppErrorMessage.amountExceedsHardCap)
       })
       it('success - commit to pool', async () => {
@@ -513,12 +522,12 @@ describe('SelfProvider - Pools', () => {
 
         expect.assertions(1)
 
-        await approveTokenAmount(usdcTokenContract, provider, amount)
+        await approveTokenAmount(usdcTokenContract, notAdminProvider, amount)
 
-        const tx = await provider.contract.commitToPool(poolId, amount)
+        const tx = await notAdminProvider.contract.commitToPool(poolId, amount)
 
         await waitUntilConfirmationCompleted(
-          provider.contract.jsonRpcProvider,
+          notAdminProvider.contract.jsonRpcProvider,
           tx
         )
 
@@ -532,7 +541,7 @@ describe('SelfProvider - Pools', () => {
         const amount = pool.hardCap + BigInt(1_000000) - pool.totalCommitted
 
         await expect(
-          provider.contract.commitToPool(poolId, amount)
+          notAdminProvider.contract.commitToPool(poolId, amount)
         ).rejects.toThrow(cppErrorMessage.amountExceedsHardCap)
       })
     })
@@ -668,7 +677,7 @@ describe('SelfProvider - Pools', () => {
 
         expect.assertions(1)
         await expect(
-          provider.contract.commitToPool(poolId, BigInt(1_000000))
+          notAdminProvider.contract.commitToPool(poolId, BigInt(1_000000))
         ).rejects.toThrow(
           cppErrorMessage.poolIsNotCreated(poolId, pool.poolStatus)
         )
@@ -714,7 +723,7 @@ describe('SelfProvider - Pools', () => {
           BigInt(10)
         )
 
-        expect(tempPools.length).toBe(4)
+        expect(tempPools.length).toBe(5)
 
         const { data: tempPools2 } = await provider.contract.getPools(
           BigInt(20),

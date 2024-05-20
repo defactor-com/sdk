@@ -286,6 +286,10 @@ export class Pools
       throw new Error(poolCommonErrorMessage.noNegativeAmountOrZero)
     }
 
+    if (this.signer && this.signer.address === pool.poolOwner) {
+      throw new Error(cppErrorMessage.poolOwnerCannotCommitToHisOwnPool)
+    }
+
     if (pool.poolStatus !== PoolStatusOption.CREATED) {
       throw new Error(
         cppErrorMessage.poolIsNotCreated(poolId, pool.poolStatus.toUpperCase())

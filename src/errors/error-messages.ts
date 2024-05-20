@@ -32,6 +32,7 @@ export const erc20CollateralPoolErrorMessage = {
 
 export const counterPartyPoolErrorMessage = {
   addressIsNotOwner: 'Sender address is not the owner of the pool',
+  poolOwnerCannotCommitToHisOwnPool: 'Pool owner cannot commit to his own pool',
   softCapMustBeLessThanHardCap: 'Soft cap must be less than hard cap',
   deadlineMustBeInFuture: 'Deadline must be in the future',
   deadlineMustNotBeMoreThan1YearInTheFuture:
