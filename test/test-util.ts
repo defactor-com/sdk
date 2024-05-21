@@ -98,6 +98,8 @@ export const approveCollateral = async (
   collaterals: Array<CollateralToken>,
   creationFee: bigint
 ) => {
+  if (!provider.contract.signer) return
+
   const amountByCollateral = collaterals.reduce(
     (res: Record<string, bigint>, curr) => {
       if (!res[curr.contractAddress]) {
@@ -116,7 +118,7 @@ export const approveCollateral = async (
     const erc20Contract = new Erc20(
       address,
       provider.contract.apiUrl,
-      TESTING_PRIVATE_KEY
+      provider.contract.signer.privateKey
     )
 
     const erc20Approved = await erc20Contract.allowance(
