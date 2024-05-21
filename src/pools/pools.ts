@@ -26,6 +26,7 @@ export class Pools
   implements Functions, Views, AdminFunctions
 {
   private readonly ONE_DAY_SEC = 86400
+  private readonly ONE_YEAR_SEC = this.ONE_DAY_SEC * 365
   readonly POOL_FEE = BigInt(200_000000)
   readonly COLLECT_POOL_MAX_DAYS = BigInt(30)
   readonly COLLECT_POOL_MAX_SECS = BigInt(
@@ -187,7 +188,7 @@ export class Pools
       throw new Error(cppErrorMessage.deadlineMustBeInFuture)
     }
 
-    if (pool.deadline > currentTimestamp + BigInt(this.ONE_DAY_SEC * 365)) {
+    if (pool.deadline > currentTimestamp + BigInt(this.ONE_YEAR_SEC)) {
       throw new Error(cppErrorMessage.deadlineMustNotBeMoreThan1YearInTheFuture)
     }
 

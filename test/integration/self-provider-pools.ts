@@ -14,6 +14,7 @@ import {
   MAX_BIGINT,
   ONE_DAY_MS,
   ONE_DAY_SEC,
+  ONE_YEAR_SEC,
   POOLS_ETH_ADDRESS,
   TESTING_PRIVATE_KEY,
   USD_TOKEN_ADDRESS,
@@ -212,7 +213,7 @@ describe('SelfProvider - Pools', () => {
             softCap: BigInt(1_000000),
             hardCap: BigInt(5_000000),
             deadline: BigInt(
-              getUnixEpochTimeInFuture(BigInt(ONE_DAY_SEC * 365 + 60))
+              getUnixEpochTimeInFuture(BigInt(ONE_YEAR_SEC + 60))
             ),
             minimumAPR: BigInt(2_000000),
             collateralTokens: []

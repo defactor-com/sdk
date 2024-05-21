@@ -34,6 +34,7 @@ export const ONE_SEC = 1
 export const ONE_SEC_MS = ONE_SEC * ONE_MS
 export const ONE_DAY_SEC = 86400
 export const ONE_DAY_MS = ONE_DAY_SEC * 1000
+export const ONE_YEAR_SEC = ONE_DAY_SEC * 365
 
 export const waitUntilConfirmationCompleted = async (
   provider: ethers.JsonRpcProvider,
