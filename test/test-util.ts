@@ -71,7 +71,20 @@ export const approveTokenAmount = async (
   provider: SelfProvider<Pools>,
   amount: bigint
 ) => {
-  const tx = await contract.approve(provider.contract.address, BigInt(amount))
+  if (!provider.contract.signer) return
+
+  const erc20Contract = contract.signer
+    ? contract
+    : new Erc20(
+        contract.address,
+        contract.apiUrl,
+        provider.contract.signer.privateKey
+      )
+
+  const tx = await erc20Contract.approve(
+    provider.contract.address,
+    BigInt(amount)
+  )
 
   await waitUntilConfirmationCompleted(provider.contract.jsonRpcProvider, tx)
 }
@@ -82,6 +95,8 @@ export const approveCreationFee = async (
   signerAddress: string,
   creationFee: bigint
 ) => {
+  if (!provider.contract.signer) return
+
   const usdcApproved = await contract.allowance(
     signerAddress,
     provider.contract.address

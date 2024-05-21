@@ -55,7 +55,7 @@ describe('SelfProvider - Pools', () => {
     usdcTokenContract = new Erc20(
       USD_TOKEN_ADDRESS,
       process.env.PROVIDER_URL,
-      ADMIN_TESTING_PRIVATE_KEY
+      null
     )
 
     provider = new SelfProvider(
