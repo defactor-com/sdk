@@ -212,7 +212,7 @@ describe('SelfProvider - Pools', () => {
             softCap: BigInt(1_000000),
             hardCap: BigInt(5_000000),
             deadline: BigInt(
-              getUnixEpochTimeInFuture(BigInt(ONE_DAY_SEC * 365 + 1))
+              getUnixEpochTimeInFuture(BigInt(ONE_DAY_SEC * 365 + 60))
             ),
             minimumAPR: BigInt(2_000000),
             collateralTokens: []
