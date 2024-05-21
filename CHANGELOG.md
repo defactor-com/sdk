@@ -1,5 +1,11 @@
 # @defactor-com/defactor-sdk
 
+## 0.3.2
+
+### Patch Changes
+
+- 8d49eb9: Implement CollectPool function for the Counter Party Pool (CPP)
+
 ## 0.3.1
 
 ### Patch Changes
