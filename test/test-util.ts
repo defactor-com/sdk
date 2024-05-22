@@ -81,7 +81,6 @@ export const approveTokenAmount = async (
         contract.apiUrl,
         provider.contract.signer.privateKey
       )
-
   const tx = await erc20Contract.approve(
     provider.contract.address,
     BigInt(amount)
