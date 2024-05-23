@@ -27,6 +27,7 @@ export class Pools
 {
   private readonly ONE_DAY_SEC = 86400
   private readonly ONE_YEAR_SEC = this.ONE_DAY_SEC * 365
+  readonly INTEREST_DECIMAL_PLACES = BigInt(100_000_000)
   readonly POOL_FEE = BigInt(200_000000)
   readonly COLLECT_POOL_MAX_DAYS = BigInt(30)
   readonly COLLECT_POOL_MAX_SECS = BigInt(
@@ -241,7 +242,7 @@ export class Pools
         cppErrorMessage.poolStatusMustBe(
           poolId,
           pool.poolStatus.toUpperCase(),
-          PoolStatusOption.CREATED
+          [PoolStatusOption.CREATED]
         )
       )
     }
@@ -290,7 +291,7 @@ export class Pools
         cppErrorMessage.poolStatusMustBe(
           poolId,
           pool.poolStatus.toUpperCase(),
-          PoolStatusOption.ACTIVE
+          [PoolStatusOption.ACTIVE]
         )
       )
     }
@@ -303,8 +304,55 @@ export class Pools
     return this.signer ? await this.signer.sendTransaction(pop) : pop
   }
 
-  closePool(poolId: bigint): Promise<void> {
-    throw new Error(`Method not implemented. ${poolId.toString()}`)
+  async closePool(
+    poolId: bigint
+  ): Promise<ethers.ContractTransaction | ethers.TransactionResponse> {
+    await this._checkIsNotPaused()
+
+    const pool = await this.getPool(poolId)
+
+    if (this.signer && this.signer.address !== pool.poolOwner) {
+      throw new Error(cppErrorMessage.addressIsNotOwner)
+    }
+
+    if (
+      pool.poolStatus !== PoolStatusOption.CREATED &&
+      pool.poolStatus !== PoolStatusOption.ACTIVE
+    ) {
+      throw new Error(
+        cppErrorMessage.poolStatusMustBe(poolId, pool.poolStatus, [
+          PoolStatusOption.ACTIVE,
+          PoolStatusOption.CREATED
+        ])
+      )
+    }
+
+    if (pool.poolStatus === PoolStatusOption.CREATED) {
+      const currentTimestamp = getUnixEpochTime()
+
+      if (pool.deadline > currentTimestamp) {
+        throw new Error(cppErrorMessage.deadlineNotReached)
+      }
+
+      const maxCollectTimeHasPassed =
+        pool.deadline + this.COLLECT_POOL_MAX_SECS < currentTimestamp
+
+      if (!maxCollectTimeHasPassed && pool.softCap < pool.totalCommitted) {
+        throw new Error(cppErrorMessage.softCapReached)
+      }
+    } else {
+      const interestRate =
+        (pool.totalCommitted * pool.minimumAPR) / this.INTEREST_DECIMAL_PLACES
+      const committedAmount = pool.totalCommitted + interestRate
+
+      if (pool.totalRewards < committedAmount) {
+        throw new Error(cppErrorMessage.mustDepositAtLeastCommittedAmount)
+      }
+    }
+
+    const pop = await this.contract.closePool.populateTransaction(poolId)
+
+    return this.signer ? await this.signer.sendTransaction(pop) : pop
   }
 
   archivePool(poolId: bigint): Promise<void> {
@@ -332,7 +380,7 @@ export class Pools
         cppErrorMessage.poolStatusMustBe(
           poolId,
           pool.poolStatus.toUpperCase(),
-          PoolStatusOption.CREATED
+          [PoolStatusOption.CREATED]
         )
       )
     }

@@ -41,14 +41,16 @@ export const counterPartyPoolErrorMessage = {
   noNegativeMinimumAPR: 'Minimum APR cannot be negative',
   deadlineReached: 'Deadline has been reached',
   deadlineNotReached: 'Deadline not reached',
+  softCapReached: 'Soft cap reached',
   softCapNotReached: 'Soft cap not reached',
   amountExceedsHardCap: 'The amount exceeds the harp cap',
+  mustDepositAtLeastCommittedAmount: 'Must deposit at least committed amount',
   cannotCollectDaysAfterDeadline: (days: bigint) =>
     `Cannot collect ${days} days after deadline`,
   poolStatusMustBe: (
     poolId: bigint,
     poolStatus: string,
-    expectedStatus: string
+    expectedStatus: Array<string>
   ) =>
-    `Pool ${poolId.toString()} status is ${poolStatus}, it must be ${expectedStatus}`
+    `Pool ${poolId.toString()} status is ${poolStatus}, it must be ${expectedStatus.sort().join(', or ')}`
 }
