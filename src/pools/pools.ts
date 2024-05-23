@@ -238,7 +238,11 @@ export class Pools
 
     if (pool.poolStatus !== PoolStatusOption.CREATED) {
       throw new Error(
-        cppErrorMessage.poolIsNotCreated(poolId, pool.poolStatus.toUpperCase())
+        cppErrorMessage.poolStatusMustBe(
+          poolId,
+          pool.poolStatus.toUpperCase(),
+          PoolStatusOption.CREATED
+        )
       )
     }
 
@@ -265,8 +269,38 @@ export class Pools
     return this.signer ? await this.signer.sendTransaction(pop) : pop
   }
 
-  depositRewards(poolId: bigint, amount: bigint): Promise<void> {
-    throw new Error(`Method not implemented. ${poolId}, ${amount}`)
+  async depositRewards(
+    poolId: bigint,
+    amount: bigint
+  ): Promise<ethers.ContractTransaction | ethers.TransactionResponse> {
+    await this._checkIsNotPaused()
+
+    const pool = await this.getPool(poolId)
+
+    if (this.signer && this.signer.address !== pool.poolOwner) {
+      throw new Error(cppErrorMessage.addressIsNotOwner)
+    }
+
+    if (amount <= BigInt(0)) {
+      throw new Error(poolCommonErrorMessage.noNegativeAmountOrZero)
+    }
+
+    if (pool.poolStatus !== PoolStatusOption.ACTIVE) {
+      throw new Error(
+        cppErrorMessage.poolStatusMustBe(
+          poolId,
+          pool.poolStatus.toUpperCase(),
+          PoolStatusOption.ACTIVE
+        )
+      )
+    }
+
+    const pop = await this.contract.depositRewards.populateTransaction(
+      poolId,
+      amount
+    )
+
+    return this.signer ? await this.signer.sendTransaction(pop) : pop
   }
 
   closePool(poolId: bigint): Promise<void> {
@@ -295,7 +329,11 @@ export class Pools
 
     if (pool.poolStatus !== PoolStatusOption.CREATED) {
       throw new Error(
-        cppErrorMessage.poolIsNotCreated(poolId, pool.poolStatus.toUpperCase())
+        cppErrorMessage.poolStatusMustBe(
+          poolId,
+          pool.poolStatus.toUpperCase(),
+          PoolStatusOption.CREATED
+        )
       )
     }
 
