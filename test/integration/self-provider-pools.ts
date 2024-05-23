@@ -814,7 +814,6 @@ describe('SelfProvider - Pools', () => {
       it('success - status is ACTIVE and pool owner has deposited enough rewards, close pool', async () => {
         const poolIndex: bigint = await provider.contract.contract.poolIndex()
         const poolId = poolIndex - BigInt(1)
-
         const tx = await provider.contract.closePool(poolId)
 
         await waitUntilConfirmationCompleted(
@@ -881,11 +880,14 @@ describe('SelfProvider - Pools', () => {
 
         await approveTokenAmount(usdcTokenContract, notAdminProvider, amount)
 
-        const tx = await notAdminProvider.contract.commitToPool(poolId, amount)
+        const commitToPoolTx = await notAdminProvider.contract.commitToPool(
+          poolId,
+          amount
+        )
 
         await waitUntilConfirmationCompleted(
           notAdminProvider.contract.jsonRpcProvider,
-          tx
+          commitToPoolTx
         )
 
         // STEP 3. WAIT UNTIL DEADLINE
@@ -924,7 +926,6 @@ describe('SelfProvider - Pools', () => {
         // STEP 2. COMMIT TO POOL
         const poolIndex: bigint = await provider.contract.contract.poolIndex()
         const poolId = poolIndex - BigInt(1)
-
         const amount = BigInt(1_000000)
 
         await approveTokenAmount(usdcTokenContract, notAdminProvider, amount)
@@ -983,7 +984,6 @@ describe('SelfProvider - Pools', () => {
         // STEP 2. COMMIT TO POOL
         const poolIndex: bigint = await provider.contract.contract.poolIndex()
         const poolId = poolIndex - BigInt(1)
-
         const amount = BigInt(2_000000)
 
         await approveTokenAmount(usdcTokenContract, notAdminProvider, amount)
@@ -1090,7 +1090,6 @@ describe('SelfProvider - Pools', () => {
         expect.assertions(1)
 
         const pool = await provider.contract.getPool(BigInt(0))
-
         const coldPoolData = {
           softCap: pool.softCap,
           hardCap: pool.hardCap,
