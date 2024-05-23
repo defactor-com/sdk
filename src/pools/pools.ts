@@ -25,10 +25,12 @@ export class Pools
   extends BaseContract
   implements Functions, Views, AdminFunctions
 {
+  private readonly ONE_DAY_SEC = 86400
+  private readonly ONE_YEAR_SEC = this.ONE_DAY_SEC * 365
   readonly POOL_FEE = BigInt(200_000000)
   readonly COLLECT_POOL_MAX_DAYS = BigInt(30)
   readonly COLLECT_POOL_MAX_SECS = BigInt(
-    this.COLLECT_POOL_MAX_DAYS * BigInt(86400)
+    this.COLLECT_POOL_MAX_DAYS * BigInt(this.ONE_DAY_SEC)
   )
 
   constructor(
@@ -92,6 +94,7 @@ export class Pools
       rewardsPaidOut: pool.rewardsPaidOut,
       createdAt: pool.createdAt,
       deadline: pool.deadline,
+      minimumAPR: pool.minimumAPR,
       closedTime: pool.closedTime,
       poolOwner: pool.poolOwner,
       poolStatus: this._getStatusByIndex(pool.poolStatus),
@@ -171,12 +174,22 @@ export class Pools
       throw new Error(cppErrorMessage.noNegativeSoftCapOrZero)
     }
 
+    if (pool.minimumAPR < BigInt(0)) {
+      throw new Error(cppErrorMessage.noNegativeMinimumAPR)
+    }
+
     if (pool.hardCap < pool.softCap) {
       throw new Error(cppErrorMessage.softCapMustBeLessThanHardCap)
     }
 
-    if (pool.deadline <= getUnixEpochTime()) {
+    const currentTimestamp = getUnixEpochTime()
+
+    if (pool.deadline <= currentTimestamp) {
       throw new Error(cppErrorMessage.deadlineMustBeInFuture)
+    }
+
+    if (pool.deadline > currentTimestamp + BigInt(this.ONE_YEAR_SEC)) {
+      throw new Error(cppErrorMessage.deadlineMustNotBeMoreThan1YearInTheFuture)
     }
 
     for (const token of pool.collateralTokens) {
@@ -193,6 +206,7 @@ export class Pools
       softCap: pool.softCap.toString(),
       hardCap: pool.hardCap.toString(),
       deadline: pool.deadline,
+      minimumAPR: pool.minimumAPR,
       collateralTokens: pool.collateralTokens.map(token => [
         token.contractAddress,
         token.amount.toString(),
@@ -204,6 +218,7 @@ export class Pools
       formattedPool.softCap,
       formattedPool.hardCap,
       formattedPool.deadline,
+      formattedPool.minimumAPR,
       formattedPool.collateralTokens
     )
 
@@ -272,6 +287,10 @@ export class Pools
 
     if (amount <= BigInt(0)) {
       throw new Error(poolCommonErrorMessage.noNegativeAmountOrZero)
+    }
+
+    if (this.signer && this.signer.address === pool.poolOwner) {
+      throw new Error(cppErrorMessage.poolOwnerCannotCommitToHisOwnPool)
     }
 
     if (pool.poolStatus !== PoolStatusOption.CREATED) {

@@ -14,6 +14,7 @@ import {
   MAX_BIGINT,
   ONE_DAY_MS,
   ONE_DAY_SEC,
+  ONE_YEAR_SEC,
   POOLS_ETH_ADDRESS,
   TESTING_PRIVATE_KEY,
   USD_TOKEN_ADDRESS,
@@ -41,6 +42,7 @@ describe('SelfProvider - Pools', () => {
     softCap: BigInt(1_000000),
     hardCap: BigInt(5_000000),
     deadline: BigInt(getUnixEpochTimeInFuture(BigInt(120))),
+    minimumAPR: BigInt(2_000000),
     collateralTokens: []
   }
 
@@ -54,7 +56,7 @@ describe('SelfProvider - Pools', () => {
     usdcTokenContract = new Erc20(
       USD_TOKEN_ADDRESS,
       process.env.PROVIDER_URL,
-      ADMIN_TESTING_PRIVATE_KEY
+      null
     )
 
     provider = new SelfProvider(
@@ -163,9 +165,22 @@ describe('SelfProvider - Pools', () => {
             softCap: BigInt(-10_000000),
             hardCap: BigInt(5_000000),
             deadline: BigInt(1715269435),
+            minimumAPR: BigInt(2_000000),
             collateralTokens: []
           })
         ).rejects.toThrow(cppErrorMessage.noNegativeSoftCapOrZero)
+      })
+      it('failure - minimumAPR is negative', async () => {
+        expect.assertions(1)
+        await expect(
+          provider.contract.createPool({
+            softCap: BigInt(1_000000),
+            hardCap: BigInt(5_000000),
+            deadline: BigInt(1715269435),
+            minimumAPR: BigInt(-2_000000),
+            collateralTokens: []
+          })
+        ).rejects.toThrow(cppErrorMessage.noNegativeMinimumAPR)
       })
       it('failure - hardCap is less than softCap', async () => {
         expect.assertions(1)
@@ -174,6 +189,7 @@ describe('SelfProvider - Pools', () => {
             softCap: BigInt(10_000000),
             hardCap: BigInt(5_000000),
             deadline: BigInt(1715269435),
+            minimumAPR: BigInt(2_000000),
             collateralTokens: []
           })
         ).rejects.toThrow(cppErrorMessage.softCapMustBeLessThanHardCap)
@@ -185,9 +201,26 @@ describe('SelfProvider - Pools', () => {
             softCap: BigInt(1_000000),
             hardCap: BigInt(5_000000),
             deadline: BigInt(1715269435),
+            minimumAPR: BigInt(2_000000),
             collateralTokens: []
           })
         ).rejects.toThrow(cppErrorMessage.deadlineMustBeInFuture)
+      })
+      it('failure - deadline is more than one year in the future', async () => {
+        expect.assertions(1)
+        await expect(
+          provider.contract.createPool({
+            softCap: BigInt(1_000000),
+            hardCap: BigInt(5_000000),
+            deadline: BigInt(
+              getUnixEpochTimeInFuture(BigInt(ONE_YEAR_SEC + 60))
+            ),
+            minimumAPR: BigInt(2_000000),
+            collateralTokens: []
+          })
+        ).rejects.toThrow(
+          cppErrorMessage.deadlineMustNotBeMoreThan1YearInTheFuture
+        )
       })
       it('failure - one or more collateral token has invalid addresses', async () => {
         expect.assertions(1)
@@ -196,6 +229,7 @@ describe('SelfProvider - Pools', () => {
             softCap: BigInt(1_000000),
             hardCap: BigInt(5_000000),
             deadline: BigInt(getUnixEpochTimeInFuture(BigInt(60))),
+            minimumAPR: BigInt(2_000000),
             collateralTokens: [
               {
                 contractAddress: USD_TOKEN_ADDRESS,
@@ -223,6 +257,7 @@ describe('SelfProvider - Pools', () => {
             softCap: BigInt(1_000000),
             hardCap: BigInt(5_000000),
             deadline: BigInt(getUnixEpochTimeInFuture(BigInt(60))),
+            minimumAPR: BigInt(2_000000),
             collateralTokens: [
               {
                 contractAddress: USD_TOKEN_ADDRESS,
@@ -248,6 +283,7 @@ describe('SelfProvider - Pools', () => {
             softCap: BigInt(1_000000),
             hardCap: BigInt(5_000000),
             deadline: BigInt(getUnixEpochTimeInFuture(BigInt(60))),
+            minimumAPR: BigInt(2_000000),
             collateralTokens: []
           })
         } catch (error) {
@@ -272,6 +308,7 @@ describe('SelfProvider - Pools', () => {
             softCap: BigInt(1_000000),
             hardCap: BigInt(5_000000),
             deadline: getUnixEpochTimeInFuture(BigInt(60)),
+            minimumAPR: BigInt(2_000000),
             collateralTokens: [
               {
                 contractAddress: USD_TOKEN_ADDRESS,
@@ -293,6 +330,7 @@ describe('SelfProvider - Pools', () => {
             softCap: BigInt(1_000000),
             hardCap: BigInt(5_000000),
             deadline: BigInt(getUnixEpochTimeInFuture(BigInt(60))),
+            minimumAPR: BigInt(2_000000),
             collateralTokens: [
               {
                 contractAddress: USD_TOKEN_ADDRESS,
@@ -338,6 +376,7 @@ describe('SelfProvider - Pools', () => {
           softCap: BigInt(5_000000),
           hardCap: BigInt(5_000000),
           deadline: getUnixEpochTimeInFuture(BigInt(ONE_DAY_SEC * 90)),
+          minimumAPR: BigInt(2_000000),
           collateralTokens: []
         })
 
@@ -370,6 +409,7 @@ describe('SelfProvider - Pools', () => {
           softCap: BigInt(3_000000),
           hardCap: BigInt(6_000000),
           deadline: BigInt(getUnixEpochTimeInFuture(BigInt(ONE_DAY_SEC * 90))),
+          minimumAPR: BigInt(2_000000),
           collateralTokens: collaterals
         })
 
@@ -397,6 +437,7 @@ describe('SelfProvider - Pools', () => {
           softCap: BigInt(4_000000),
           hardCap: BigInt(10_000000),
           deadline: BigInt(getUnixEpochTimeInFuture(BigInt(ONE_DAY_SEC * 90))),
+          minimumAPR: BigInt(2_000000),
           collateralTokens: collaterals
         })
 
@@ -414,22 +455,31 @@ describe('SelfProvider - Pools', () => {
         expect.assertions(1)
         await setPause(provider, true)
         await expect(
-          provider.contract.commitToPool(BigInt(1), BigInt(1_000000))
+          notAdminProvider.contract.commitToPool(BigInt(1), BigInt(1_000000))
         ).rejects.toThrow(poolCommonErrorMessage.contractIsPaused)
         await setPause(provider, false)
       })
       it('failure - non-existed pool', async () => {
         expect.assertions(1)
         await expect(
-          provider.contract.commitToPool(BigInt(MAX_BIGINT), BigInt(1_000000))
+          notAdminProvider.contract.commitToPool(
+            BigInt(MAX_BIGINT),
+            BigInt(1_000000)
+          )
         ).rejects.toThrow(
           poolCommonErrorMessage.noExistPoolId(BigInt(MAX_BIGINT))
         )
       })
+      it('failure - the signer is the owner of the pool', async () => {
+        expect.assertions(1)
+        await expect(
+          provider.contract.commitToPool(BigInt(1), BigInt(1_000000))
+        ).rejects.toThrow(cppErrorMessage.poolOwnerCannotCommitToHisOwnPool)
+      })
       it('failure - amount no positive', async () => {
         expect.assertions(1)
         await expect(
-          provider.contract.commitToPool(BigInt(1), BigInt(-15_000000))
+          notAdminProvider.contract.commitToPool(BigInt(1), BigInt(-15_000000))
         ).rejects.toThrow(poolCommonErrorMessage.noNegativeAmountOrZero)
       })
       it('failure - deadline has passed', async () => {
@@ -440,18 +490,18 @@ describe('SelfProvider - Pools', () => {
 
         expect.assertions(1)
         await expect(
-          provider.contract.commitToPool(poolId, BigInt(1_000000))
+          notAdminProvider.contract.commitToPool(poolId, BigInt(1_000000))
         ).rejects.toThrow(cppErrorMessage.deadlineReached)
       })
       it('failure - amount was not approved', async () => {
         const amount = BigInt(1_000000)
 
-        await approveTokenAmount(usdcTokenContract, provider, BigInt(0))
+        await approveTokenAmount(usdcTokenContract, notAdminProvider, BigInt(0))
 
         expect.assertions(1)
 
         try {
-          await provider.contract.commitToPool(BigInt(1), amount)
+          await notAdminProvider.contract.commitToPool(BigInt(1), amount)
         } catch (error) {
           expect(isError(error, 'CALL_EXCEPTION')).toBeTruthy()
         }
@@ -464,7 +514,7 @@ describe('SelfProvider - Pools', () => {
         const amount = pool.hardCap + BigInt(1_000000)
 
         await expect(
-          provider.contract.commitToPool(poolId, amount)
+          notAdminProvider.contract.commitToPool(poolId, amount)
         ).rejects.toThrow(cppErrorMessage.amountExceedsHardCap)
       })
       it('success - commit to pool', async () => {
@@ -473,12 +523,12 @@ describe('SelfProvider - Pools', () => {
 
         expect.assertions(1)
 
-        await approveTokenAmount(usdcTokenContract, provider, amount)
+        await approveTokenAmount(usdcTokenContract, notAdminProvider, amount)
 
-        const tx = await provider.contract.commitToPool(poolId, amount)
+        const tx = await notAdminProvider.contract.commitToPool(poolId, amount)
 
         await waitUntilConfirmationCompleted(
-          provider.contract.jsonRpcProvider,
+          notAdminProvider.contract.jsonRpcProvider,
           tx
         )
 
@@ -492,7 +542,7 @@ describe('SelfProvider - Pools', () => {
         const amount = pool.hardCap + BigInt(1_000000) - pool.totalCommitted
 
         await expect(
-          provider.contract.commitToPool(poolId, amount)
+          notAdminProvider.contract.commitToPool(poolId, amount)
         ).rejects.toThrow(cppErrorMessage.amountExceedsHardCap)
       })
     })
@@ -557,6 +607,7 @@ describe('SelfProvider - Pools', () => {
           softCap: BigInt(1_000000),
           hardCap: BigInt(3_000000),
           deadline: getUnixEpochTimeInFuture(BigInt(60)),
+          minimumAPR: BigInt(2_000000),
           collateralTokens: []
         }
 
@@ -627,7 +678,7 @@ describe('SelfProvider - Pools', () => {
 
         expect.assertions(1)
         await expect(
-          provider.contract.commitToPool(poolId, BigInt(1_000000))
+          notAdminProvider.contract.commitToPool(poolId, BigInt(1_000000))
         ).rejects.toThrow(
           cppErrorMessage.poolIsNotCreated(poolId, pool.poolStatus)
         )
@@ -652,6 +703,7 @@ describe('SelfProvider - Pools', () => {
           softCap: pool.softCap,
           hardCap: pool.hardCap,
           deadline: pool.deadline,
+          minimumAPR: pool.minimumAPR,
           collateralTokens: pool.collateralTokens
         }
 
@@ -673,7 +725,7 @@ describe('SelfProvider - Pools', () => {
           BigInt(10)
         )
 
-        expect(tempPools.length).toBe(4)
+        expect(tempPools.length).toBe(5)
 
         const { data: tempPools2 } = await provider.contract.getPools(
           BigInt(20),

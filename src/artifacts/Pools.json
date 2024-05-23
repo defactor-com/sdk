@@ -5,6 +5,11 @@
   "abi": [
     {
       "inputs": [],
+      "name": "CannotBeZeroAddress",
+      "type": "error"
+    },
+    {
+      "inputs": [],
       "name": "CannotCollect30DaysAfterDeadline",
       "type": "error"
     },
@@ -15,7 +20,17 @@
     },
     {
       "inputs": [],
+      "name": "DeadlineMustNotBeMoreThan1YearInTheFuture",
+      "type": "error"
+    },
+    {
+      "inputs": [],
       "name": "MustBePoolOwner",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "MustBePoolOwnerOrAdmin",
       "type": "error"
     },
     {
@@ -45,7 +60,22 @@
     },
     {
       "inputs": [],
+      "name": "PoolIsNotEmpty",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "PoolOwnerCannotCommitToHisOwnPool",
+      "type": "error"
+    },
+    {
+      "inputs": [],
       "name": "PoolSoftCapNotReached",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "PoolSoftCapReached",
       "type": "error"
     },
     {
@@ -56,6 +86,11 @@
     {
       "inputs": [],
       "name": "PoolStatusMustBeAtLeast60DaysPastDeadline",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "PoolStatusMustBeClosed",
       "type": "error"
     },
     {
@@ -76,6 +111,11 @@
     {
       "inputs": [],
       "name": "PoolStatusMustBeEitherClosedOrCreated",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "RewardsHaveNotYetBeenPaidOut",
       "type": "error"
     },
     {
@@ -132,6 +172,25 @@
         }
       ],
       "name": "Paused",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "poolId",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "poolOwner",
+          "type": "address"
+        }
+      ],
+      "name": "PoolArchived",
       "type": "event"
     },
     {
@@ -438,6 +497,24 @@
           "internalType": "uint256",
           "name": "poolId",
           "type": "uint256"
+        },
+        {
+          "internalType": "address[]",
+          "name": "users",
+          "type": "address[]"
+        }
+      ],
+      "name": "claimRewardsForUsers",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "poolId",
+          "type": "uint256"
         }
       ],
       "name": "closePool",
@@ -491,6 +568,11 @@
         {
           "internalType": "uint48",
           "name": "deadline",
+          "type": "uint48"
+        },
+        {
+          "internalType": "uint48",
+          "name": "minimumAPR",
           "type": "uint48"
         },
         {
@@ -602,6 +684,11 @@
             {
               "internalType": "uint48",
               "name": "closedTime",
+              "type": "uint48"
+            },
+            {
+              "internalType": "uint48",
+              "name": "minimumAPR",
               "type": "uint48"
             },
             {
@@ -931,6 +1018,11 @@
           "type": "uint48"
         },
         {
+          "internalType": "uint48",
+          "name": "minimumAPR",
+          "type": "uint48"
+        },
+        {
           "internalType": "enum IPools.PoolStatus",
           "name": "poolStatus",
           "type": "uint8"
@@ -997,6 +1089,24 @@
         }
       ],
       "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "poolId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address[]",
+          "name": "users",
+          "type": "address[]"
+        }
+      ],
+      "name": "uncommitForUsers",
+      "outputs": [],
+      "stateMutability": "nonpayable",
       "type": "function"
     },
     {

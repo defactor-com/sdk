@@ -34,6 +34,7 @@ export const ONE_SEC = 1
 export const ONE_SEC_MS = ONE_SEC * ONE_MS
 export const ONE_DAY_SEC = 86400
 export const ONE_DAY_MS = ONE_DAY_SEC * 1000
+export const ONE_YEAR_SEC = ONE_DAY_SEC * 365
 
 export const waitUntilConfirmationCompleted = async (
   provider: ethers.JsonRpcProvider,
@@ -71,7 +72,19 @@ export const approveTokenAmount = async (
   provider: SelfProvider<Pools>,
   amount: bigint
 ) => {
-  const tx = await contract.approve(provider.contract.address, BigInt(amount))
+  if (!provider.contract.signer) return
+
+  const erc20Contract = contract.signer
+    ? contract
+    : new Erc20(
+        contract.address,
+        contract.apiUrl,
+        provider.contract.signer.privateKey
+      )
+  const tx = await erc20Contract.approve(
+    provider.contract.address,
+    BigInt(amount)
+  )
 
   await waitUntilConfirmationCompleted(provider.contract.jsonRpcProvider, tx)
 }
@@ -82,6 +95,8 @@ export const approveCreationFee = async (
   signerAddress: string,
   creationFee: bigint
 ) => {
+  if (!provider.contract.signer) return
+
   const usdcApproved = await contract.allowance(
     signerAddress,
     provider.contract.address
@@ -98,6 +113,8 @@ export const approveCollateral = async (
   collaterals: Array<CollateralToken>,
   creationFee: bigint
 ) => {
+  if (!provider.contract.signer) return
+
   const amountByCollateral = collaterals.reduce(
     (res: Record<string, bigint>, curr) => {
       if (!res[curr.contractAddress]) {
@@ -116,7 +133,7 @@ export const approveCollateral = async (
     const erc20Contract = new Erc20(
       address,
       provider.contract.apiUrl,
-      TESTING_PRIVATE_KEY
+      provider.contract.signer.privateKey
     )
 
     const erc20Approved = await erc20Contract.allowance(

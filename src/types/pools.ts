@@ -30,6 +30,7 @@ export type PoolInput = {
   softCap: bigint
   hardCap: bigint
   deadline: bigint
+  minimumAPR: bigint
   collateralTokens: Array<CollateralToken>
 }
 
@@ -42,6 +43,7 @@ export type Pool = {
   rewardsPaidOut: bigint
   createdAt: bigint
   deadline: bigint
+  minimumAPR: bigint
   closedTime: bigint
   poolStatus: PoolStatus
   poolOwner: string
@@ -56,6 +58,7 @@ export type ContractPool = {
   rewardsPaidOut: bigint
   createdAt: bigint
   deadline: bigint
+  minimumAPR: bigint
   closedTime: bigint
   poolStatus: bigint
   poolOwner: string
