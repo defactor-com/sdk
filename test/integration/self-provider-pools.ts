@@ -7,7 +7,7 @@ import {
   poolCommonErrorMessage
 } from '../../src/errors'
 import { Pools, SelfProvider } from '../../src/pools'
-import { PoolInput } from '../../src/types/pools'
+import { PoolInput, PoolStatusOption } from '../../src/types/pools'
 import {
   ADMIN_TESTING_PRIVATE_KEY,
   COLLATERAL_ERC20_TOKENS,
@@ -665,7 +665,11 @@ describe('SelfProvider - Pools', () => {
 
         expect.assertions(1)
         await expect(provider.contract.collectPool(poolId)).rejects.toThrow(
-          cppErrorMessage.poolIsNotCreated(poolId, pool.poolStatus)
+          cppErrorMessage.poolStatusMustBe(
+            poolId,
+            pool.poolStatus,
+            PoolStatusOption.CREATED
+          )
         )
       })
     })
@@ -680,8 +684,109 @@ describe('SelfProvider - Pools', () => {
         await expect(
           notAdminProvider.contract.commitToPool(poolId, BigInt(1_000000))
         ).rejects.toThrow(
-          cppErrorMessage.poolIsNotCreated(poolId, pool.poolStatus)
+          cppErrorMessage.poolStatusMustBe(
+            poolId,
+            pool.poolStatus,
+            PoolStatusOption.CREATED
+          )
         )
+      })
+    })
+
+    describe('depositRewards()', () => {
+      it('failure - the contract is paused', async () => {
+        expect.assertions(1)
+        await setPause(provider, true)
+        await expect(
+          provider.contract.depositRewards(BigInt(1), BigInt(1_000000))
+        ).rejects.toThrow(poolCommonErrorMessage.contractIsPaused)
+        await setPause(provider, false)
+      })
+      it('failure - non-existed pool', async () => {
+        expect.assertions(1)
+        await expect(
+          provider.contract.depositRewards(BigInt(MAX_BIGINT), BigInt(1_000000))
+        ).rejects.toThrow(
+          poolCommonErrorMessage.noExistPoolId(BigInt(MAX_BIGINT))
+        )
+      })
+      it('failure - amount is not positive', async () => {
+        expect.assertions(1)
+        await expect(
+          provider.contract.depositRewards(BigInt(1), BigInt(-1_000000))
+        ).rejects.toThrow(poolCommonErrorMessage.noNegativeAmountOrZero)
+      })
+      it('failure - not owner address', async () => {
+        expect.assertions(1)
+        await expect(
+          notAdminProvider.contract.depositRewards(BigInt(1), BigInt(1_000000))
+        ).rejects.toThrow(cppErrorMessage.addressIsNotOwner)
+      })
+      it('failure - status is different to ACTIVE', async () => {
+        const poolId = BigInt(0)
+        const pool = await provider.contract.getPool(poolId)
+
+        expect.assertions(1)
+        await expect(
+          provider.contract.depositRewards(poolId, BigInt(1_000000))
+        ).rejects.toThrow(
+          cppErrorMessage.poolStatusMustBe(
+            poolId,
+            pool.poolStatus,
+            PoolStatusOption.ACTIVE
+          )
+        )
+      })
+      it('failure - amount was not approved', async () => {
+        const poolIndex: bigint = await provider.contract.contract.poolIndex()
+        const poolId = poolIndex - BigInt(1)
+        const amount = BigInt(1_000000)
+
+        await approveTokenAmount(usdcTokenContract, provider, BigInt(0))
+
+        expect.assertions(1)
+
+        try {
+          await provider.contract.depositRewards(poolId, amount)
+        } catch (error) {
+          expect(isError(error, 'CALL_EXCEPTION')).toBeTruthy()
+        }
+      })
+      it('success - deposit $100 rewards', async () => {
+        expect.assertions(1)
+
+        const poolIndex: bigint = await provider.contract.contract.poolIndex()
+        const poolId = poolIndex - BigInt(1)
+        const amount = BigInt(100_000000)
+
+        await approveTokenAmount(usdcTokenContract, provider, amount)
+
+        const tx = await provider.contract.depositRewards(poolId, amount)
+
+        await waitUntilConfirmationCompleted(
+          provider.contract.jsonRpcProvider,
+          tx
+        )
+
+        expect(true).toBe(true)
+      })
+      it('success - deposit $1000 rewards', async () => {
+        expect.assertions(1)
+
+        const poolIndex: bigint = await provider.contract.contract.poolIndex()
+        const poolId = poolIndex - BigInt(1)
+        const amount = BigInt(1000_000000)
+
+        await approveTokenAmount(usdcTokenContract, provider, amount)
+
+        const tx = await provider.contract.depositRewards(poolId, amount)
+
+        await waitUntilConfirmationCompleted(
+          provider.contract.jsonRpcProvider,
+          tx
+        )
+
+        expect(true).toBe(true)
       })
     })
   })

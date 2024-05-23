@@ -42,9 +42,13 @@ export const counterPartyPoolErrorMessage = {
   deadlineReached: 'Deadline has been reached',
   deadlineNotReached: 'Deadline not reached',
   softCapNotReached: 'Soft cap not reached',
-  poolIsNotCreated: (poolId: bigint, status: string) =>
-    `Pool ${poolId.toString()} status is ${status}, it must be CREATED`,
   amountExceedsHardCap: 'The amount exceeds the harp cap',
   cannotCollectDaysAfterDeadline: (days: bigint) =>
-    `Cannot collect ${days} days after deadline`
+    `Cannot collect ${days} days after deadline`,
+  poolStatusMustBe: (
+    poolId: bigint,
+    poolStatus: string,
+    expectedStatus: string
+  ) =>
+    `Pool ${poolId.toString()} status is ${poolStatus}, it must be ${expectedStatus}`
 }
