@@ -1157,6 +1157,331 @@ describe('SelfProvider - Pools', () => {
         expect(true).toBe(true)
       }, 600000)
     })
+
+    describe('claim()', () => {
+      it('failure - the contract is paused', async () => {
+        expect.assertions(1)
+        await setPause(provider, true)
+        await expect(
+          notAdminProvider.contract.claim(BigInt(1))
+        ).rejects.toThrow(poolCommonErrorMessage.contractIsPaused)
+        await setPause(provider, false)
+      })
+      it('failure - non-existed pool', async () => {
+        expect.assertions(1)
+        await expect(
+          notAdminProvider.contract.claim(BigInt(MAX_BIGINT))
+        ).rejects.toThrow(
+          poolCommonErrorMessage.noExistPoolId(BigInt(MAX_BIGINT))
+        )
+      })
+      it('failure - status is different than CLOSE or ACTIVE', async () => {
+        // STEP 1. CREATE POOL
+        await approveCreationFee(
+          usdcTokenContract,
+          provider,
+          signerAddress,
+          POOL_FEE
+        )
+
+        const createPoolTx = await provider.contract.createPool({
+          softCap: BigInt(1_000000),
+          hardCap: BigInt(3_000000),
+          deadline: getUnixEpochTimeInFuture(BigInt(60)),
+          minimumAPR: BigInt(2_000000),
+          collateralTokens: []
+        })
+
+        await waitUntilConfirmationCompleted(
+          provider.contract.jsonRpcProvider,
+          createPoolTx
+        )
+
+        // STEP 2. TRY TO CLAIM AN CREATED POOL
+        const poolIndex: bigint = await provider.contract.contract.poolIndex()
+        const poolId = poolIndex - BigInt(1)
+        const pool = await provider.contract.getPool(poolId)
+
+        expect.assertions(1)
+        await expect(notAdminProvider.contract.claim(poolId)).rejects.toThrow(
+          cppErrorMessage.poolStatusMustBe(poolId, pool.poolStatus, [
+            PoolStatusOption.ACTIVE,
+            PoolStatusOption.CLOSED
+          ])
+        )
+      })
+      it('success - claim rewards from an ACTIVE pool', async () => {
+        // STEP 1. CREATE POOL
+        const pool: PoolInput = {
+          softCap: BigInt(1_000000),
+          hardCap: BigInt(3_000000),
+          deadline: getUnixEpochTimeInFuture(BigInt(60)),
+          minimumAPR: BigInt(2_000000),
+          collateralTokens: []
+        }
+
+        await approveCreationFee(
+          usdcTokenContract,
+          provider,
+          signerAddress,
+          POOL_FEE
+        )
+
+        const createPoolTx = await provider.contract.createPool(pool)
+
+        await waitUntilConfirmationCompleted(
+          provider.contract.jsonRpcProvider,
+          createPoolTx
+        )
+
+        // STEP 2. COMMIT TO POOL
+        const poolIndex: bigint = await provider.contract.contract.poolIndex()
+        const poolId = poolIndex - BigInt(1)
+
+        const amountToCommit = BigInt(1_000000)
+
+        await approveTokenAmount(
+          usdcTokenContract,
+          notAdminProvider,
+          amountToCommit
+        )
+
+        const commitToPoolTx = await notAdminProvider.contract.commitToPool(
+          poolId,
+          amountToCommit
+        )
+
+        await waitUntilConfirmationCompleted(
+          notAdminProvider.contract.jsonRpcProvider,
+          commitToPoolTx
+        )
+
+        // STEP 3. WAIT UNTIL DEADLINE
+        await waitUntilEpochPasses(pool.deadline, BigInt(60))
+
+        // STEP 4. COLLECT FROM POOL (IT CHANGES POOL STATUS FROM CREATED TO ACTIVE)
+        expect.assertions(1)
+
+        const collectPoolTx = await provider.contract.collectPool(poolId)
+
+        await waitUntilConfirmationCompleted(
+          notAdminProvider.contract.jsonRpcProvider,
+          collectPoolTx
+        )
+
+        // STEP 5. DEPOSIT ENOUGH REWARDS TO EXCEED THE COMMITTED AMOUNT
+        const amountToDeposit = BigInt(2_000000)
+
+        await approveTokenAmount(usdcTokenContract, provider, amountToDeposit)
+
+        const depositRewardsTx = await provider.contract.depositRewards(
+          poolId,
+          amountToDeposit
+        )
+
+        await waitUntilConfirmationCompleted(
+          provider.contract.jsonRpcProvider,
+          depositRewardsTx
+        )
+
+        // STEP 6. CLAIM REWARDS
+        const claimTx = await notAdminProvider.contract.claim(poolId)
+
+        await waitUntilConfirmationCompleted(
+          notAdminProvider.contract.jsonRpcProvider,
+          claimTx
+        )
+
+        expect(true).toBe(true)
+      }, 600000)
+      it('success - claim rewards from an CLOSE pool', async () => {
+        // STEP 1. CREATE POOL
+        const pool: PoolInput = {
+          softCap: BigInt(1_000000),
+          hardCap: BigInt(3_000000),
+          deadline: getUnixEpochTimeInFuture(BigInt(60)),
+          minimumAPR: BigInt(2_000000),
+          collateralTokens: []
+        }
+
+        await approveCreationFee(
+          usdcTokenContract,
+          provider,
+          signerAddress,
+          POOL_FEE
+        )
+
+        const createPoolTx = await provider.contract.createPool(pool)
+
+        await waitUntilConfirmationCompleted(
+          provider.contract.jsonRpcProvider,
+          createPoolTx
+        )
+
+        // STEP 2. COMMIT TO POOL
+        const poolIndex: bigint = await provider.contract.contract.poolIndex()
+        const poolId = poolIndex - BigInt(1)
+
+        const amountToCommit = BigInt(1_000000)
+
+        await approveTokenAmount(
+          usdcTokenContract,
+          notAdminProvider,
+          amountToCommit
+        )
+
+        const commitToPoolTx = await notAdminProvider.contract.commitToPool(
+          poolId,
+          amountToCommit
+        )
+
+        await waitUntilConfirmationCompleted(
+          notAdminProvider.contract.jsonRpcProvider,
+          commitToPoolTx
+        )
+
+        // STEP 3. WAIT UNTIL DEADLINE
+        await waitUntilEpochPasses(pool.deadline, BigInt(60))
+
+        // STEP 4. COLLECT FROM POOL (IT CHANGES POOL STATUS FROM CREATED TO ACTIVE)
+        expect.assertions(1)
+
+        const collectPoolTx = await provider.contract.collectPool(poolId)
+
+        await waitUntilConfirmationCompleted(
+          notAdminProvider.contract.jsonRpcProvider,
+          collectPoolTx
+        )
+
+        // STEP 5. DEPOSIT ENOUGH REWARDS TO EXCEED THE COMMITTED AMOUNT
+        const amountToDeposit = BigInt(2_000000)
+
+        await approveTokenAmount(usdcTokenContract, provider, amountToDeposit)
+
+        const depositRewardsTx = await provider.contract.depositRewards(
+          poolId,
+          amountToDeposit
+        )
+
+        await waitUntilConfirmationCompleted(
+          provider.contract.jsonRpcProvider,
+          depositRewardsTx
+        )
+
+        // STEP 6. CLOSE THE POOL
+        const closePoolTx = await provider.contract.closePool(poolId)
+
+        await waitUntilConfirmationCompleted(
+          provider.contract.jsonRpcProvider,
+          closePoolTx
+        )
+
+        // STEP 7. CLAIM REWARDS
+        const claimTx = await notAdminProvider.contract.claim(poolId)
+
+        await waitUntilConfirmationCompleted(
+          notAdminProvider.contract.jsonRpcProvider,
+          claimTx
+        )
+
+        expect(true).toBe(true)
+      }, 600000)
+      it('success - claim rewards from a pool without deposited rewards', async () => {
+        // STEP 1. CREATE POOL
+        const pool: PoolInput = {
+          softCap: BigInt(1_000000),
+          hardCap: BigInt(3_000000),
+          deadline: getUnixEpochTimeInFuture(BigInt(60)),
+          minimumAPR: BigInt(2_000000),
+          collateralTokens: []
+        }
+
+        await approveCreationFee(
+          usdcTokenContract,
+          provider,
+          signerAddress,
+          POOL_FEE
+        )
+
+        const createPoolTx = await provider.contract.createPool(pool)
+
+        await waitUntilConfirmationCompleted(
+          provider.contract.jsonRpcProvider,
+          createPoolTx
+        )
+
+        // STEP 2. COMMIT TO POOL
+        const poolIndex: bigint = await provider.contract.contract.poolIndex()
+        const poolId = poolIndex - BigInt(1)
+
+        const amountToCommit = BigInt(1_000000)
+
+        await approveTokenAmount(
+          usdcTokenContract,
+          notAdminProvider,
+          amountToCommit
+        )
+
+        const commitToPoolTx = await notAdminProvider.contract.commitToPool(
+          poolId,
+          amountToCommit
+        )
+
+        await waitUntilConfirmationCompleted(
+          notAdminProvider.contract.jsonRpcProvider,
+          commitToPoolTx
+        )
+
+        // STEP 3. WAIT UNTIL DEADLINE
+        await waitUntilEpochPasses(pool.deadline, BigInt(60))
+
+        // STEP 4. COLLECT FROM POOL (IT CHANGES POOL STATUS FROM CREATED TO ACTIVE)
+        expect.assertions(1)
+
+        const collectPoolTx = await provider.contract.collectPool(poolId)
+
+        await waitUntilConfirmationCompleted(
+          notAdminProvider.contract.jsonRpcProvider,
+          collectPoolTx
+        )
+
+        // STEP 5. CLAIM REWARDS WITHOUT DEPOSITED REWARDS
+        const claimTx = await notAdminProvider.contract.claim(poolId)
+
+        await waitUntilConfirmationCompleted(
+          notAdminProvider.contract.jsonRpcProvider,
+          claimTx
+        )
+
+        expect(true).toBe(true)
+      }, 600000)
+      it('success - claim rewards from an already claimed pool', async () => {
+        const poolIndex: bigint = await provider.contract.contract.poolIndex()
+        const poolId = poolIndex - BigInt(1)
+
+        const claimTx = await notAdminProvider.contract.claim(poolId)
+
+        await waitUntilConfirmationCompleted(
+          notAdminProvider.contract.jsonRpcProvider,
+          claimTx
+        )
+
+        expect(true).toBe(true)
+      })
+      it('success - claim rewards before to commit (the owner of the pool cannot commit)', async () => {
+        const poolIndex: bigint = await provider.contract.contract.poolIndex()
+        const poolId = poolIndex - BigInt(1)
+
+        const claimTx = await provider.contract.claim(poolId)
+
+        await waitUntilConfirmationCompleted(
+          provider.contract.jsonRpcProvider,
+          claimTx
+        )
+
+        expect(true).toBe(true)
+      })
+    })
   })
 
   describe('Views', () => {
