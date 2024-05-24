@@ -811,23 +811,20 @@ describe('SelfProvider - Pools', () => {
           notAdminProvider.contract.closePool(BigInt(1))
         ).rejects.toThrow(cppErrorMessage.addressIsNotOwner)
       })
-      it('success - status is ACTIVE and pool owner has deposited enough rewards, close pool', async () => {
-        const poolIndex: bigint = await provider.contract.contract.poolIndex()
-        const poolId = poolIndex - BigInt(1)
-        const tx = await provider.contract.closePool(poolId)
-
-        await waitUntilConfirmationCompleted(
-          provider.contract.jsonRpcProvider,
-          tx
-        )
-
-        expect(true).toBe(true)
-      })
       it('failure - status is different than CREATED or ACTIVE', async () => {
         const poolIndex: bigint = await provider.contract.contract.poolIndex()
         const poolId = poolIndex - BigInt(1)
         const pool = await provider.contract.getPool(poolId)
 
+        // STEP 1. CLOSE THE POOL (IT CHANGES POOL STATUS FROM ACTIVE TO CLOSED)
+        const closePoolTx = await provider.contract.closePool(poolId)
+
+        await waitUntilConfirmationCompleted(
+          provider.contract.jsonRpcProvider,
+          closePoolTx
+        )
+
+        // TRY TO CLOSE AN ALREADY CLOSED POOL
         expect.assertions(1)
         await expect(provider.contract.closePool(poolId)).rejects.toThrow(
           cppErrorMessage.poolStatusMustBe(poolId, pool.poolStatus, [
@@ -1074,6 +1071,90 @@ describe('SelfProvider - Pools', () => {
         }
 
         timekeeper.reset()
+      }, 600000)
+      it('success - status is ACTIVE and pool owner has deposited enough rewards, close pool', async () => {
+        // STEP 1. CREATE POOL
+        const pool: PoolInput = {
+          softCap: BigInt(1_000000),
+          hardCap: BigInt(3_000000),
+          deadline: getUnixEpochTimeInFuture(BigInt(60)),
+          minimumAPR: BigInt(2_000000),
+          collateralTokens: []
+        }
+
+        await approveCreationFee(
+          usdcTokenContract,
+          provider,
+          signerAddress,
+          POOL_FEE
+        )
+
+        const createPoolTx = await provider.contract.createPool(pool)
+
+        await waitUntilConfirmationCompleted(
+          provider.contract.jsonRpcProvider,
+          createPoolTx
+        )
+
+        // STEP 2. COMMIT TO POOL
+        const poolIndex: bigint = await provider.contract.contract.poolIndex()
+        const poolId = poolIndex - BigInt(1)
+
+        const amountToCommit = BigInt(1_000000)
+
+        await approveTokenAmount(
+          usdcTokenContract,
+          notAdminProvider,
+          amountToCommit
+        )
+
+        const commitToPoolTx = await notAdminProvider.contract.commitToPool(
+          poolId,
+          amountToCommit
+        )
+
+        await waitUntilConfirmationCompleted(
+          notAdminProvider.contract.jsonRpcProvider,
+          commitToPoolTx
+        )
+
+        // STEP 3. WAIT UNTIL DEADLINE
+        await waitUntilEpochPasses(pool.deadline, BigInt(60))
+
+        // STEP 4. COLLECT FROM POOL (IT CHANGES POOL STATUS FROM CREATED TO ACTIVE)
+        expect.assertions(1)
+
+        const collectPoolTx = await provider.contract.collectPool(poolId)
+
+        await waitUntilConfirmationCompleted(
+          notAdminProvider.contract.jsonRpcProvider,
+          collectPoolTx
+        )
+
+        // STEP 5. DEPOSIT ENOUGH REWARDS TO EXCEED THE COMMITTED AMOUNT
+        const amountToDeposit = BigInt(2_000000)
+
+        await approveTokenAmount(usdcTokenContract, provider, amountToDeposit)
+
+        const depositRewardsTx = await provider.contract.depositRewards(
+          poolId,
+          amountToDeposit
+        )
+
+        await waitUntilConfirmationCompleted(
+          provider.contract.jsonRpcProvider,
+          depositRewardsTx
+        )
+
+        // STEP 6. CLOSE THE POOL
+        const closePoolTx = await provider.contract.closePool(poolId)
+
+        await waitUntilConfirmationCompleted(
+          provider.contract.jsonRpcProvider,
+          closePoolTx
+        )
+
+        expect(true).toBe(true)
       }, 600000)
     })
   })
