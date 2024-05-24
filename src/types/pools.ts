@@ -81,7 +81,9 @@ export interface Functions {
     poolId: bigint,
     amount: bigint
   ): Promise<ethers.ContractTransaction | ethers.TransactionResponse>
-  closePool(poolId: bigint): Promise<void>
+  closePool(
+    poolId: bigint
+  ): Promise<ethers.ContractTransaction | ethers.TransactionResponse>
   archivePool(poolId: bigint): Promise<void>
   commitToPool(
     poolId: bigint,
