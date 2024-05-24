@@ -111,6 +111,31 @@ export class Pools
     return pool.createdAt !== BigInt(0) ? formattedPool : null
   }
 
+  private async _getPoolCommit(
+    userAddress: string,
+    poolId: bigint
+  ): Promise<PoolCommit> {
+    if (!ethers.isAddress(userAddress)) {
+      throw new Error(poolCommonErrorMessage.wrongAddressFormat)
+    }
+
+    const poolIndex = await this.contract.poolIndex()
+
+    if (poolId < 0 || poolId >= poolIndex) {
+      throw new Error(poolCommonErrorMessage.noExistPoolId(poolId))
+    }
+
+    const poolCommits: PoolCommit = await this.contract.poolCommits(
+      userAddress,
+      poolId
+    )
+
+    return {
+      amount: poolCommits.amount,
+      claimedAmount: poolCommits.claimedAmount
+    }
+  }
+
   async getPool(poolId: bigint): Promise<Pool> {
     const pool = await this._getPoolById(poolId)
 
@@ -405,7 +430,27 @@ export class Pools
     throw new Error(`Method not implemented. ${poolId.toString()}`)
   }
 
-  claim(poolId: bigint): Promise<void> {
-    throw new Error(`Method not implemented. ${poolId.toString()}`)
+  async claim(
+    poolId: bigint
+  ): Promise<ethers.ContractTransaction | ethers.TransactionResponse> {
+    await this._checkIsNotPaused()
+
+    const pool = await this.getPool(poolId)
+
+    if (
+      pool.poolStatus !== PoolStatusOption.CLOSED &&
+      pool.poolStatus !== PoolStatusOption.ACTIVE
+    ) {
+      throw new Error(
+        cppErrorMessage.poolStatusMustBe(poolId, pool.poolStatus, [
+          PoolStatusOption.ACTIVE,
+          PoolStatusOption.CLOSED
+        ])
+      )
+    }
+
+    const pop = await this.contract.claim.populateTransaction(poolId)
+
+    return this.signer ? await this.signer.sendTransaction(pop) : pop
   }
 }
