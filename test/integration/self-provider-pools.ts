@@ -1562,6 +1562,263 @@ describe('SelfProvider - Pools', () => {
         expect(true).toBe(true)
       }, 600000)
     })
+
+    describe('uncommitFromPool', () => {
+      it('failure - the contract is paused', async () => {
+        expect.assertions(1)
+        await setPause(provider, true)
+        await expect(
+          notAdminProvider.contract.uncommitFromPool(BigInt(1))
+        ).rejects.toThrow(poolCommonErrorMessage.contractIsPaused)
+        await setPause(provider, false)
+      })
+      it('failure - non-existed pool', async () => {
+        expect.assertions(1)
+        await expect(
+          notAdminProvider.contract.uncommitFromPool(BigInt(MAX_BIGINT))
+        ).rejects.toThrow(
+          poolCommonErrorMessage.noExistPoolId(BigInt(MAX_BIGINT))
+        )
+      })
+      it('failure - status is different to CREATE', async () => {
+        const poolIndex: bigint = await provider.contract.contract.poolIndex()
+        const poolId = poolIndex - BigInt(1)
+        const pool = await provider.contract.getPool(poolId)
+
+        expect.assertions(1)
+        await expect(
+          notAdminProvider.contract.uncommitFromPool(BigInt(poolId))
+        ).rejects.toThrow(
+          cppErrorMessage.poolStatusMustBe(poolId, pool.poolStatus, [
+            PoolStatusOption.CREATED
+          ])
+        )
+      })
+      it('failure - the signer is the owner of the pool', async () => {
+        // STEP 1. CREATE POOL
+        const pool: PoolInput = {
+          softCap: BigInt(1_000000),
+          hardCap: BigInt(3_000000),
+          deadline: getUnixEpochTimeInFuture(BigInt(60)),
+          minimumAPR: BigInt(2_000000),
+          collateralTokens: []
+        }
+
+        await approveCreationFee(
+          usdcTokenContract,
+          provider,
+          signerAddress,
+          POOL_FEE
+        )
+
+        const createPoolTx = await provider.contract.createPool(pool)
+
+        await waitUntilConfirmationCompleted(
+          provider.contract.jsonRpcProvider,
+          createPoolTx
+        )
+
+        const poolIndex: bigint = await provider.contract.contract.poolIndex()
+        const poolId = poolIndex - BigInt(1)
+
+        // STEP 2. TRY TO UN-COMMIT AS THE OWNER OF THE POOL
+        expect.assertions(1)
+        await expect(
+          provider.contract.uncommitFromPool(BigInt(poolId))
+        ).rejects.toThrow(cppErrorMessage.poolOwnerCannotUncommitToTheirOwnPool)
+      })
+      it('failure - the user has no commit to the pool', async () => {
+        const poolIndex: bigint = await provider.contract.contract.poolIndex()
+        const poolId = poolIndex - BigInt(1)
+
+        expect.assertions(1)
+        await expect(
+          notAdminProvider.contract.uncommitFromPool(BigInt(poolId))
+        ).rejects.toThrow(cppErrorMessage.noCommittedAmount)
+      })
+      it('failure - without commit to the pool before', async () => {
+        const poolIndex: bigint = await provider.contract.contract.poolIndex()
+        const poolId = poolIndex - BigInt(1)
+
+        expect.assertions(1)
+        await expect(
+          notAdminProvider.contract.uncommitFromPool(BigInt(poolId))
+        ).rejects.toThrow(cppErrorMessage.noCommittedAmount)
+      })
+      it('failure - softCap is less than totalCommitted and deadline has been reached', async () => {
+        // STEP 1. COMMIT TO POOL
+        const poolIndex: bigint = await provider.contract.contract.poolIndex()
+        const poolId = poolIndex - BigInt(1)
+        const pool = await provider.contract.getPool(poolId)
+
+        const amountToCommit = BigInt(2_000000)
+
+        await approveTokenAmount(
+          usdcTokenContract,
+          notAdminProvider,
+          amountToCommit
+        )
+
+        const commitToPoolTx = await notAdminProvider.contract.commitToPool(
+          poolId,
+          amountToCommit
+        )
+
+        await waitUntilConfirmationCompleted(
+          notAdminProvider.contract.jsonRpcProvider,
+          commitToPoolTx
+        )
+
+        // STEP 2. WAIT UNTIL DEADLINE
+        await waitUntilEpochPasses(pool.deadline, BigInt(60))
+
+        // STEP 3. TRY TO UN-COMMIT FROM POOL
+        expect.assertions(1)
+        await expect(
+          notAdminProvider.contract.uncommitFromPool(BigInt(poolId))
+        ).rejects.toThrow(cppErrorMessage.deadlineAndSoftCapReached)
+      })
+      it('success - status is CREATED and max collect time has passed', async () => {
+        const poolIndex: bigint = await provider.contract.contract.poolIndex()
+        const poolId = poolIndex - BigInt(1)
+        const pool = await provider.contract.getPool(poolId)
+
+        // STEP 1. SIMULATE THAT THE MAX COLLECT TIME HAS PASSED
+        const maxDays = Number(provider.contract.COLLECT_POOL_MAX_DAYS)
+        const deadlineMs = Number(pool.deadline) * 1000
+        const collectTimeHasPassed = deadlineMs + ONE_DAY_MS * maxDays + 500
+
+        timekeeper.travel(new Date(collectTimeHasPassed))
+
+        // STEP 2. UN-COMMIT AFTER COLLECT TIME HAS PASSED
+        try {
+          await notAdminProvider.contract.uncommitFromPool(poolId)
+        } catch (error) {
+          expect(isError(error, 'CALL_EXCEPTION')).toBeTruthy()
+        }
+
+        timekeeper.reset()
+      })
+      it('success - status is CREATED and soft cap is no reached and deadline reached', async () => {
+        // STEP 1. CREATE POOL
+        const pool: PoolInput = {
+          softCap: BigInt(2_000000),
+          hardCap: BigInt(3_000000),
+          deadline: getUnixEpochTimeInFuture(BigInt(60)),
+          minimumAPR: BigInt(2_000000),
+          collateralTokens: []
+        }
+
+        await approveCreationFee(
+          usdcTokenContract,
+          provider,
+          signerAddress,
+          POOL_FEE
+        )
+
+        const createPoolTx = await provider.contract.createPool(pool)
+
+        await waitUntilConfirmationCompleted(
+          provider.contract.jsonRpcProvider,
+          createPoolTx
+        )
+
+        // STEP 2. COMMIT TO POOL
+        const poolIndex: bigint = await provider.contract.contract.poolIndex()
+        const poolId = poolIndex - BigInt(1)
+
+        const amountToCommit = BigInt(1_000000)
+
+        await approveTokenAmount(
+          usdcTokenContract,
+          notAdminProvider,
+          amountToCommit
+        )
+
+        const commitToPoolTx = await notAdminProvider.contract.commitToPool(
+          poolId,
+          amountToCommit
+        )
+
+        await waitUntilConfirmationCompleted(
+          notAdminProvider.contract.jsonRpcProvider,
+          commitToPoolTx
+        )
+
+        // STEP 3. WAIT UNTIL DEADLINE
+        await waitUntilEpochPasses(pool.deadline, BigInt(60))
+
+        // STEP 4. UN-COMMIT
+        const uncommitFromPoolTx =
+          await notAdminProvider.contract.uncommitFromPool(poolId)
+
+        expect.assertions(1)
+        await waitUntilConfirmationCompleted(
+          notAdminProvider.contract.jsonRpcProvider,
+          uncommitFromPoolTx
+        )
+
+        expect(true).toBe(true)
+      })
+      it('success - status is CREATED and soft cap is reached and deadline not reached', async () => {
+        // STEP 1. CREATE POOL
+        const pool: PoolInput = {
+          softCap: BigInt(2_000000),
+          hardCap: BigInt(3_000000),
+          deadline: getUnixEpochTimeInFuture(BigInt(60)),
+          minimumAPR: BigInt(2_000000),
+          collateralTokens: []
+        }
+
+        await approveCreationFee(
+          usdcTokenContract,
+          provider,
+          signerAddress,
+          POOL_FEE
+        )
+
+        const createPoolTx = await provider.contract.createPool(pool)
+
+        await waitUntilConfirmationCompleted(
+          provider.contract.jsonRpcProvider,
+          createPoolTx
+        )
+
+        // STEP 2. COMMIT TO POOL
+        const poolIndex: bigint = await provider.contract.contract.poolIndex()
+        const poolId = poolIndex - BigInt(1)
+
+        const amountToCommit = BigInt(1_000000)
+
+        await approveTokenAmount(
+          usdcTokenContract,
+          notAdminProvider,
+          amountToCommit
+        )
+
+        const commitToPoolTx = await notAdminProvider.contract.commitToPool(
+          poolId,
+          amountToCommit
+        )
+
+        await waitUntilConfirmationCompleted(
+          notAdminProvider.contract.jsonRpcProvider,
+          commitToPoolTx
+        )
+
+        // STEP 3. UN-COMMIT
+        const uncommitFromPoolTx =
+          await notAdminProvider.contract.uncommitFromPool(poolId)
+
+        expect.assertions(1)
+        await waitUntilConfirmationCompleted(
+          notAdminProvider.contract.jsonRpcProvider,
+          uncommitFromPoolTx
+        )
+
+        expect(true).toBe(true)
+      })
+    })
   })
 
   describe('Views', () => {
