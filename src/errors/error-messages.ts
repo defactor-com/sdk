@@ -32,7 +32,8 @@ export const erc20CollateralPoolErrorMessage = {
 
 export const counterPartyPoolErrorMessage = {
   addressIsNotOwner: 'Sender address is not the owner of the pool',
-  poolOwnerCannotCommitToHisOwnPool: 'Pool owner cannot commit to his own pool',
+  poolOwnerCannotCommitToTheirOwnPool:
+    'The pool owner cannot make a commit on their own pool',
   softCapMustBeLessThanHardCap: 'Soft cap must be less than hard cap',
   deadlineMustBeInFuture: 'Deadline must be in the future',
   deadlineMustNotBeMoreThan1YearInTheFuture:
@@ -45,6 +46,11 @@ export const counterPartyPoolErrorMessage = {
   softCapNotReached: 'Soft cap not reached',
   amountExceedsHardCap: 'The amount exceeds the harp cap',
   mustDepositAtLeastCommittedAmount: 'Must deposit at least committed amount',
+  poolHasNoRewards: 'No rewards have been deposited into the pool',
+  poolOwnerCannotClaimToTheirOwnPool:
+    'The pool owner cannot make a claim on their own pool',
+  mustCommitBeforeClaim: 'Must commit to pool before to claim rewards',
+  poolAlreadyClaimed: 'Pool rewards have already been claimed',
   cannotCollectDaysAfterDeadline: (days: bigint) =>
     `Cannot collect ${days} days after deadline`,
   poolStatusMustBe: (

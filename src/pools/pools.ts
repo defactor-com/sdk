@@ -111,6 +111,31 @@ export class Pools
     return pool.createdAt !== BigInt(0) ? formattedPool : null
   }
 
+  private async _getPoolCommit(
+    userAddress: string,
+    poolId: bigint
+  ): Promise<PoolCommit> {
+    if (!ethers.isAddress(userAddress)) {
+      throw new Error(poolCommonErrorMessage.wrongAddressFormat)
+    }
+
+    const poolIndex = await this.contract.poolIndex()
+
+    if (poolId < 0 || poolId >= poolIndex) {
+      throw new Error(poolCommonErrorMessage.noExistPoolId(poolId))
+    }
+
+    const poolCommits: PoolCommit = await this.contract.poolCommits(
+      userAddress,
+      poolId
+    )
+
+    return {
+      amount: poolCommits.amount,
+      claimedAmount: poolCommits.claimedAmount
+    }
+  }
+
   async getPool(poolId: bigint): Promise<Pool> {
     const pool = await this._getPoolById(poolId)
 
@@ -372,7 +397,7 @@ export class Pools
     }
 
     if (this.signer && this.signer.address === pool.poolOwner) {
-      throw new Error(cppErrorMessage.poolOwnerCannotCommitToHisOwnPool)
+      throw new Error(cppErrorMessage.poolOwnerCannotCommitToTheirOwnPool)
     }
 
     if (pool.poolStatus !== PoolStatusOption.CREATED) {
@@ -405,7 +430,50 @@ export class Pools
     throw new Error(`Method not implemented. ${poolId.toString()}`)
   }
 
-  claim(poolId: bigint): Promise<void> {
-    throw new Error(`Method not implemented. ${poolId.toString()}`)
+  async claim(
+    poolId: bigint
+  ): Promise<ethers.ContractTransaction | ethers.TransactionResponse> {
+    await this._checkIsNotPaused()
+
+    const pool = await this.getPool(poolId)
+
+    if (
+      pool.poolStatus !== PoolStatusOption.CLOSED &&
+      pool.poolStatus !== PoolStatusOption.ACTIVE
+    ) {
+      throw new Error(
+        cppErrorMessage.poolStatusMustBe(poolId, pool.poolStatus, [
+          PoolStatusOption.ACTIVE,
+          PoolStatusOption.CLOSED
+        ])
+      )
+    }
+
+    if (pool.totalRewards <= BigInt(0)) {
+      throw new Error(cppErrorMessage.poolHasNoRewards)
+    }
+
+    if (this.signer) {
+      if (this.signer.address === pool.poolOwner) {
+        throw new Error(cppErrorMessage.poolOwnerCannotClaimToTheirOwnPool)
+      }
+
+      const poolCommit = await this._getPoolCommit(this.signer.address, poolId)
+
+      if (poolCommit.amount <= BigInt(0)) {
+        throw new Error(cppErrorMessage.mustCommitBeforeClaim)
+      }
+
+      const rewards =
+        (pool.totalRewards * poolCommit.amount) / pool.totalCommitted
+
+      if (rewards <= poolCommit.claimedAmount) {
+        throw new Error(cppErrorMessage.poolAlreadyClaimed)
+      }
+    }
+
+    const pop = await this.contract.claim.populateTransaction(poolId)
+
+    return this.signer ? await this.signer.sendTransaction(pop) : pop
   }
 }
