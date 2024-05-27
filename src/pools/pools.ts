@@ -397,7 +397,7 @@ export class Pools
     }
 
     if (this.signer && this.signer.address === pool.poolOwner) {
-      throw new Error(cppErrorMessage.poolOwnerCannotCommitToHisOwnPool)
+      throw new Error(cppErrorMessage.poolOwnerCannotCommitToTheirOwnPool)
     }
 
     if (pool.poolStatus !== PoolStatusOption.CREATED) {
@@ -455,7 +455,7 @@ export class Pools
 
     if (this.signer) {
       if (this.signer.address === pool.poolOwner) {
-        throw new Error(cppErrorMessage.poolOwnerCannotClaimToHisOwnPool)
+        throw new Error(cppErrorMessage.poolOwnerCannotClaimToTheirOwnPool)
       }
 
       const poolCommit = await this._getPoolCommit(this.signer.address, poolId)

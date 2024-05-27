@@ -487,7 +487,7 @@ describe('SelfProvider - Pools', () => {
         expect.assertions(1)
         await expect(
           provider.contract.commitToPool(BigInt(1), BigInt(1_000000))
-        ).rejects.toThrow(cppErrorMessage.poolOwnerCannotCommitToHisOwnPool)
+        ).rejects.toThrow(cppErrorMessage.poolOwnerCannotCommitToTheirOwnPool)
       })
       it('failure - amount no positive', async () => {
         expect.assertions(1)
@@ -1374,7 +1374,7 @@ describe('SelfProvider - Pools', () => {
 
         expect.assertions(1)
         await expect(provider.contract.claim(poolId)).rejects.toThrow(
-          cppErrorMessage.poolOwnerCannotClaimToHisOwnPool
+          cppErrorMessage.poolOwnerCannotClaimToTheirOwnPool
         )
       })
       it('failure - claim rewards before to commit', async () => {
