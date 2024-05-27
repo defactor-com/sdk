@@ -45,6 +45,10 @@ export const counterPartyPoolErrorMessage = {
   softCapNotReached: 'Soft cap not reached',
   amountExceedsHardCap: 'The amount exceeds the harp cap',
   mustDepositAtLeastCommittedAmount: 'Must deposit at least committed amount',
+  poolHasNoRewards: 'No rewards have been deposited into the pool',
+  poolOwnerCannotClaimToHisOwnPool: 'Pool owner cannot claim to his own pool',
+  mustCommitBeforeClaim: 'Must commit to pool before to claim rewards',
+  poolAlreadyClaimed: 'Pool rewards have already been claimed',
   cannotCollectDaysAfterDeadline: (days: bigint) =>
     `Cannot collect ${days} days after deadline`,
   poolStatusMustBe: (

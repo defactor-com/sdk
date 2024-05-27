@@ -449,6 +449,29 @@ export class Pools
       )
     }
 
+    if (pool.totalRewards <= BigInt(0)) {
+      throw new Error(cppErrorMessage.poolHasNoRewards)
+    }
+
+    if (this.signer) {
+      if (this.signer.address === pool.poolOwner) {
+        throw new Error(cppErrorMessage.poolOwnerCannotClaimToHisOwnPool)
+      }
+
+      const poolCommit = await this._getPoolCommit(this.signer.address, poolId)
+
+      if (poolCommit.amount <= BigInt(0)) {
+        throw new Error(cppErrorMessage.mustCommitBeforeClaim)
+      }
+
+      const rewards =
+        (pool.totalRewards * poolCommit.amount) / pool.totalCommitted
+
+      if (rewards <= poolCommit.claimedAmount) {
+        throw new Error(cppErrorMessage.poolAlreadyClaimed)
+      }
+    }
+
     const pop = await this.contract.claim.populateTransaction(poolId)
 
     return this.signer ? await this.signer.sendTransaction(pop) : pop
