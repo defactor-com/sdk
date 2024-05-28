@@ -1641,7 +1641,6 @@ describe('SelfProvider - Pools', () => {
         const poolIndex: bigint = await provider.contract.contract.poolIndex()
         const poolId = poolIndex - BigInt(1)
         const pool = await provider.contract.getPool(poolId)
-
         const amountToCommit = BigInt(2_000000)
 
         await approveTokenAmount(
@@ -1717,7 +1716,6 @@ describe('SelfProvider - Pools', () => {
         // STEP 2. COMMIT TO POOL
         const poolIndex: bigint = await provider.contract.contract.poolIndex()
         const poolId = poolIndex - BigInt(1)
-
         const amountToCommit = BigInt(1_000000)
 
         await approveTokenAmount(
@@ -1778,7 +1776,6 @@ describe('SelfProvider - Pools', () => {
         // STEP 2. COMMIT TO POOL TO REACH THE SOFT CAP
         const poolIndex: bigint = await provider.contract.contract.poolIndex()
         const poolId = poolIndex - BigInt(1)
-
         const amountToCommit = BigInt(1_000000)
 
         await approveTokenAmount(
