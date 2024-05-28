@@ -53,7 +53,7 @@ export const counterPartyPoolErrorMessage = {
   mustCommitBeforeClaim: 'Must commit to pool before to claim rewards',
   poolOwnerCannotUncommitToTheirOwnPool:
     'The pool owner cannot make an un-commit on their own pool',
-  noCommittedAmount: 'There is no committed amount',
+  poolHasNoCommittedAmount: 'No amount has been committed to the pool',
   poolAlreadyClaimed: 'Pool rewards have already been claimed',
   cannotCollectDaysAfterDeadline: (days: bigint) =>
     `Cannot collect ${days} days after deadline`,

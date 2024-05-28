@@ -461,7 +461,7 @@ export class Pools
       const poolCommit = await this._getPoolCommit(this.signer.address, poolId)
 
       if (poolCommit.amount <= BigInt(0)) {
-        throw new Error(cppErrorMessage.noCommittedAmount)
+        throw new Error(cppErrorMessage.poolHasNoCommittedAmount)
       }
     }
 

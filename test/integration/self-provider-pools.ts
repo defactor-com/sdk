@@ -1634,7 +1634,7 @@ describe('SelfProvider - Pools', () => {
         expect.assertions(1)
         await expect(
           notAdminProvider.contract.uncommitFromPool(BigInt(poolId))
-        ).rejects.toThrow(cppErrorMessage.noCommittedAmount)
+        ).rejects.toThrow(cppErrorMessage.poolHasNoCommittedAmount)
       })
       it('failure - softCap is less than totalCommitted and deadline has been reached', async () => {
         // STEP 1. COMMIT TO POOL
