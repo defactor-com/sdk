@@ -1636,15 +1636,6 @@ describe('SelfProvider - Pools', () => {
           notAdminProvider.contract.uncommitFromPool(BigInt(poolId))
         ).rejects.toThrow(cppErrorMessage.noCommittedAmount)
       })
-      it('failure - without commit to the pool before', async () => {
-        const poolIndex: bigint = await provider.contract.contract.poolIndex()
-        const poolId = poolIndex - BigInt(1)
-
-        expect.assertions(1)
-        await expect(
-          notAdminProvider.contract.uncommitFromPool(BigInt(poolId))
-        ).rejects.toThrow(cppErrorMessage.noCommittedAmount)
-      })
       it('failure - softCap is less than totalCommitted and deadline has been reached', async () => {
         // STEP 1. COMMIT TO POOL
         const poolIndex: bigint = await provider.contract.contract.poolIndex()
