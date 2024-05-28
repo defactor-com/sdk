@@ -1580,7 +1580,7 @@ describe('SelfProvider - Pools', () => {
           poolCommonErrorMessage.noExistPoolId(BigInt(MAX_BIGINT))
         )
       })
-      it('failure - status is different to CREATE', async () => {
+      it('failure - status is different to CREATED', async () => {
         const poolIndex: bigint = await provider.contract.contract.poolIndex()
         const poolId = poolIndex - BigInt(1)
         const pool = await provider.contract.getPool(poolId)
@@ -1763,9 +1763,9 @@ describe('SelfProvider - Pools', () => {
       it('success - status is CREATED and soft cap is reached and deadline not reached', async () => {
         // STEP 1. CREATE POOL
         const pool: PoolInput = {
-          softCap: BigInt(2_000000),
+          softCap: BigInt(1_000000),
           hardCap: BigInt(3_000000),
-          deadline: getUnixEpochTimeInFuture(BigInt(60)),
+          deadline: getUnixEpochTimeInFuture(BigInt(120)),
           minimumAPR: BigInt(2_000000),
           collateralTokens: []
         }
@@ -1784,7 +1784,7 @@ describe('SelfProvider - Pools', () => {
           createPoolTx
         )
 
-        // STEP 2. COMMIT TO POOL
+        // STEP 2. COMMIT TO POOL TO REACH THE SOFT CAP
         const poolIndex: bigint = await provider.contract.contract.poolIndex()
         const poolId = poolIndex - BigInt(1)
 
