@@ -89,7 +89,9 @@ export interface Functions {
     poolId: bigint,
     amount: bigint
   ): Promise<ethers.ContractTransaction | ethers.TransactionResponse>
-  uncommitFromPool(poolId: bigint): Promise<void>
+  uncommitFromPool(
+    poolId: bigint
+  ): Promise<ethers.ContractTransaction | ethers.TransactionResponse>
   claim(
     poolId: bigint
   ): Promise<ethers.ContractTransaction | ethers.TransactionResponse>

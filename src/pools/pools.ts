@@ -426,8 +426,48 @@ export class Pools
     return this.signer ? await this.signer.sendTransaction(pop) : pop
   }
 
-  uncommitFromPool(poolId: bigint): Promise<void> {
-    throw new Error(`Method not implemented. ${poolId.toString()}`)
+  async uncommitFromPool(
+    poolId: bigint
+  ): Promise<ethers.ContractTransaction | ethers.TransactionResponse> {
+    await this._checkIsNotPaused()
+
+    const pool = await this.getPool(poolId)
+
+    if (pool.poolStatus !== PoolStatusOption.CREATED) {
+      throw new Error(
+        cppErrorMessage.poolStatusMustBe(poolId, pool.poolStatus, [
+          PoolStatusOption.CREATED
+        ])
+      )
+    }
+
+    const currentTimestamp = getUnixEpochTime()
+    const maxCollectTimeHasPassed =
+      pool.deadline + this.COLLECT_POOL_MAX_SECS < currentTimestamp
+
+    if (
+      !maxCollectTimeHasPassed &&
+      pool.softCap <= pool.totalCommitted &&
+      pool.deadline < currentTimestamp
+    ) {
+      throw new Error(cppErrorMessage.deadlineAndSoftCapReached)
+    }
+
+    if (this.signer) {
+      if (this.signer.address === pool.poolOwner) {
+        throw new Error(cppErrorMessage.poolOwnerCannotUncommitToTheirOwnPool)
+      }
+
+      const poolCommit = await this._getPoolCommit(this.signer.address, poolId)
+
+      if (poolCommit.amount <= BigInt(0)) {
+        throw new Error(cppErrorMessage.poolHasNoCommittedAmount)
+      }
+    }
+
+    const pop = await this.contract.uncommitFromPool.populateTransaction(poolId)
+
+    return this.signer ? await this.signer.sendTransaction(pop) : pop
   }
 
   async claim(
