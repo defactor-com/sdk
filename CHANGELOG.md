@@ -1,5 +1,50 @@
 # @defactor-com/defactor-sdk
 
+## 1.0.0
+
+### Major Changes
+
+- b272abb: Update Counter Party Pool (CPP) artifacts and update createPool and commitToPool functions
+
+  ### Breaking changes
+
+  - `Pool`, `ContractPool`, `PoolInput` types have a new required property `minimumAPR`.
+
+    #### Details
+
+    - In version 1.0.0 the `minimumAPR` was added to Pools data types in order to update the integration with the Counter Party Pool (CPP) contract. For this reason, `createPool` function now requires the `minimumAPR` parameter.
+
+    **Before**
+
+    ```typescript
+    createPool({
+      softCap: BigInt(1_000000),
+      hardCap: BigInt(5_000000),
+      deadline: BigInt(1716407008),
+      collateralTokens: [],
+    });
+    ```
+
+    **After**
+
+    ```typescript
+    createPool({
+      softCap: BigInt(1_000000),
+      hardCap: BigInt(5_000000),
+      deadline: BigInt(1716407008),
+      minimumAPR: BigInt(2_000000), // New required property
+      collateralTokens: [],
+    });
+    ```
+
+### Patch Changes
+
+- 32fc982: Implement archivePool function for the Counter Party Pool (CPP)
+- 08356cf: Implement depositRewards function for the Counter Party Pool (CPP)
+- cded420: Implement uncommitFromPool function for the Counter Party Pool (CPP)
+- 481b053: Implement claim function for the Counter Party Pool (CPP)
+- 264118a: Implement closePool function for the Counter Party Pool (CPP)
+
 ## 0.3.2
 
 ### Patch Changes
