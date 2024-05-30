@@ -33,6 +33,10 @@ export class Pools
   readonly COLLECT_POOL_MAX_SECS = BigInt(
     this.COLLECT_POOL_MAX_DAYS * BigInt(this.ONE_DAY_SEC)
   )
+  readonly MIN_POOL_CLOSED_DAYS = BigInt(60)
+  readonly MIN_POOL_CLOSED_SECS = BigInt(
+    this.MIN_POOL_CLOSED_DAYS * BigInt(this.ONE_DAY_SEC)
+  )
 
   constructor(
     address: string,
@@ -380,8 +384,63 @@ export class Pools
     return this.signer ? await this.signer.sendTransaction(pop) : pop
   }
 
-  archivePool(poolId: bigint): Promise<void> {
-    throw new Error(`Method not implemented. ${poolId.toString()}`)
+  async archivePool(
+    poolId: bigint
+  ): Promise<ethers.ContractTransaction | ethers.TransactionResponse> {
+    await this._checkIsNotPaused()
+
+    const pool = await this.getPool(poolId)
+
+    if (this.signer) {
+      const isAdmin = await this.contract.hasRole(Role.ADMIN, this.signer)
+      const isOwner = this.signer.address === pool.poolOwner
+
+      if (!isAdmin && !isOwner) {
+        throw new Error(cppErrorMessage.mustBeOwnerOrAdmin)
+      }
+    }
+
+    if (
+      pool.poolStatus !== PoolStatusOption.CREATED &&
+      pool.poolStatus !== PoolStatusOption.CLOSED
+    ) {
+      throw new Error(
+        cppErrorMessage.poolStatusMustBe(poolId, pool.poolStatus, [
+          PoolStatusOption.CLOSED,
+          PoolStatusOption.CREATED
+        ])
+      )
+    }
+
+    const currentTimestamp = getUnixEpochTime()
+
+    if (pool.poolStatus === PoolStatusOption.CREATED) {
+      if (pool.deadline + this.MIN_POOL_CLOSED_SECS > currentTimestamp) {
+        throw new Error(
+          cppErrorMessage.cannotArchiveBeforeDeadline(this.MIN_POOL_CLOSED_DAYS)
+        )
+      }
+
+      if (pool.totalCommitted > 0) {
+        throw new Error(cppErrorMessage.committedAmountMustBeZero)
+      }
+    } else {
+      if (pool.closedTime + this.MIN_POOL_CLOSED_SECS > currentTimestamp) {
+        throw new Error(
+          cppErrorMessage.cannotArchiveBeforeClosedTime(
+            this.MIN_POOL_CLOSED_DAYS
+          )
+        )
+      }
+    }
+
+    if (pool.totalRewards - pool.rewardsPaidOut > 0) {
+      throw new Error(cppErrorMessage.rewardsHaveNotYetBeenPaidOut)
+    }
+
+    const pop = await this.contract.archivePool.populateTransaction(poolId)
+
+    return this.signer ? await this.signer.sendTransaction(pop) : pop
   }
 
   async commitToPool(

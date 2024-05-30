@@ -55,6 +55,14 @@ export const counterPartyPoolErrorMessage = {
     'The pool owner cannot make an un-commit on their own pool',
   poolHasNoCommittedAmount: 'No amount has been committed to the pool',
   poolAlreadyClaimed: 'Pool rewards have already been claimed',
+  committedAmountMustBeZero: 'The committed amount must be zero',
+  rewardsHaveNotYetBeenPaidOut: 'Rewards have not yet been paid',
+  cannotArchiveBeforeClosedTime: (days: bigint) =>
+    `${days} days must have passed after the closed time to archive the pool`,
+  cannotArchiveBeforeDeadline: (days: bigint) =>
+    `${days} days must have passed after the deadline to archive the pool`,
+  mustBeOwnerOrAdmin:
+    'Sender address is not the owner of the pool or the admin',
   cannotCollectDaysAfterDeadline: (days: bigint) =>
     `Cannot collect ${days} days after deadline`,
   poolStatusMustBe: (

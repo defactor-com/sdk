@@ -1807,6 +1807,262 @@ describe('SelfProvider - Pools', () => {
         expect(true).toBe(true)
       })
     })
+
+    describe('archivePool', () => {
+      it('failure - the contract is paused', async () => {
+        expect.assertions(1)
+        await setPause(provider, true)
+        await expect(provider.contract.archivePool(BigInt(1))).rejects.toThrow(
+          poolCommonErrorMessage.contractIsPaused
+        )
+        await setPause(provider, false)
+      })
+      it('failure - non-existed pool', async () => {
+        expect.assertions(1)
+        await expect(
+          provider.contract.archivePool(BigInt(MAX_BIGINT))
+        ).rejects.toThrow(
+          poolCommonErrorMessage.noExistPoolId(BigInt(MAX_BIGINT))
+        )
+      })
+      it('failure - the signer is not the owner of the pool or the admin of the contract', async () => {
+        const poolIndex: bigint = await provider.contract.contract.poolIndex()
+        const poolId = poolIndex - BigInt(1)
+
+        expect.assertions(1)
+        await expect(
+          notAdminProvider.contract.archivePool(BigInt(poolId))
+        ).rejects.toThrow(cppErrorMessage.mustBeOwnerOrAdmin)
+      })
+      it('failure - status is not CREATED or CLOSED', async () => {
+        // STEP 1. CREATE POOL
+        const pool: PoolInput = {
+          softCap: BigInt(1_000000),
+          hardCap: BigInt(3_000000),
+          deadline: getUnixEpochTimeInFuture(BigInt(60)),
+          minimumAPR: BigInt(2_000000),
+          collateralTokens: []
+        }
+
+        await approveCreationFee(
+          usdcTokenContract,
+          provider,
+          signerAddress,
+          POOL_FEE
+        )
+
+        const createPoolTx = await provider.contract.createPool(pool)
+
+        await waitUntilConfirmationCompleted(
+          provider.contract.jsonRpcProvider,
+          createPoolTx
+        )
+
+        // STEP 2. COMMIT TO POOL
+        const poolIndex: bigint = await provider.contract.contract.poolIndex()
+        const poolId = poolIndex - BigInt(1)
+        const amount = BigInt(1_000000)
+
+        await approveTokenAmount(usdcTokenContract, notAdminProvider, amount)
+
+        const commitToPoolTx = await notAdminProvider.contract.commitToPool(
+          poolId,
+          amount
+        )
+
+        await waitUntilConfirmationCompleted(
+          notAdminProvider.contract.jsonRpcProvider,
+          commitToPoolTx
+        )
+
+        // STEP 3. WAIT UNTIL DEADLINE
+        await waitUntilEpochPasses(pool.deadline, BigInt(60))
+
+        // STEP 4. COLLECT FROM POOL (IT CHANGES POOL STATUS FROM CREATED TO ACTIVE)
+        const collectPoolTx = await provider.contract.collectPool(poolId)
+
+        await waitUntilConfirmationCompleted(
+          notAdminProvider.contract.jsonRpcProvider,
+          collectPoolTx
+        )
+
+        // STEP 5. TRY TO ARCHIVE THE ACTIVE POOL
+        expect.assertions(1)
+        await expect(provider.contract.archivePool(poolId)).rejects.toThrow(
+          cppErrorMessage.poolStatusMustBe(poolId, PoolStatusOption.ACTIVE, [
+            PoolStatusOption.CLOSED,
+            PoolStatusOption.CREATED
+          ])
+        )
+      }, 600000)
+      it('failure - status is CREATED and total committed is not empty', async () => {
+        // STEP 1. CREATE POOL
+        const pool: PoolInput = {
+          softCap: BigInt(1_000000),
+          hardCap: BigInt(3_000000),
+          deadline: getUnixEpochTimeInFuture(BigInt(60)),
+          minimumAPR: BigInt(2_000000),
+          collateralTokens: []
+        }
+
+        await approveCreationFee(
+          usdcTokenContract,
+          provider,
+          signerAddress,
+          POOL_FEE
+        )
+
+        const createPoolTx = await provider.contract.createPool(pool)
+
+        await waitUntilConfirmationCompleted(
+          provider.contract.jsonRpcProvider,
+          createPoolTx
+        )
+
+        // STEP 2. COMMIT TO POOL
+        const poolIndex: bigint = await provider.contract.contract.poolIndex()
+        const poolId = poolIndex - BigInt(1)
+        const amountToCommit = BigInt(1_000000)
+
+        await approveTokenAmount(
+          usdcTokenContract,
+          notAdminProvider,
+          amountToCommit
+        )
+
+        const commitToPoolTx = await notAdminProvider.contract.commitToPool(
+          poolId,
+          amountToCommit
+        )
+
+        await waitUntilConfirmationCompleted(
+          notAdminProvider.contract.jsonRpcProvider,
+          commitToPoolTx
+        )
+
+        // STEP 3. SIMULATE THAT THE MIN CLOSE TIME HAS PASSED
+        const maxDays = Number(provider.contract.MIN_POOL_CLOSED_DAYS)
+        const deadlineMs = Number(pool.deadline) * 1000
+        const collectTimeHasPassed = deadlineMs + ONE_DAY_MS * maxDays + 500
+
+        timekeeper.travel(new Date(collectTimeHasPassed))
+
+        // STEP 4. TRY TO ARCHIVE THE POOL WITH COMMITTED AMOUNT
+        expect.assertions(1)
+        await expect(provider.contract.archivePool(poolId)).rejects.toThrow(
+          cppErrorMessage.committedAmountMustBeZero
+        )
+
+        timekeeper.reset()
+      }, 600000)
+      it('failure - status is CREATED and has not passed 60 days after deadline time', async () => {
+        const poolIndex: bigint = await provider.contract.contract.poolIndex()
+        const poolId = poolIndex - BigInt(1)
+
+        expect.assertions(1)
+        await expect(provider.contract.archivePool(poolId)).rejects.toThrow(
+          cppErrorMessage.cannotArchiveBeforeDeadline(
+            provider.contract.MIN_POOL_CLOSED_DAYS
+          )
+        )
+      })
+      it('failure - status is CLOSED and has not passed 60 days after closed time', async () => {
+        const poolIndex: bigint = await provider.contract.contract.poolIndex()
+        const poolId = poolIndex - BigInt(1)
+        const pool = await provider.contract.getPool(poolId)
+
+        // STEP 1. WAIT UNTIL DEADLINE
+        await waitUntilEpochPasses(pool.deadline, BigInt(60))
+
+        // STEP 2. COLLECT FROM POOL (IT CHANGES POOL STATUS FROM CREATED TO ACTIVE)
+        const collectPoolTx = await provider.contract.collectPool(poolId)
+
+        await waitUntilConfirmationCompleted(
+          notAdminProvider.contract.jsonRpcProvider,
+          collectPoolTx
+        )
+
+        // STEP 3. DEPOSIT ENOUGH REWARDS TO EXCEED THE COMMITTED AMOUNT
+        const amountToDeposit = BigInt(2_000000)
+
+        await approveTokenAmount(usdcTokenContract, provider, amountToDeposit)
+
+        const depositRewardsTx = await provider.contract.depositRewards(
+          poolId,
+          amountToDeposit
+        )
+
+        await waitUntilConfirmationCompleted(
+          provider.contract.jsonRpcProvider,
+          depositRewardsTx
+        )
+
+        // STEP 4. CLOSE THE POOL
+        const closePoolTx = await provider.contract.closePool(poolId)
+
+        await waitUntilConfirmationCompleted(
+          provider.contract.jsonRpcProvider,
+          closePoolTx
+        )
+
+        // STEP 5. TRY TO ARCHIVE THE POOL BEFORE 60 DAYS AFTER CLOSING TIME
+        expect.assertions(1)
+        await expect(provider.contract.archivePool(poolId)).rejects.toThrow(
+          cppErrorMessage.cannotArchiveBeforeClosedTime(
+            provider.contract.MIN_POOL_CLOSED_DAYS
+          )
+        )
+      })
+      it('failure - rewards has not been paid out', async () => {
+        const poolIndex: bigint = await provider.contract.contract.poolIndex()
+        const poolId = poolIndex - BigInt(1)
+        const pool = await provider.contract.getPool(poolId)
+
+        // STEP 1. SIMULATE THAT THE MIN CLOSE TIME HAS PASSED
+        const maxDays = Number(provider.contract.MIN_POOL_CLOSED_DAYS)
+        const closedTimeMs = Number(pool.closedTime) * 1000
+        const collectTimeHasPassed = closedTimeMs + ONE_DAY_MS * maxDays + 500
+
+        timekeeper.travel(new Date(collectTimeHasPassed))
+
+        // STEP 2. TRY TO ARCHIVE THE POOL BEFORE PAY THE REWARDS
+        expect.assertions(1)
+        await expect(provider.contract.archivePool(poolId)).rejects.toThrow(
+          cppErrorMessage.rewardsHaveNotYetBeenPaidOut
+        )
+
+        timekeeper.reset()
+      })
+      it('success - archive the pool', async () => {
+        const poolIndex: bigint = await provider.contract.contract.poolIndex()
+        const poolId = poolIndex - BigInt(1)
+        const pool = await provider.contract.getPool(poolId)
+
+        // STEP 1. CLAIM REWARDS
+        const claimTx = await notAdminProvider.contract.claim(poolId)
+
+        await waitUntilConfirmationCompleted(
+          notAdminProvider.contract.jsonRpcProvider,
+          claimTx
+        )
+
+        // STEP 2. SIMULATE THAT THE MIN CLOSE TIME HAS PASSED
+        const maxDays = Number(provider.contract.MIN_POOL_CLOSED_DAYS)
+        const closedTimeMs = Number(pool.closedTime) * 1000
+        const collectTimeHasPassed = closedTimeMs + ONE_DAY_MS * maxDays + 500
+
+        timekeeper.travel(new Date(collectTimeHasPassed))
+
+        // STEP 3. ARCHIVE THE POOL
+        try {
+          await provider.contract.archivePool(poolId)
+        } catch (error) {
+          expect(isError(error, 'CALL_EXCEPTION')).toBeTruthy()
+        }
+
+        timekeeper.reset()
+      })
+    })
   })
 
   describe('Views', () => {
