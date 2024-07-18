@@ -37,6 +37,8 @@ export type Pool = Omit<ContractPool, 'poolStatus'> & {
   poolStatus: PoolStatus
 }
 
+export type AdminPool = Pool & Omit<AdminContractPool, 'poolStatus'>
+
 export type ContractPool = {
   softCap: bigint
   hardCap: bigint
@@ -50,6 +52,10 @@ export type ContractPool = {
   poolStatus: bigint
   poolOwner: string
   collateralTokens: Array<CollateralToken>
+}
+
+export type AdminContractPool = ContractPool & {
+  partialClaimed: bigint
 }
 
 export interface AdminFunctions {
