@@ -38,7 +38,7 @@ export const counterPartyPoolErrorMessage = {
   deadlineMustBeInFuture: 'Deadline must be in the future',
   deadlineMustNotBeMoreThan1YearInTheFuture:
     'Deadline must not be more than one year in the future',
-  noNegativeSoftCapOrZero: 'Soft cap cannot be negative or 0',
+  noNegativeSoftCap: 'Soft cap cannot be negative',
   noNegativeMinimumAPR: 'Minimum APR cannot be negative',
   deadlineReached: 'Deadline has been reached',
   deadlineNotReached: 'Deadline not reached',

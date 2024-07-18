@@ -25,7 +25,6 @@ export type CollateralToken = {
   id: bigint | null
 }
 
-// TODO: use uint48 instead of bigint for deadline
 export type PoolInput = {
   softCap: bigint
   hardCap: bigint
@@ -34,20 +33,8 @@ export type PoolInput = {
   collateralTokens: Array<CollateralToken>
 }
 
-// TODO: use uint48 instead of bigint for createdAt, deadline and closedTime
-export type Pool = {
-  softCap: bigint
-  hardCap: bigint
-  totalCommitted: bigint
-  totalRewards: bigint
-  rewardsPaidOut: bigint
-  createdAt: bigint
-  deadline: bigint
-  minimumAPR: bigint
-  closedTime: bigint
+export type Pool = Omit<ContractPool, 'poolStatus'> & {
   poolStatus: PoolStatus
-  poolOwner: string
-  collateralTokens: Array<CollateralToken>
 }
 
 export type ContractPool = {
