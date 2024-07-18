@@ -1,3 +1,4 @@
+export * from './admin-pools'
 export * from './assisted-provider'
 export * from './erc20-collateral-pool'
 export * from './pools'
