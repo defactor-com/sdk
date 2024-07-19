@@ -25,8 +25,8 @@ export class Pools
   extends BaseContract
   implements Functions, Views, AdminFunctions
 {
-  private readonly ONE_DAY_SEC = 86400
-  private readonly ONE_YEAR_SEC = this.ONE_DAY_SEC * 365
+  readonly ONE_DAY_SEC = 86400
+  readonly ONE_YEAR_SEC = this.ONE_DAY_SEC * 365
   readonly INTEREST_DECIMAL_PLACES = BigInt(100_000_000)
   readonly POOL_FEE = BigInt(200_000000)
   readonly COLLECT_POOL_MAX_DAYS = BigInt(30)
@@ -55,7 +55,7 @@ export class Pools
     return await this.contract.paused()
   }
 
-  private _checkIsNotPaused = async () => {
+  protected _checkIsNotPaused = async () => {
     const isPaused = await this.isPaused()
 
     if (isPaused) {
@@ -63,7 +63,7 @@ export class Pools
     }
   }
 
-  private _checkIsAdmin = async () => {
+  protected _checkIsAdmin = async () => {
     if (this.signer) {
       const isAdmin = await this.contract.hasRole(Role.ADMIN, this.signer)
 
@@ -84,14 +84,8 @@ export class Pools
     return statusOptions[status] as PoolStatus
   }
 
-  private async _getPoolById(poolId: bigint): Promise<Pool | null> {
-    const poolIndex = await this.contract.poolIndex()
-
-    if (poolId < 0 || poolId >= poolIndex) return null
-
-    const pool: ContractPool = await this.contract.getPool(poolId)
-
-    const formattedPool: Pool = {
+  protected _formatPool(pool: ContractPool): Pool {
+    return {
       softCap: pool.softCap,
       hardCap: pool.hardCap,
       totalCommitted: pool.totalCommitted,
@@ -111,6 +105,15 @@ export class Pools
           }))
         : []
     }
+  }
+
+  private async _getPoolById(poolId: bigint): Promise<Pool | null> {
+    const poolIndex = await this.contract.poolIndex()
+
+    if (poolId < 0 || poolId >= poolIndex) return null
+
+    const pool: ContractPool = await this.contract.getPool(poolId)
+    const formattedPool = this._formatPool(pool)
 
     return pool.createdAt !== BigInt(0) ? formattedPool : null
   }
@@ -200,8 +203,8 @@ export class Pools
   ): Promise<ethers.ContractTransaction | ethers.TransactionResponse> {
     await this._checkIsNotPaused()
 
-    if (pool.softCap <= BigInt(0)) {
-      throw new Error(cppErrorMessage.noNegativeSoftCapOrZero)
+    if (pool.softCap < BigInt(0)) {
+      throw new Error(cppErrorMessage.noNegativeSoftCap)
     }
 
     if (pool.minimumAPR < BigInt(0)) {

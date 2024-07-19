@@ -181,7 +181,7 @@ describe('SelfProvider - Pools', () => {
             minimumAPR: BigInt(2_000000),
             collateralTokens: []
           })
-        ).rejects.toThrow(cppErrorMessage.noNegativeSoftCapOrZero)
+        ).rejects.toThrow(cppErrorMessage.noNegativeSoftCap)
       })
       it('failure - minimumAPR is negative', async () => {
         expect.assertions(1)
