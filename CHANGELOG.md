@@ -1,5 +1,11 @@
 # @defactor-com/defactor-sdk
 
+## 1.1.0
+
+### Minor Changes
+
+- a14ab1d: Implement a custom version of the Counterparty Pools (CPP) where only the admin can create the pools
+
 ## 1.0.0
 
 ### Major Changes
