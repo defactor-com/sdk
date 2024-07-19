@@ -113,7 +113,6 @@ export class Pools
     if (poolId < 0 || poolId >= poolIndex) return null
 
     const pool: ContractPool = await this.contract.getPool(poolId)
-
     const formattedPool = this._formatPool(pool)
 
     return pool.createdAt !== BigInt(0) ? formattedPool : null
