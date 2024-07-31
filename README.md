@@ -102,6 +102,17 @@ async liquidatePool(poolId: bigint): Promise<ethers.ContractTransaction | ethers
 
 <!-- ## API Reference -->
 
+## Development
+
+This project is configured with [changeset](https://github.com/changesets/changesets/tree/main) CI/CD, any new change that requires an npm package update should be done through changeset.
+
+```bash
+yarn changeset
+```
+
+You'll be prompted to select the type of change you're making and a summary of the change. Once you've done that, you can commit the changeset file that was created and the CI/CD will take care of the rest.
+
+
 ## Contributing
 
 To contribute, please familiarize yourself with Defactor`s [Open Source Contributing Guidelines](https://defactor.dev/docs/introduction/open-source-guidelines) and then propose your amazing code feature/fix.
