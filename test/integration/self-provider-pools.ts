@@ -6,7 +6,8 @@ import {
   counterPartyPoolErrorMessage as cppErrorMessage,
   poolCommonErrorMessage
 } from '../../src/errors'
-import { Pools, SelfProvider } from '../../src/pools'
+import { Pools } from '../../src/pools'
+import { SelfProvider } from '../../src/provider'
 import { PoolInput, PoolStatusOption } from '../../src/types/pools'
 import {
   ADMIN_TESTING_PRIVATE_KEY,

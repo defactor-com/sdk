@@ -1,28 +1,25 @@
-import { miscErc20CollateralPool } from '../artifacts'
 import { BaseProvider } from '../base-classes'
+import { ERC20CollateralPool } from '../pools/erc20-collateral-pool'
+import { Pools as PoolsClass } from '../pools/pools'
 import {
   Abi,
   ERC20CollateralPoolConstructorParams,
-  PoolsConstructorParams
+  PoolsConstructorParams,
+  PrivateKey
 } from '../types/types'
-import { ERC20CollateralPool } from './erc20-collateral-pool'
-import { Pools as PoolsClass } from './pools'
 
-export class AssistedProvider<
+export class SelfProvider<
   T extends PoolsClass | ERC20CollateralPool
 > extends BaseProvider<T> {
-  readonly abi: Abi
-
   constructor(
     contractBuilder: new (
       ...args: PoolsConstructorParams | ERC20CollateralPoolConstructorParams
     ) => T,
     address: string,
     apiUrl: string,
+    privateKey: PrivateKey,
     abi?: Abi
   ) {
-    super(new contractBuilder(address, apiUrl, null, abi))
-
-    this.abi = abi || miscErc20CollateralPool.abi
+    super(new contractBuilder(address, apiUrl, privateKey, abi))
   }
 }

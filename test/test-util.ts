@@ -1,6 +1,7 @@
 import { ethers } from 'ethers'
 
-import { Pools, SelfProvider } from '../src/pools'
+import { Pools } from '../src/pools'
+import { SelfProvider } from '../src/provider'
 import { CollateralToken } from '../src/types/pools'
 import { Erc20 } from '../src/utilities/erc20'
 import { sleep } from '../src/utilities/util'

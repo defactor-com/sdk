@@ -6,8 +6,8 @@ import {
   counterPartyPoolErrorMessage as cppErrorMessage,
   poolCommonErrorMessage
 } from '../../src/errors'
-import { SelfProvider } from '../../src/pools'
 import { AdminPools } from '../../src/pools/admin-pools'
+import { SelfProvider } from '../../src/provider'
 import { PoolInput, PoolStatusOption } from '../../src/types/pools'
 import {
   ADMIN_POOLS_ETH_ADDRESS,
