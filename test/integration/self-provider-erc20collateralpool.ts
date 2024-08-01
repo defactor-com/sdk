@@ -1,4 +1,5 @@
 import {
+  commonErrorMessage,
   erc20CollateralPoolErrorMessage as ecpErrorMessage,
   poolCommonErrorMessage
 } from '../../src/errors'
@@ -936,7 +937,7 @@ describe('SelfProvider - ERC20CollateralPool', () => {
               collateralTokenPercentage: 15
             }
           })
-        ).rejects.toThrow(poolCommonErrorMessage.addressIsNotAdmin)
+        ).rejects.toThrow(commonErrorMessage.addressIsNotAdmin)
       })
 
       it('failure - create pool with end time in the pass', async () => {

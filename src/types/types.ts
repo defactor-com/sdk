@@ -2,12 +2,15 @@ import { ethers } from 'ethers'
 
 import { ERC20CollateralPool } from '../pools/erc20-collateral-pool'
 import { Pools } from '../pools/pools'
+import { Staking } from '../staking/staking'
 
 export type ERC20CollateralPoolConstructorParams = ConstructorParameters<
   typeof ERC20CollateralPool
 >
 
 export type PoolsConstructorParams = ConstructorParameters<typeof Pools>
+
+export type StakingConstructorParams = ConstructorParameters<typeof Staking>
 
 export type Abi = ethers.Interface | ethers.InterfaceAbi
 

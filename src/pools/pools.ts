@@ -51,28 +51,6 @@ export class Pools
     return await this.contract.USDC()
   }
 
-  async isPaused(): Promise<boolean> {
-    return await this.contract.paused()
-  }
-
-  protected _checkIsNotPaused = async () => {
-    const isPaused = await this.isPaused()
-
-    if (isPaused) {
-      throw new Error(poolCommonErrorMessage.contractIsPaused)
-    }
-  }
-
-  protected _checkIsAdmin = async () => {
-    if (this.signer) {
-      const isAdmin = await this.contract.hasRole(Role.ADMIN, this.signer)
-
-      if (!isAdmin) {
-        throw new Error(poolCommonErrorMessage.addressIsNotAdmin)
-      }
-    }
-  }
-
   private _getStatusByIndex = (index: bigint) => {
     const statusOptions = Object.keys(PoolStatusOption)
     const status = Number(index)
@@ -176,26 +154,6 @@ export class Pools
     throw new Error(
       `Method not implemented. ${poolId.toString()}, ${walletAddress}`
     )
-  }
-
-  async pause(): Promise<
-    ethers.ContractTransaction | ethers.TransactionResponse
-  > {
-    await this._checkIsAdmin()
-
-    const pop = await this.contract.pause.populateTransaction()
-
-    return this.signer ? await this.signer.sendTransaction(pop) : pop
-  }
-
-  async unpause(): Promise<
-    ethers.ContractTransaction | ethers.TransactionResponse
-  > {
-    await this._checkIsAdmin()
-
-    const pop = await this.contract.unpause.populateTransaction()
-
-    return this.signer ? await this.signer.sendTransaction(pop) : pop
   }
 
   async createPool(

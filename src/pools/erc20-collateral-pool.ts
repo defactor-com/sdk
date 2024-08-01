@@ -3,6 +3,7 @@ import { ethers } from 'ethers'
 import { miscErc20CollateralPool } from '../artifacts'
 import { BaseContract } from '../base-classes'
 import {
+  commonErrorMessage,
   erc20CollateralPoolErrorMessage as ecpErrorMessage,
   poolCommonErrorMessage
 } from '../errors'
@@ -266,7 +267,7 @@ export class ERC20CollateralPool
       const isAdmin = await this.contract.hasRole(Role.ADMIN, this.signer)
 
       if (!isAdmin) {
-        throw new Error(poolCommonErrorMessage.addressIsNotAdmin)
+        throw new Error(commonErrorMessage.addressIsNotAdmin)
       }
     }
 

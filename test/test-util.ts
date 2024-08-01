@@ -2,6 +2,7 @@ import { ethers } from 'ethers'
 
 import { Pools } from '../src/pools'
 import { SelfProvider } from '../src/provider'
+import { Staking } from '../src/staking/staking'
 import { CollateralToken } from '../src/types/pools'
 import { Erc20 } from '../src/utilities/erc20'
 import { sleep } from '../src/utilities/util'
@@ -26,6 +27,8 @@ export const COLLATERAL_ERC20_TOKENS = [
   { address: '0x60E87395b0101F85C623c38Be010574f958496db', precision: 6 },
   { address: '0x122336B4c95d8061A8b280e2Ccf221eC6A9A6aE8', precision: 4 }
 ]
+export const AMOY_STAKING_CONTRACT_ADDRESS =
+  '0xF9539F81CFC87F80BafEBe68DD2ca681Be970Eaf'
 
 export const loadEnv = async (): Promise<void> => {
   const dotenv = await import('dotenv')
@@ -74,7 +77,7 @@ export const waitUntilEpochPasses = async (
 
 export const approveTokenAmount = async (
   contract: Erc20,
-  provider: SelfProvider<Pools>,
+  provider: SelfProvider<Pools | Staking>,
   amount: bigint
 ) => {
   if (!provider.contract.signer) return
@@ -177,7 +180,7 @@ export const getRandomERC20Collaterals = (
 }
 
 export const setPause = async (
-  provider: SelfProvider<Pools>,
+  provider: SelfProvider<Pools | Staking>,
   value: boolean
 ) => {
   const isPaused = await provider.contract.isPaused()

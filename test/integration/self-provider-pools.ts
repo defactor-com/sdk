@@ -3,6 +3,7 @@ import timekeeper from 'timekeeper'
 
 import { Erc20 } from '../../src'
 import {
+  commonErrorMessage,
   counterPartyPoolErrorMessage as cppErrorMessage,
   poolCommonErrorMessage
 } from '../../src/errors'
@@ -119,7 +120,7 @@ describe('SelfProvider - Pools', () => {
         expect.assertions(1)
 
         await expect(notAdminProvider.contract.pause()).rejects.toThrow(
-          poolCommonErrorMessage.addressIsNotAdmin
+          commonErrorMessage.addressIsNotAdmin
         )
       })
       it('success - pause contract', async () => {
@@ -142,7 +143,7 @@ describe('SelfProvider - Pools', () => {
         expect.assertions(1)
 
         await expect(notAdminProvider.contract.unpause()).rejects.toThrow(
-          poolCommonErrorMessage.addressIsNotAdmin
+          commonErrorMessage.addressIsNotAdmin
         )
       })
       it('success - unpause the contract', async () => {
@@ -168,7 +169,7 @@ describe('SelfProvider - Pools', () => {
         expect.assertions(1)
         await setPause(provider, true)
         await expect(provider.contract.createPool(firstPool)).rejects.toThrow(
-          poolCommonErrorMessage.contractIsPaused
+          commonErrorMessage.contractIsPaused
         )
         await setPause(provider, false)
       })
@@ -470,7 +471,7 @@ describe('SelfProvider - Pools', () => {
         await setPause(provider, true)
         await expect(
           notAdminProvider.contract.commitToPool(BigInt(1), BigInt(1_000000))
-        ).rejects.toThrow(poolCommonErrorMessage.contractIsPaused)
+        ).rejects.toThrow(commonErrorMessage.contractIsPaused)
         await setPause(provider, false)
       })
       it('failure - non-existed pool', async () => {
@@ -566,7 +567,7 @@ describe('SelfProvider - Pools', () => {
         expect.assertions(1)
         await setPause(provider, true)
         await expect(provider.contract.collectPool(BigInt(1))).rejects.toThrow(
-          poolCommonErrorMessage.contractIsPaused
+          commonErrorMessage.contractIsPaused
         )
         await setPause(provider, false)
       })
@@ -709,7 +710,7 @@ describe('SelfProvider - Pools', () => {
         await setPause(provider, true)
         await expect(
           provider.contract.depositRewards(BigInt(1), BigInt(1_000000))
-        ).rejects.toThrow(poolCommonErrorMessage.contractIsPaused)
+        ).rejects.toThrow(commonErrorMessage.contractIsPaused)
         await setPause(provider, false)
       })
       it('failure - non-existed pool', async () => {
@@ -803,7 +804,7 @@ describe('SelfProvider - Pools', () => {
         expect.assertions(1)
         await setPause(provider, true)
         await expect(provider.contract.closePool(BigInt(1))).rejects.toThrow(
-          poolCommonErrorMessage.contractIsPaused
+          commonErrorMessage.contractIsPaused
         )
         await setPause(provider, false)
       })
@@ -1174,7 +1175,7 @@ describe('SelfProvider - Pools', () => {
         await setPause(provider, true)
         await expect(
           notAdminProvider.contract.claim(BigInt(1))
-        ).rejects.toThrow(poolCommonErrorMessage.contractIsPaused)
+        ).rejects.toThrow(commonErrorMessage.contractIsPaused)
         await setPause(provider, false)
       })
       it('failure - non-existed pool', async () => {
@@ -1570,7 +1571,7 @@ describe('SelfProvider - Pools', () => {
         await setPause(provider, true)
         await expect(
           notAdminProvider.contract.uncommitFromPool(BigInt(1))
-        ).rejects.toThrow(poolCommonErrorMessage.contractIsPaused)
+        ).rejects.toThrow(commonErrorMessage.contractIsPaused)
         await setPause(provider, false)
       })
       it('failure - non-existed pool', async () => {
@@ -1814,7 +1815,7 @@ describe('SelfProvider - Pools', () => {
         expect.assertions(1)
         await setPause(provider, true)
         await expect(provider.contract.archivePool(BigInt(1))).rejects.toThrow(
-          poolCommonErrorMessage.contractIsPaused
+          commonErrorMessage.contractIsPaused
         )
         await setPause(provider, false)
       })

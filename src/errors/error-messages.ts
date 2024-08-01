@@ -1,6 +1,9 @@
-export const poolCommonErrorMessage = {
+export const commonErrorMessage = {
   contractIsPaused: 'The contract is paused',
-  addressIsNotAdmin: 'Sender address is not admin',
+  addressIsNotAdmin: 'Sender address is not admin'
+}
+
+export const poolCommonErrorMessage = {
   noExistPoolId: (poolId: bigint) =>
     `Pool id ${poolId.toString()} does not exist`,
   noSupportedPoolStatus: (poolStatus: bigint) =>
@@ -71,4 +74,9 @@ export const counterPartyPoolErrorMessage = {
     expectedStatus: Array<string>
   ) =>
     `Pool ${poolId.toString()} status is ${poolStatus}, it must be ${expectedStatus.sort().join(', or ')}`
+}
+
+export const stakingErrorMessage = {
+  nonNegativeLockDuration: 'Lock duration cannot be negative',
+  nonNegativeApy: 'APY cannot be negative'
 }
