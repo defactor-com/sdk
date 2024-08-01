@@ -11,8 +11,8 @@ import { Plan } from '../../src/types/staking'
 import {
   ADMIN_TESTING_PRIVATE_KEY,
   AMOY_STAKING_CONTRACT_ADDRESS,
+  FACTR_TOKEN_ADDRESS,
   TESTING_PRIVATE_KEY,
-  USD_TOKEN_ADDRESS,
   approveTokenAmount,
   loadEnv,
   setPause,
@@ -25,7 +25,7 @@ describe('SelfProvider - Staking', () => {
   let provider: SelfProvider<Staking>
   let notAdminProvider: SelfProvider<Staking>
   let signerAddress: string
-  let usdcTokenContract: Erc20
+  let factrTokenContract: Erc20
 
   const defaultPlans: ReadonlyArray<Plan> = [
     {
@@ -49,8 +49,8 @@ describe('SelfProvider - Staking', () => {
       throw new Error('PROVIDER_URL is not defined')
     }
 
-    usdcTokenContract = new Erc20(
-      USD_TOKEN_ADDRESS,
+    factrTokenContract = new Erc20(
+      FACTR_TOKEN_ADDRESS,
       process.env.PROVIDER_URL,
       null
     )
@@ -76,7 +76,7 @@ describe('SelfProvider - Staking', () => {
     }
 
     await setPause(provider, false)
-    await approveTokenAmount(usdcTokenContract, provider, BigInt(0))
+    await approveTokenAmount(factrTokenContract, provider, BigInt(0))
   })
 
   beforeEach(() => {
@@ -103,45 +103,40 @@ describe('SelfProvider - Staking', () => {
           commonErrorMessage.addressIsNotAdmin
         )
       })
+
       it('success - pause contract', async () => {
         expect.assertions(1)
-
         const tx = await provider.contract.pause()
-
         await waitUntilConfirmationCompleted(
           provider.contract.jsonRpcProvider,
           tx
         )
-
         const isPaused = await provider.contract.isPaused()
-
         expect(isPaused).toBe(true)
       })
     })
+
     describe('unpause()', () => {
       it('failure - the signer is not admin', async () => {
         expect.assertions(1)
-
         await expect(notAdminProvider.contract.unpause()).rejects.toThrow(
           commonErrorMessage.addressIsNotAdmin
         )
       })
+
       it('success - unpause the contract', async () => {
         expect.assertions(1)
-
         const tx = await provider.contract.unpause()
-
         await waitUntilConfirmationCompleted(
           provider.contract.jsonRpcProvider,
           tx
         )
-
         const isPaused = await provider.contract.isPaused()
-
         expect(isPaused).toBe(false)
       })
     })
   })
+
   describe('Functions', () => {
     describe('addPlan()', () => {
       it('failure - not an admin', async () => {
@@ -152,6 +147,7 @@ describe('SelfProvider - Staking', () => {
 
         await expect(res).rejects.toThrow(commonErrorMessage.addressIsNotAdmin)
       })
+
       it('failure - lockDuration is less than 0', async () => {
         const res = provider.contract.addPlan(BigInt(-1), BigInt(25))
 
@@ -159,11 +155,13 @@ describe('SelfProvider - Staking', () => {
           stakingErrorMessage.nonNegativeLockDuration
         )
       })
+
       it('failure - apy is less than 0', async () => {
         const res = provider.contract.addPlan(BigInt(0), BigInt(-1))
 
         await expect(res).rejects.toThrow(stakingErrorMessage.nonNegativeApy)
       })
+
       it('success - the plan is registered', async () => {
         const res = provider.contract.addPlan(
           BigInt(180 * 24 * 60 * 60),
@@ -173,7 +171,80 @@ describe('SelfProvider - Staking', () => {
         await expect(res).resolves.not.toThrow()
       })
     })
+
+    describe('stakingEndTime()', () => {
+      it('success - get staking end time', async () => {
+        const res = await provider.contract.stakingEndTime()
+
+        expect(typeof res).toBe('bigint')
+      })
+    })
+
+    describe('stake()', () => {
+      it('failure - Plan Id does not exist', async () => {
+        const planId = BigInt(9999) // Assuming 999 is an invalid plan ID
+        const amount = provider.contract.MIN_STAKE_AMOUNT
+
+        await expect(provider.contract.stake(planId, amount)).rejects.toThrow(
+          stakingErrorMessage.invalidPlan
+        )
+      })
+
+      it('failure - Amount is less than MIN_STAKE_AMOUNT', async () => {
+        const planId = BigInt(0) // Assuming 0 is a valid plan ID
+        const amount = provider.contract.MIN_STAKE_AMOUNT - BigInt(1)
+
+        await expect(provider.contract.stake(planId, amount)).rejects.toThrow(
+          stakingErrorMessage.stakeAmountTooLow
+        )
+      })
+
+      it('failure - Staking end time is in the past', async () => {
+        const planId = BigInt(0)
+        const amount = provider.contract.MIN_STAKE_AMOUNT
+        const stakingEndTime = await provider.contract.stakingEndTime()
+
+        timekeeper.travel(Number(stakingEndTime) * 1000 + 500)
+
+        await expect(provider.contract.stake(planId, amount)).rejects.toThrow(
+          stakingErrorMessage.stakingHasEnded
+        )
+
+        timekeeper.reset()
+      })
+
+      it('failure - Amount has not been pre-approved', async () => {
+        const planId = BigInt(0)
+        const amount = provider.contract.MIN_STAKE_AMOUNT
+
+        await expect(provider.contract.stake(planId, amount)).rejects.toThrow(
+          'ERC20: insufficient allowance'
+        )
+      })
+
+      it('success - Stake MIN_STAKE_AMOUNT', async () => {
+        const planId = BigInt(0)
+        const amount = provider.contract.MIN_STAKE_AMOUNT
+
+        await approveTokenAmount(factrTokenContract, provider, amount)
+        await expect(
+          provider.contract.stake(planId, amount)
+        ).resolves.not.toThrow()
+      })
+
+      it('success - Stake using latest plan Id', async () => {
+        const plans = await provider.contract.getPlans()
+        const latestPlanId = BigInt(plans.length - 1)
+        const amount = provider.contract.MIN_STAKE_AMOUNT
+
+        await approveTokenAmount(factrTokenContract, provider, amount)
+        await expect(
+          provider.contract.stake(latestPlanId, amount)
+        ).resolves.not.toThrow()
+      })
+    })
   })
+
   describe('Views', () => {
     describe('getPlans()', () => {
       it('success - get plans', async () => {

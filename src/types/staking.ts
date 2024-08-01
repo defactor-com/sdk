@@ -23,9 +23,14 @@ export interface Views {}
 export interface AdminFunctions {}
 
 export interface Functions {
+  stakingEndTime(): Promise<bigint>
   addPlan(
     lockDuration: bigint,
     apy: bigint
   ): Promise<ethers.ContractTransaction | ethers.TransactionResponse>
   getPlans(): Promise<Array<Plan>>
+  stake(
+    planId: bigint,
+    amount: bigint
+  ): Promise<ethers.ContractTransaction | ethers.TransactionResponse>
 }
