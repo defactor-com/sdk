@@ -1,6 +1,6 @@
 {
   "name": "@defactor/defactor-sdk",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Defactor Development Kit",
   "publishConfig": {
     "access": "public"

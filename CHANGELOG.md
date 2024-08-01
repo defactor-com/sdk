@@ -1,5 +1,11 @@
 # @defactor-com/defactor-sdk
 
+## 1.2.0
+
+### Minor Changes
+
+- 2aeaf34: Export staking contract abi in Artifacts object
+
 ## 1.1.0
 
 ### Minor Changes
