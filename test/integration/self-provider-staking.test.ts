@@ -96,6 +96,7 @@ describe('SelfProvider - Staking', () => {
     describe('pause()', () => {
       it('failure - the signer is not admin', async () => {
         expect.assertions(1)
+
         await expect(notAdminProvider.contract.pause()).rejects.toThrow(
           commonErrorMessage.addressIsNotAdmin
         )
@@ -104,11 +105,14 @@ describe('SelfProvider - Staking', () => {
       it('success - pause contract', async () => {
         expect.assertions(1)
         const tx = await provider.contract.pause()
+
         await waitUntilConfirmationCompleted(
           provider.contract.jsonRpcProvider,
           tx
         )
+
         const isPaused = await provider.contract.isPaused()
+
         expect(isPaused).toBe(true)
       })
     })
@@ -123,12 +127,16 @@ describe('SelfProvider - Staking', () => {
 
       it('success - unpause the contract', async () => {
         expect.assertions(1)
+
         const tx = await provider.contract.unpause()
+
         await waitUntilConfirmationCompleted(
           provider.contract.jsonRpcProvider,
           tx
         )
+
         const isPaused = await provider.contract.isPaused()
+
         expect(isPaused).toBe(false)
       })
     })
@@ -178,6 +186,26 @@ describe('SelfProvider - Staking', () => {
     })
 
     describe('stake()', () => {
+      it('failure - Plan Id does not exist', async () => {
+        const tx = await provider.contract.pause()
+
+        await waitUntilConfirmationCompleted(
+          provider.contract.jsonRpcProvider,
+          tx
+        )
+
+        await expect(
+          provider.contract.stake(BigInt(0), BigInt(0))
+        ).rejects.toThrow(commonErrorMessage.contractIsPaused)
+
+        const tx2 = await provider.contract.unpause()
+
+        await waitUntilConfirmationCompleted(
+          provider.contract.jsonRpcProvider,
+          tx2
+        )
+      })
+
       it('failure - Plan Id does not exist', async () => {
         const planId = BigInt(9999) // Assuming 999 is an invalid plan ID
         const amount = provider.contract.MIN_STAKE_AMOUNT
@@ -242,6 +270,26 @@ describe('SelfProvider - Staking', () => {
     })
 
     describe('unstake()', () => {
+      it('failure - Contract is paused', async () => {
+        const tx = await provider.contract.pause()
+
+        await waitUntilConfirmationCompleted(
+          provider.contract.jsonRpcProvider,
+          tx
+        )
+
+        await expect(provider.contract.unstake(BigInt(0))).rejects.toThrow(
+          commonErrorMessage.contractIsPaused
+        )
+
+        const tx2 = await provider.contract.unpause()
+
+        await waitUntilConfirmationCompleted(
+          provider.contract.jsonRpcProvider,
+          tx2
+        )
+      })
+
       it('failure - Stake Id does not exist', async () => {
         const stakeIndex = BigInt(999)
 
@@ -301,6 +349,84 @@ describe('SelfProvider - Staking', () => {
 
         await expect(
           provider.contract.unstake(BigInt(totalUserStakes))
+        ).resolves.not.toThrow()
+      })
+    })
+
+    describe('restake', () => {
+      it('failure - Contract is paused', async () => {
+        const tx = await provider.contract.pause()
+
+        await waitUntilConfirmationCompleted(
+          provider.contract.jsonRpcProvider,
+          tx
+        )
+
+        await expect(
+          provider.contract.restake(BigInt(0), BigInt(0))
+        ).rejects.toThrow(commonErrorMessage.contractIsPaused)
+
+        const tx2 = await provider.contract.unpause()
+
+        await waitUntilConfirmationCompleted(
+          provider.contract.jsonRpcProvider,
+          tx2
+        )
+      })
+
+      it('failure - Invalid plan Id', async () => {
+        await expect(
+          provider.contract.restake(BigInt(999), BigInt(0))
+        ).rejects.toThrow(stakingErrorMessage.invalidPlan)
+      })
+
+      it('failure - Staking has ended', async () => {
+        timekeeper.travel(new Date('2050-01-01T00:00:00Z'))
+
+        await expect(
+          provider.contract.restake(BigInt(0), BigInt(0))
+        ).rejects.toThrow(stakingErrorMessage.stakingHasEnded)
+
+        timekeeper.reset()
+      })
+
+      it('failure - Stake already unstaked', async () => {
+        const stakeIndex = BigInt(0)
+        const userStake = await provider.contract.getUserStake(
+          provider.contract.signer!.address,
+          stakeIndex
+        )
+
+        if (!userStake.unstaked) {
+          const tx = await provider.contract.unstake(stakeIndex)
+
+          await waitUntilConfirmationCompleted(
+            provider.contract.jsonRpcProvider,
+            tx
+          )
+        }
+
+        await expect(
+          provider.contract.restake(BigInt(0), BigInt(0))
+        ).rejects.toThrow(stakingErrorMessage.stakeAlreadyUnstaked)
+      })
+
+      it.skip('failure - Stake is locked', async () => {
+        timekeeper.travel(new Date('2020-01-01T00:00:00Z'))
+
+        await expect(
+          provider.contract.restake(BigInt(0), BigInt(7))
+        ).rejects.toThrow(stakingErrorMessage.stakeIsLocked)
+
+        timekeeper.reset()
+      })
+
+      it.skip('success - Restake successfully', async () => {
+        const planId = BigInt(0)
+        const stakeIndex = BigInt(6)
+
+        await expect(
+          provider.contract.restake(planId, stakeIndex)
         ).resolves.not.toThrow()
       })
     })

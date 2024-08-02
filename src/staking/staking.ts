@@ -102,6 +102,8 @@ export class Staking
   async unstake(
     stakeIndex: bigint
   ): Promise<ContractTransaction | TransactionResponse> {
+    await this._checkIsNotPaused()
+
     if (this.signer) {
       const userStake = await this.getUserStake(this.signer.address, stakeIndex)
 
@@ -119,6 +121,47 @@ export class Staking
     }
 
     const pop = await this.contract.unstake.populateTransaction(stakeIndex)
+
+    return this.signer ? await this.signer.sendTransaction(pop) : pop
+  }
+
+  async restake(
+    planId: bigint,
+    stakeIndex: bigint
+  ): Promise<ContractTransaction | TransactionResponse> {
+    await this._checkIsNotPaused()
+
+    const plans = await this.getPlans()
+
+    if (planId >= plans.length) {
+      throw new Error(stakingErrorMessage.invalidPlan)
+    }
+
+    const currentTime = Math.floor(Date.now() / 1000)
+    const stakingEndTime = await this.stakingEndTime()
+
+    if (currentTime > stakingEndTime) {
+      throw new Error(stakingErrorMessage.stakingHasEnded)
+    }
+
+    if (this.signer) {
+      const userStake = await this.getUserStake(this.signer.address, stakeIndex)
+
+      if (userStake.unstaked) {
+        throw new Error(stakingErrorMessage.stakeAlreadyUnstaked)
+      }
+
+      const plan = plans[Number(userStake.planId)]
+
+      if (userStake.stakeTime + plan.lockDuration > currentTime) {
+        throw new Error(stakingErrorMessage.stakeIsLocked)
+      }
+    }
+
+    const pop = await this.contract.restake.populateTransaction(
+      planId,
+      stakeIndex
+    )
 
     return this.signer ? await this.signer.sendTransaction(pop) : pop
   }
