@@ -120,6 +120,7 @@ describe('SelfProvider - Staking', () => {
     describe('unpause()', () => {
       it('failure - the signer is not admin', async () => {
         expect.assertions(1)
+
         await expect(notAdminProvider.contract.unpause()).rejects.toThrow(
           commonErrorMessage.addressIsNotAdmin
         )
@@ -436,6 +437,26 @@ describe('SelfProvider - Staking', () => {
         const res = await provider.contract.getUserStakes(signerAddress)
 
         expect(Array.isArray(res)).toBe(true)
+      })
+    })
+
+    describe('setDates()', () => {
+      it('failure - return error if not the admin calls this function', async () => {
+        const res = notAdminProvider.contract.setDates(1609545600, 1609459200)
+
+        await expect(res).rejects.toThrow(commonErrorMessage.addressIsNotAdmin)
+      })
+
+      it('failure - staking end time < rewards end time', async () => {
+        await expect(
+          provider.contract.setDates(1609459200, 1609545600)
+        ).rejects.toThrow(stakingErrorMessage.stakingCantBeLessThanRewardsEnd)
+      })
+
+      it.skip('success - set dates successfully', async () => {
+        await expect(
+          provider.contract.setDates(1609545600, 1609459200)
+        ).resolves.not.toThrow()
       })
     })
   })

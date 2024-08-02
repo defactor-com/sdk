@@ -84,5 +84,7 @@ export const stakingErrorMessage = {
   stakingHasEnded: 'Staking has ended',
   stakeAlreadyUnstaked: 'Stake already unstaked',
   stakeIsLocked: 'Stake is locked',
-  invalidStakeIndex: 'Invalid stake index'
+  invalidStakeIndex: 'Invalid stake index',
+  stakingCantBeLessThanRewardsEnd:
+    'Staking end time cannot be less than rewards end time'
 }

@@ -39,4 +39,12 @@ export interface Functions {
   unstake(
     stakeIndex: bigint
   ): Promise<ethers.ContractTransaction | ethers.TransactionResponse>
+  restake(
+    planId: bigint,
+    stakeIndex: bigint
+  ): Promise<ethers.ContractTransaction | ethers.TransactionResponse>
+  setDates(
+    stakingEndTime: number,
+    rewardsEndTime: number
+  ): Promise<ethers.ContractTransaction | ethers.TransactionResponse>
 }

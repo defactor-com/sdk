@@ -173,4 +173,22 @@ export class Staking
 
     return this.signer ? await this.signer.sendTransaction(pop) : pop
   }
+
+  async setDates(
+    stakingEndTime: number,
+    rewardsEndTime: number
+  ): Promise<ContractTransaction | TransactionResponse> {
+    await this._checkIsAdmin()
+
+    if (stakingEndTime < rewardsEndTime) {
+      throw new Error(stakingErrorMessage.stakingCantBeLessThanRewardsEnd)
+    }
+
+    const pop = await this.contract.setDates.populateTransaction(
+      stakingEndTime,
+      rewardsEndTime
+    )
+
+    return this.signer ? await this.signer.sendTransaction(pop) : pop
+  }
 }
