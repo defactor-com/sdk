@@ -191,4 +191,26 @@ export class Staking
 
     return this.signer ? await this.signer.sendTransaction(pop) : pop
   }
+
+  async withdraw(
+    tokenAddress: string,
+    to: string
+  ): Promise<ContractTransaction | TransactionResponse> {
+    await this._checkIsAdmin()
+
+    if (!ethers.isAddress(tokenAddress)) {
+      throw new Error(commonErrorMessage.wrongAddressFormat)
+    }
+
+    if (!ethers.isAddress(to)) {
+      throw new Error(commonErrorMessage.wrongAddressFormat)
+    }
+
+    const pop = await this.contract.withdraw.populateTransaction(
+      tokenAddress,
+      to
+    )
+
+    return this.signer ? await this.signer.sendTransaction(pop) : pop
+  }
 }

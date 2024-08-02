@@ -433,6 +433,12 @@ describe('SelfProvider - Staking', () => {
     })
 
     describe('getUserStakes()', () => {
+      it('failure - wrong address format', async () => {
+        const res = provider.contract.getUserStakes(`0xinvalid`)
+
+        await expect(res).rejects.toThrow(commonErrorMessage.wrongAddressFormat)
+      })
+
       it('success - get user total stakes', async () => {
         const res = await provider.contract.getUserStakes(signerAddress)
 
@@ -456,6 +462,35 @@ describe('SelfProvider - Staking', () => {
       it.skip('success - set dates successfully', async () => {
         await expect(
           provider.contract.setDates(1609545600, 1609459200)
+        ).resolves.not.toThrow()
+      })
+    })
+
+    describe('withdraw()', () => {
+      it('failure - return error if not the admin calls this function', async () => {
+        const res = notAdminProvider.contract.withdraw(
+          FACTR_TOKEN_ADDRESS,
+          '0xinvalid'
+        )
+
+        await expect(res).rejects.toThrow(commonErrorMessage.addressIsNotAdmin)
+      })
+
+      it('failure - invalid token address format', async () => {
+        await expect(
+          provider.contract.withdraw('0xinvalid', '0xinvalid')
+        ).rejects.toThrow(commonErrorMessage.wrongAddressFormat)
+      })
+
+      it('failure - invalid recipient address format', async () => {
+        await expect(
+          provider.contract.withdraw(FACTR_TOKEN_ADDRESS, '0xinvalid')
+        ).rejects.toThrow(commonErrorMessage.wrongAddressFormat)
+      })
+
+      it.skip('success - withdraw successfully', async () => {
+        await expect(
+          provider.contract.withdraw(FACTR_TOKEN_ADDRESS, signerAddress)
         ).resolves.not.toThrow()
       })
     })

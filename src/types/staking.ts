@@ -47,4 +47,8 @@ export interface Functions {
     stakingEndTime: number,
     rewardsEndTime: number
   ): Promise<ethers.ContractTransaction | ethers.TransactionResponse>
+  withdraw(
+    tokenAddress: string,
+    to: string
+  ): Promise<ethers.ContractTransaction | ethers.TransactionResponse>
 }
