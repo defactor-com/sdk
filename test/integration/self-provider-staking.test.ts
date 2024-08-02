@@ -1,10 +1,7 @@
 import timekeeper from 'timekeeper'
 
 import { Erc20 } from '../../src'
-import {
-  commonErrorMessage,
-  stakingErrorMessage
-} from '../../src/errors/error-messages'
+import { commonErrorMessage, stakingErrorMessage } from '../../src/errors'
 import { SelfProvider } from '../../src/provider'
 import { Staking } from '../../src/staking'
 import { Plan } from '../../src/types/staking'
@@ -240,6 +237,70 @@ describe('SelfProvider - Staking', () => {
         await approveTokenAmount(factrTokenContract, provider, amount)
         await expect(
           provider.contract.stake(latestPlanId, amount)
+        ).resolves.not.toThrow()
+      })
+    })
+
+    describe('unstake()', () => {
+      it('failure - Stake Id does not exist', async () => {
+        const stakeIndex = BigInt(999)
+
+        await expect(provider.contract.unstake(stakeIndex)).rejects.toThrow(
+          stakingErrorMessage.invalidStakeIndex
+        )
+      })
+
+      it('failure - Stake is already unstaked', async () => {
+        const stakeIndex = BigInt(0)
+        const userStake = await provider.contract.getUserStake(
+          provider.contract.signer!.address,
+          stakeIndex
+        )
+
+        if (!userStake.unstaked) {
+          const tx = await provider.contract.unstake(stakeIndex)
+
+          await waitUntilConfirmationCompleted(
+            provider.contract.jsonRpcProvider,
+            tx
+          )
+        }
+
+        await expect(provider.contract.unstake(stakeIndex)).rejects.toThrow(
+          stakingErrorMessage.stakeAlreadyUnstaked
+        )
+      })
+
+      it('failure - Stake is locked', async () => {
+        const stakeIndex = BigInt(4)
+
+        timekeeper.travel(new Date('2020-01-01T00:00:00Z'))
+
+        await expect(provider.contract.unstake(stakeIndex)).rejects.toThrow(
+          stakingErrorMessage.stakeIsLocked
+        )
+
+        timekeeper.reset()
+      })
+
+      it('success - Unstake successfully', async () => {
+        const planId = BigInt(0)
+        const amount = provider.contract.MIN_STAKE_AMOUNT
+        const totalUserStakes = await provider.contract.getUserTotalStakes(
+          provider.contract.signer!.address
+        )
+
+        await approveTokenAmount(factrTokenContract, provider, amount)
+
+        const tx = await provider.contract.stake(planId, amount)
+
+        await waitUntilConfirmationCompleted(
+          provider.contract.jsonRpcProvider,
+          tx
+        )
+
+        await expect(
+          provider.contract.unstake(BigInt(totalUserStakes))
         ).resolves.not.toThrow()
       })
     })

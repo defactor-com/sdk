@@ -81,5 +81,8 @@ export const stakingErrorMessage = {
   nonNegativeApy: 'APY cannot be negative',
   invalidPlan: 'Invalid plan',
   stakeAmountTooLow: 'Stake amount too low',
-  stakingHasEnded: 'Staking has ended'
+  stakingHasEnded: 'Staking has ended',
+  stakeAlreadyUnstaked: 'Stake already unstaked',
+  stakeIsLocked: 'Stake is locked',
+  invalidStakeIndex: 'Invalid stake index'
 }

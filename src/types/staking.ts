@@ -23,6 +23,8 @@ export interface Views {}
 export interface AdminFunctions {}
 
 export interface Functions {
+  getUserTotalStakes(address: string): Promise<number>
+  getUserStake(address: string, stakeIndex: bigint): Promise<Stake>
   stakingEndTime(): Promise<bigint>
   addPlan(
     lockDuration: bigint,
@@ -32,5 +34,8 @@ export interface Functions {
   stake(
     planId: bigint,
     amount: bigint
+  ): Promise<ethers.ContractTransaction | ethers.TransactionResponse>
+  unstake(
+    stakeIndex: bigint
   ): Promise<ethers.ContractTransaction | ethers.TransactionResponse>
 }
