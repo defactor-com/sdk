@@ -252,7 +252,7 @@ describe('SelfProvider - Admin Pools', () => {
               }
             ]
           })
-        ).rejects.toThrow(poolCommonErrorMessage.wrongAddressFormat)
+        ).rejects.toThrow(commonErrorMessage.wrongAddressFormat)
       })
       it('failure - one or more collateral token has invalid amounts', async () => {
         expect.assertions(1)

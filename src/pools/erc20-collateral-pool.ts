@@ -115,7 +115,7 @@ export class ERC20CollateralPool
     await this.getPool(poolId)
 
     if (!ethers.isAddress(borrowerAddress)) {
-      throw new Error(poolCommonErrorMessage.wrongAddressFormat)
+      throw new Error(commonErrorMessage.wrongAddressFormat)
     }
 
     return await this.contract.borrowsLength(poolId, borrowerAddress)
@@ -165,7 +165,7 @@ export class ERC20CollateralPool
 
   async getTotalLending(poolId: bigint, address: string): Promise<bigint> {
     if (!ethers.isAddress(address)) {
-      throw new Error(poolCommonErrorMessage.wrongAddressFormat)
+      throw new Error(commonErrorMessage.wrongAddressFormat)
     }
 
     await this.getPool(poolId)
@@ -179,7 +179,7 @@ export class ERC20CollateralPool
     lendingId: bigint
   ): Promise<Lend> {
     if (!ethers.isAddress(address)) {
-      throw new Error(poolCommonErrorMessage.wrongAddressFormat)
+      throw new Error(commonErrorMessage.wrongAddressFormat)
     }
 
     const totalLending = await this._getTotalLending(poolId, address)
@@ -213,7 +213,7 @@ export class ERC20CollateralPool
     }
 
     if (!ethers.isAddress(lenderAddress)) {
-      throw new Error(poolCommonErrorMessage.wrongAddressFormat)
+      throw new Error(commonErrorMessage.wrongAddressFormat)
     }
 
     await this.getPool(poolId)
@@ -379,7 +379,7 @@ export class ERC20CollateralPool
     }
 
     if (!ethers.isAddress(borrowerAddress)) {
-      throw new Error(poolCommonErrorMessage.wrongAddressFormat)
+      throw new Error(commonErrorMessage.wrongAddressFormat)
     }
 
     await this.getPool(poolId)
@@ -405,7 +405,7 @@ export class ERC20CollateralPool
     await this.getPool(poolId)
 
     if (!ethers.isAddress(borrowerAddress)) {
-      throw new Error(poolCommonErrorMessage.wrongAddressFormat)
+      throw new Error(commonErrorMessage.wrongAddressFormat)
     }
 
     const existBorrow = await this._existBorrow(
@@ -433,7 +433,7 @@ export class ERC20CollateralPool
     await this.getPool(poolId)
 
     if (!ethers.isAddress(borrowerAddress)) {
-      throw new Error(poolCommonErrorMessage.wrongAddressFormat)
+      throw new Error(commonErrorMessage.wrongAddressFormat)
     }
 
     const borrow = await this.getBorrow(poolId, borrowerAddress, borrowId)

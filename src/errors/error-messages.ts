@@ -1,6 +1,7 @@
 export const commonErrorMessage = {
   contractIsPaused: 'The contract is paused',
-  addressIsNotAdmin: 'Sender address is not admin'
+  addressIsNotAdmin: 'Sender address is not admin',
+  wrongAddressFormat: `Address does not follow the ethereum address format`
 }
 
 export const poolCommonErrorMessage = {
@@ -8,7 +9,6 @@ export const poolCommonErrorMessage = {
     `Pool id ${poolId.toString()} does not exist`,
   noSupportedPoolStatus: (poolStatus: bigint) =>
     `The status ${poolStatus.toString()} is not supported`,
-  wrongAddressFormat: `Address does not follow the ethereum address format`,
   noNegativeAmountOrZero: 'Amount cannot be negative or 0'
 }
 

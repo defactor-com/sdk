@@ -3,6 +3,7 @@ import { ethers } from 'ethers'
 import { miscPools } from '../artifacts'
 import { BaseContract } from '../base-classes'
 import {
+  commonErrorMessage,
   counterPartyPoolErrorMessage as cppErrorMessage,
   poolCommonErrorMessage
 } from '../errors'
@@ -101,7 +102,7 @@ export class Pools
     poolId: bigint
   ): Promise<PoolCommit> {
     if (!ethers.isAddress(userAddress)) {
-      throw new Error(poolCommonErrorMessage.wrongAddressFormat)
+      throw new Error(commonErrorMessage.wrongAddressFormat)
     }
 
     const poolIndex = await this.contract.poolIndex()
@@ -185,7 +186,7 @@ export class Pools
 
     for (const token of pool.collateralTokens) {
       if (!ethers.isAddress(token.contractAddress)) {
-        throw new Error(poolCommonErrorMessage.wrongAddressFormat)
+        throw new Error(commonErrorMessage.wrongAddressFormat)
       }
 
       if (token.amount <= BigInt(0)) {

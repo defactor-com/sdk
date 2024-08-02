@@ -430,6 +430,14 @@ describe('SelfProvider - Staking', () => {
         ).resolves.not.toThrow()
       })
     })
+
+    describe('getUserStakes()', () => {
+      it('success - get user total stakes', async () => {
+        const res = await provider.contract.getUserStakes(signerAddress)
+
+        expect(Array.isArray(res)).toBe(true)
+      })
+    })
   })
 
   describe('Views', () => {

@@ -1,8 +1,8 @@
-import { ContractTransaction, TransactionResponse } from 'ethers'
+import { ContractTransaction, TransactionResponse, ethers } from 'ethers'
 
 import { miscStaking } from '../artifacts'
 import { BaseContract } from '../base-classes'
-import { stakingErrorMessage } from '../errors'
+import { commonErrorMessage, stakingErrorMessage } from '../errors'
 import { AdminFunctions, Functions, Plan, Stake, Views } from '../types/staking'
 import { Abi, PrivateKey } from '../types/types'
 
@@ -23,19 +23,27 @@ export class Staking
   }
 
   async getUserTotalStakes(address: string): Promise<number> {
-    const userStakes = await this.contract.getUserStakes(address)
+    const userStakes = await this.getUserStakes(address)
 
     return (userStakes as ReadonlyArray<Stake>).length
   }
 
   async getUserStake(address: string, stakeIndex: bigint): Promise<Stake> {
-    const userStakes = await this.contract.getUserStakes(address)
+    const userStakes = await this.getUserStakes(address)
 
     if ((userStakes as Array<Stake>).length <= Number(stakeIndex)) {
       throw new Error(stakingErrorMessage.invalidStakeIndex)
     }
 
     return userStakes[Number(stakeIndex)]
+  }
+
+  async getUserStakes(address: string): Promise<Array<Stake>> {
+    if (!ethers.isAddress(address)) {
+      throw new Error(commonErrorMessage.wrongAddressFormat)
+    }
+
+    return await this.contract.getUserStakes(address)
   }
 
   async stakingEndTime(): Promise<bigint> {

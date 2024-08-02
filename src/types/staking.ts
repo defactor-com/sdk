@@ -25,6 +25,7 @@ export interface AdminFunctions {}
 export interface Functions {
   getUserTotalStakes(address: string): Promise<number>
   getUserStake(address: string, stakeIndex: bigint): Promise<Stake>
+  getUserStakes(address: string): Promise<Array<Stake>>
   stakingEndTime(): Promise<bigint>
   addPlan(
     lockDuration: bigint,
