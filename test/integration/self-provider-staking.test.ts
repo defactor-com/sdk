@@ -187,7 +187,7 @@ describe('SelfProvider - Staking', () => {
     })
 
     describe('stake()', () => {
-      it('failure - Plan Id does not exist', async () => {
+      it('failure - Contract is paused', async () => {
         const tx = await provider.contract.pause()
 
         await waitUntilConfirmationCompleted(
@@ -212,7 +212,7 @@ describe('SelfProvider - Staking', () => {
         const amount = provider.contract.MIN_STAKE_AMOUNT
 
         await expect(provider.contract.stake(planId, amount)).rejects.toThrow(
-          stakingErrorMessage.invalidPlan
+          stakingErrorMessage.invalidPlanId
         )
       })
 
@@ -271,6 +271,14 @@ describe('SelfProvider - Staking', () => {
     })
 
     describe('unstake()', () => {
+      it('failure - Negative stake index', async () => {
+        const stakeIndex = BigInt(-1)
+
+        await expect(provider.contract.unstake(stakeIndex)).rejects.toThrow(
+          stakingErrorMessage.nonNegativeIndexId
+        )
+      })
+
       it('failure - Contract is paused', async () => {
         const tx = await provider.contract.pause()
 
@@ -355,6 +363,24 @@ describe('SelfProvider - Staking', () => {
     })
 
     describe('restake', () => {
+      it('failure - Negative stake index', async () => {
+        const planId = BigInt(-1)
+        const stakeIndex = BigInt(0)
+
+        await expect(
+          provider.contract.restake(planId, stakeIndex)
+        ).rejects.toThrow(stakingErrorMessage.nonNegativeIndexId)
+      })
+
+      it('failure - Negative stake index', async () => {
+        const planId = BigInt(0)
+        const stakeIndex = BigInt(-1)
+
+        await expect(
+          provider.contract.restake(planId, stakeIndex)
+        ).rejects.toThrow(stakingErrorMessage.nonNegativeIndexId)
+      })
+
       it('failure - Contract is paused', async () => {
         const tx = await provider.contract.pause()
 
@@ -378,7 +404,7 @@ describe('SelfProvider - Staking', () => {
       it('failure - Invalid plan Id', async () => {
         await expect(
           provider.contract.restake(BigInt(999), BigInt(0))
-        ).rejects.toThrow(stakingErrorMessage.invalidPlan)
+        ).rejects.toThrow(stakingErrorMessage.invalidPlanId)
       })
 
       it('failure - Staking has ended', async () => {
@@ -447,6 +473,22 @@ describe('SelfProvider - Staking', () => {
     })
 
     describe('setDates()', () => {
+      it('failure - Negative dates', async () => {
+        let stakingEndTime = -1
+        let rewardsEndTime = 0
+
+        await expect(
+          provider.contract.setDates(stakingEndTime, rewardsEndTime)
+        ).rejects.toThrow(stakingErrorMessage.nonNegativeDates)
+
+        stakingEndTime = -2
+        rewardsEndTime = -1
+
+        await expect(
+          provider.contract.setDates(stakingEndTime, rewardsEndTime)
+        ).rejects.toThrow(stakingErrorMessage.nonNegativeDates)
+      })
+
       it('failure - return error if not the admin calls this function', async () => {
         const res = notAdminProvider.contract.setDates(1609545600, 1609459200)
 

@@ -29,6 +29,14 @@ export class Staking
   }
 
   async getUserStake(address: string, stakeIndex: bigint): Promise<Stake> {
+    if (stakeIndex < 0) {
+      throw new Error(stakingErrorMessage.nonNegativeIndexId)
+    }
+
+    if (!ethers.isAddress(address)) {
+      throw new Error(commonErrorMessage.wrongAddressFormat)
+    }
+
     const userStakes = await this.getUserStakes(address)
 
     if ((userStakes as Array<Stake>).length <= Number(stakeIndex)) {
@@ -80,12 +88,16 @@ export class Staking
     planId: bigint,
     amount: bigint
   ): Promise<ContractTransaction | TransactionResponse> {
+    if (planId < 0) {
+      throw new Error(stakingErrorMessage.nonNegativeIndexId)
+    }
+
     await this._checkIsNotPaused()
 
     const plans = await this.getPlans()
 
     if (planId >= plans.length) {
-      throw new Error(stakingErrorMessage.invalidPlan)
+      throw new Error(stakingErrorMessage.invalidPlanId)
     }
 
     if (amount < this.MIN_STAKE_AMOUNT) {
@@ -110,6 +122,10 @@ export class Staking
   async unstake(
     stakeIndex: bigint
   ): Promise<ContractTransaction | TransactionResponse> {
+    if (stakeIndex < 0) {
+      throw new Error(stakingErrorMessage.nonNegativeIndexId)
+    }
+
     await this._checkIsNotPaused()
 
     if (this.signer) {
@@ -137,12 +153,16 @@ export class Staking
     planId: bigint,
     stakeIndex: bigint
   ): Promise<ContractTransaction | TransactionResponse> {
+    if (planId < 0 || stakeIndex < 0) {
+      throw new Error(stakingErrorMessage.nonNegativeIndexId)
+    }
+
     await this._checkIsNotPaused()
 
     const plans = await this.getPlans()
 
     if (planId >= plans.length) {
-      throw new Error(stakingErrorMessage.invalidPlan)
+      throw new Error(stakingErrorMessage.invalidPlanId)
     }
 
     const currentTime = Math.floor(Date.now() / 1000)
@@ -178,6 +198,10 @@ export class Staking
     stakingEndTime: number,
     rewardsEndTime: number
   ): Promise<ContractTransaction | TransactionResponse> {
+    if (stakingEndTime < 0 || rewardsEndTime < 0) {
+      throw new Error(stakingErrorMessage.nonNegativeDates)
+    }
+
     await this._checkIsAdmin()
 
     if (stakingEndTime < rewardsEndTime) {

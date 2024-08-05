@@ -79,12 +79,14 @@ export const counterPartyPoolErrorMessage = {
 export const stakingErrorMessage = {
   nonNegativeLockDuration: 'Lock duration cannot be negative',
   nonNegativeApy: 'APY cannot be negative',
-  invalidPlan: 'Invalid plan',
+  invalidPlanId: 'Invalid plan id',
   stakeAmountTooLow: 'Stake amount too low',
   stakingHasEnded: 'Staking has ended',
   stakeAlreadyUnstaked: 'Stake already unstaked',
   stakeIsLocked: 'Stake is locked',
   invalidStakeIndex: 'Invalid stake index',
   stakingCantBeLessThanRewardsEnd:
-    'Staking end time cannot be less than rewards end time'
+    'Staking end time cannot be less than rewards end time',
+  nonNegativeIndexId: 'Neither Index nor Id can be negative',
+  nonNegativeDates: 'Neither staking nor reward end date can be negative'
 }
