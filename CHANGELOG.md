@@ -1,5 +1,11 @@
 # @defactor-com/defactor-sdk
 
+## 1.2.1
+
+### Patch Changes
+
+- 4fac6d3: Add support to multiple contract actions for the staking contract
+
 ## 1.2.0
 
 ### Minor Changes
