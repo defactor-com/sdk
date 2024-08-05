@@ -552,6 +552,23 @@ describe('SelfProvider - Staking', () => {
         await expect(claimTx).resolves.not.toThrow()
       })
     })
+
+    describe('balanceOf()', () => {
+      it('failure - wrong address format', async () => {
+        const invalidAddress = 'invalid_address'
+
+        await expect(
+          provider.contract.balanceOf(invalidAddress)
+        ).rejects.toThrow(commonErrorMessage.wrongAddressFormat)
+      })
+
+      it('success - get balance of a valid address', async () => {
+        const validAddress = signerAddress
+        const balance = await provider.contract.balanceOf(validAddress)
+
+        expect(typeof balance).toBe('bigint')
+      })
+    })
   })
 
   describe('Views', () => {

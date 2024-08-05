@@ -231,4 +231,12 @@ export class Staking
 
     return this.signer ? await this.signer.sendTransaction(pop) : pop
   }
+
+  async balanceOf(address: string): Promise<bigint> {
+    if (!ethers.isAddress(address)) {
+      throw new Error(commonErrorMessage.wrongAddressFormat)
+    }
+
+    return await this.contract.balanceOf(address)
+  }
 }
