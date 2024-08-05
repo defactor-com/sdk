@@ -3,6 +3,7 @@ import { ethers } from 'ethers'
 import { miscPools } from '../artifacts'
 import { BaseContract } from '../base-classes'
 import {
+  commonErrorMessage,
   counterPartyPoolErrorMessage as cppErrorMessage,
   poolCommonErrorMessage
 } from '../errors'
@@ -49,28 +50,6 @@ export class Pools
 
   async USD_ADDRESS(): Promise<string> {
     return await this.contract.USDC()
-  }
-
-  async isPaused(): Promise<boolean> {
-    return await this.contract.paused()
-  }
-
-  protected _checkIsNotPaused = async () => {
-    const isPaused = await this.isPaused()
-
-    if (isPaused) {
-      throw new Error(poolCommonErrorMessage.contractIsPaused)
-    }
-  }
-
-  protected _checkIsAdmin = async () => {
-    if (this.signer) {
-      const isAdmin = await this.contract.hasRole(Role.ADMIN, this.signer)
-
-      if (!isAdmin) {
-        throw new Error(poolCommonErrorMessage.addressIsNotAdmin)
-      }
-    }
   }
 
   private _getStatusByIndex = (index: bigint) => {
@@ -123,7 +102,7 @@ export class Pools
     poolId: bigint
   ): Promise<PoolCommit> {
     if (!ethers.isAddress(userAddress)) {
-      throw new Error(poolCommonErrorMessage.wrongAddressFormat)
+      throw new Error(commonErrorMessage.wrongAddressFormat)
     }
 
     const poolIndex = await this.contract.poolIndex()
@@ -178,26 +157,6 @@ export class Pools
     )
   }
 
-  async pause(): Promise<
-    ethers.ContractTransaction | ethers.TransactionResponse
-  > {
-    await this._checkIsAdmin()
-
-    const pop = await this.contract.pause.populateTransaction()
-
-    return this.signer ? await this.signer.sendTransaction(pop) : pop
-  }
-
-  async unpause(): Promise<
-    ethers.ContractTransaction | ethers.TransactionResponse
-  > {
-    await this._checkIsAdmin()
-
-    const pop = await this.contract.unpause.populateTransaction()
-
-    return this.signer ? await this.signer.sendTransaction(pop) : pop
-  }
-
   async createPool(
     pool: PoolInput
   ): Promise<ethers.ContractTransaction | ethers.TransactionResponse> {
@@ -227,7 +186,7 @@ export class Pools
 
     for (const token of pool.collateralTokens) {
       if (!ethers.isAddress(token.contractAddress)) {
-        throw new Error(poolCommonErrorMessage.wrongAddressFormat)
+        throw new Error(commonErrorMessage.wrongAddressFormat)
       }
 
       if (token.amount <= BigInt(0)) {

@@ -1,11 +1,14 @@
-export const poolCommonErrorMessage = {
+export const commonErrorMessage = {
   contractIsPaused: 'The contract is paused',
   addressIsNotAdmin: 'Sender address is not admin',
+  wrongAddressFormat: `Address does not follow the ethereum address format`
+}
+
+export const poolCommonErrorMessage = {
   noExistPoolId: (poolId: bigint) =>
     `Pool id ${poolId.toString()} does not exist`,
   noSupportedPoolStatus: (poolStatus: bigint) =>
     `The status ${poolStatus.toString()} is not supported`,
-  wrongAddressFormat: `Address does not follow the ethereum address format`,
   noNegativeAmountOrZero: 'Amount cannot be negative or 0'
 }
 
@@ -71,4 +74,19 @@ export const counterPartyPoolErrorMessage = {
     expectedStatus: Array<string>
   ) =>
     `Pool ${poolId.toString()} status is ${poolStatus}, it must be ${expectedStatus.sort().join(', or ')}`
+}
+
+export const stakingErrorMessage = {
+  nonNegativeLockDuration: 'Lock duration cannot be negative',
+  nonNegativeApy: 'APY cannot be negative',
+  invalidPlanId: 'Invalid plan id',
+  stakeAmountTooLow: 'Stake amount too low',
+  stakingHasEnded: 'Staking has ended',
+  stakeAlreadyUnstaked: 'Stake already unstaked',
+  stakeIsLocked: 'Stake is locked',
+  invalidStakeIndex: 'Invalid stake index',
+  stakingCantBeLessThanRewardsEnd:
+    'Staking end time cannot be less than rewards end time',
+  nonNegativeIndexId: 'Neither Index nor Id can be negative',
+  nonNegativeDates: 'Neither staking nor reward end date can be negative'
 }

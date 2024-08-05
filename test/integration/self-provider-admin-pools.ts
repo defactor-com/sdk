@@ -3,11 +3,12 @@ import timekeeper from 'timekeeper'
 
 import { Erc20 } from '../../src'
 import {
+  commonErrorMessage,
   counterPartyPoolErrorMessage as cppErrorMessage,
   poolCommonErrorMessage
 } from '../../src/errors'
-import { SelfProvider } from '../../src/pools'
 import { AdminPools } from '../../src/pools/admin-pools'
+import { SelfProvider } from '../../src/provider'
 import { PoolInput, PoolStatusOption } from '../../src/types/pools'
 import {
   ADMIN_POOLS_ETH_ADDRESS,
@@ -108,7 +109,7 @@ describe('SelfProvider - Admin Pools', () => {
         expect.assertions(1)
 
         await expect(notAdminProvider.contract.pause()).rejects.toThrow(
-          poolCommonErrorMessage.addressIsNotAdmin
+          commonErrorMessage.addressIsNotAdmin
         )
       })
       it('success - pause contract', async () => {
@@ -131,7 +132,7 @@ describe('SelfProvider - Admin Pools', () => {
         expect.assertions(1)
 
         await expect(notAdminProvider.contract.unpause()).rejects.toThrow(
-          poolCommonErrorMessage.addressIsNotAdmin
+          commonErrorMessage.addressIsNotAdmin
         )
       })
       it('success - unpause the contract', async () => {
@@ -157,7 +158,7 @@ describe('SelfProvider - Admin Pools', () => {
         expect.assertions(1)
         await setPause(provider, true)
         await expect(provider.contract.createPool(firstPool)).rejects.toThrow(
-          poolCommonErrorMessage.contractIsPaused
+          commonErrorMessage.contractIsPaused
         )
         await setPause(provider, false)
       })
@@ -251,7 +252,7 @@ describe('SelfProvider - Admin Pools', () => {
               }
             ]
           })
-        ).rejects.toThrow(poolCommonErrorMessage.wrongAddressFormat)
+        ).rejects.toThrow(commonErrorMessage.wrongAddressFormat)
       })
       it('failure - one or more collateral token has invalid amounts', async () => {
         expect.assertions(1)
@@ -333,7 +334,7 @@ describe('SelfProvider - Admin Pools', () => {
             minimumAPR: BigInt(2_000000),
             collateralTokens: []
           })
-        ).rejects.toThrow(poolCommonErrorMessage.addressIsNotAdmin)
+        ).rejects.toThrow(commonErrorMessage.addressIsNotAdmin)
       })
       it('success - without collaterals', async () => {
         expect.assertions(1)
@@ -420,7 +421,7 @@ describe('SelfProvider - Admin Pools', () => {
         expect.assertions(1)
         await setPause(provider, true)
         await expect(provider.contract.collectPool(BigInt(1))).rejects.toThrow(
-          poolCommonErrorMessage.contractIsPaused
+          commonErrorMessage.contractIsPaused
         )
         await setPause(provider, false)
       })
@@ -428,7 +429,7 @@ describe('SelfProvider - Admin Pools', () => {
         expect.assertions(1)
         await expect(
           notAdminProvider.contract.collectPool(BigInt(1))
-        ).rejects.toThrow(poolCommonErrorMessage.addressIsNotAdmin)
+        ).rejects.toThrow(commonErrorMessage.addressIsNotAdmin)
       })
       it('success - collect from a pool which deadline is not reached and softCap was reached', async () => {
         // STEP 1. CREATE POOL
@@ -547,14 +548,14 @@ describe('SelfProvider - Admin Pools', () => {
         await setPause(provider, true)
         await expect(
           provider.contract.depositRewards(BigInt(1), BigInt(1_000000))
-        ).rejects.toThrow(poolCommonErrorMessage.contractIsPaused)
+        ).rejects.toThrow(commonErrorMessage.contractIsPaused)
         await setPause(provider, false)
       })
       it('failure - the signer is not the admin', async () => {
         expect.assertions(1)
         await expect(
           notAdminProvider.contract.depositRewards(BigInt(1), BigInt(1_000000))
-        ).rejects.toThrow(poolCommonErrorMessage.addressIsNotAdmin)
+        ).rejects.toThrow(commonErrorMessage.addressIsNotAdmin)
       })
       it('success - deposit $2 rewards', async () => {
         expect.assertions(1)
@@ -581,7 +582,7 @@ describe('SelfProvider - Admin Pools', () => {
         expect.assertions(1)
         await setPause(provider, true)
         await expect(provider.contract.closePool(BigInt(1))).rejects.toThrow(
-          poolCommonErrorMessage.contractIsPaused
+          commonErrorMessage.contractIsPaused
         )
         await setPause(provider, false)
       })
@@ -589,7 +590,7 @@ describe('SelfProvider - Admin Pools', () => {
         expect.assertions(1)
         await expect(
           notAdminProvider.contract.closePool(BigInt(1))
-        ).rejects.toThrow(poolCommonErrorMessage.addressIsNotAdmin)
+        ).rejects.toThrow(commonErrorMessage.addressIsNotAdmin)
       })
       it('failure - status is different than ACTIVE', async () => {
         const poolId = BigInt(0)
@@ -625,7 +626,7 @@ describe('SelfProvider - Admin Pools', () => {
         expect.assertions(1)
         await setPause(provider, true)
         await expect(provider.contract.archivePool(BigInt(1))).rejects.toThrow(
-          poolCommonErrorMessage.contractIsPaused
+          commonErrorMessage.contractIsPaused
         )
         await setPause(provider, false)
       })
@@ -633,7 +634,7 @@ describe('SelfProvider - Admin Pools', () => {
         expect.assertions(1)
         await expect(
           notAdminProvider.contract.archivePool(BigInt(1))
-        ).rejects.toThrow(poolCommonErrorMessage.addressIsNotAdmin)
+        ).rejects.toThrow(commonErrorMessage.addressIsNotAdmin)
       })
       it('failure - status is different than CLOSED', async () => {
         const poolId = BigInt(0)

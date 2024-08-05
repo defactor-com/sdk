@@ -2,7 +2,8 @@ import {
   erc20CollateralPoolErrorMessage as ecpErrorMessage,
   poolCommonErrorMessage
 } from '../../src/errors'
-import { ERC20CollateralPool, SelfProvider } from '../../src/pools'
+import { ERC20CollateralPool } from '../../src/pools'
+import { SelfProvider } from '../../src/provider'
 import { Erc20 } from '../../src/utilities/erc20'
 import { sleep } from '../../src/utilities/util'
 import {
