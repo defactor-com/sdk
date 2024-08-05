@@ -494,6 +494,64 @@ describe('SelfProvider - Staking', () => {
         ).resolves.not.toThrow()
       })
     })
+
+    describe('claimRewards()', () => {
+      it('failure - contract is paused', async () => {
+        const tx = await provider.contract.pause()
+
+        await waitUntilConfirmationCompleted(
+          provider.contract.jsonRpcProvider,
+          tx
+        )
+
+        await expect(provider.contract.claimRewards(BigInt(0))).rejects.toThrow(
+          commonErrorMessage.contractIsPaused
+        )
+
+        const tx2 = await provider.contract.unpause()
+
+        await waitUntilConfirmationCompleted(
+          provider.contract.jsonRpcProvider,
+          tx2
+        )
+      })
+
+      it('failure - stake is already unstaked', async () => {
+        const stakeIndex = BigInt(0)
+        // const unstakeTx = await provider.contract.unstake(stakeIndex)
+
+        // await waitUntilConfirmationCompleted(
+        //   provider.contract.jsonRpcProvider,
+        //   unstakeTx
+        // )
+
+        await expect(
+          provider.contract.claimRewards(stakeIndex)
+        ).rejects.toThrow(stakingErrorMessage.stakeAlreadyUnstaked)
+      })
+
+      it('success - rewards claimed successfully', async () => {
+        const totalStakes =
+          await provider.contract.getUserTotalStakes(signerAddress)
+        const amount = provider.contract.MIN_STAKE_AMOUNT
+
+        await approveTokenAmount(factrTokenContract, provider, amount)
+
+        const stakeTx = await provider.contract.stake(
+          BigInt(0),
+          provider.contract.MIN_STAKE_AMOUNT
+        )
+
+        await waitUntilConfirmationCompleted(
+          provider.contract.jsonRpcProvider,
+          stakeTx
+        )
+
+        const claimTx = provider.contract.claimRewards(BigInt(totalStakes))
+
+        await expect(claimTx).resolves.not.toThrow()
+      })
+    })
   })
 
   describe('Views', () => {

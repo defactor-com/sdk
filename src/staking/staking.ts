@@ -213,4 +213,22 @@ export class Staking
 
     return this.signer ? await this.signer.sendTransaction(pop) : pop
   }
+
+  async claimRewards(
+    stakeIndex: bigint
+  ): Promise<ContractTransaction | TransactionResponse> {
+    await this._checkIsNotPaused()
+
+    if (this.signer) {
+      const userStake = await this.getUserStake(this.signer.address, stakeIndex)
+
+      if (userStake.unstaked) {
+        throw new Error(stakingErrorMessage.stakeAlreadyUnstaked)
+      }
+    }
+
+    const pop = await this.contract.claimRewards.populateTransaction(stakeIndex)
+
+    return this.signer ? await this.signer.sendTransaction(pop) : pop
+  }
 }

@@ -51,4 +51,7 @@ export interface Functions {
     tokenAddress: string,
     to: string
   ): Promise<ethers.ContractTransaction | ethers.TransactionResponse>
+  claimRewards(
+    stakeIndex: bigint
+  ): Promise<ethers.ContractTransaction | ethers.TransactionResponse>
 }
