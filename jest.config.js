@@ -5,8 +5,7 @@ module.exports = {
   testMatch: [
     // '**/__tests__/**/*.[jt]s?(x)',
     // '**/?(*.)+(spec|test).[jt]s?(x)',
-    // '**/unit/**/*.[jt]s?(x)'
-    // '**/integration/**/*.[jt]s?(x)'
+    '**/test/integration/self-provider-staking.test.[jt]s'
   ],
   testPathIgnorePatterns: ['/node_modules/', '/dist/', '/']
 }
