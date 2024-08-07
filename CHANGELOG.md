@@ -1,5 +1,11 @@
 # @defactor-com/defactor-sdk
 
+## 2.0.0
+
+### Major Changes
+
+- 60c5f31: Update type format export
+
 ## 1.2.1
 
 ### Patch Changes
