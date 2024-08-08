@@ -10,6 +10,8 @@ export * as TypesErc20CollateralPool from './types/erc20-collateral-token'
 export * as TypesPool from './types/pools'
 export * as TypesStaking from './types/staking'
 export * as Types from './types/types'
+export * from './base-classes/base-contract'
+export * from './base-classes/base-provider'
 
 const Utilities = {
   util,
