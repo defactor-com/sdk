@@ -1,5 +1,11 @@
 # @defactor-com/defactor-sdk
 
+## 3.0.0
+
+### Major Changes
+
+- 7a891a0: Update type format export
+
 ## 2.0.0
 
 ### Major Changes
