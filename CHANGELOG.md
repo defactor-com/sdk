@@ -1,5 +1,11 @@
 # @defactor-com/defactor-sdk
 
+## 3.0.1
+
+### Patch Changes
+
+- cdbd59c: Update staking contract abi
+
 ## 3.0.0
 
 ### Major Changes
