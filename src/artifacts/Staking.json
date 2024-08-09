@@ -100,6 +100,37 @@
       "inputs": [
         {
           "indexed": true,
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "planId",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint48",
+          "name": "lockDuration",
+          "type": "uint48"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint16",
+          "name": "apy",
+          "type": "uint16"
+        }
+      ],
+      "name": "PlanAdded",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
           "internalType": "bytes32",
           "name": "role",
           "type": "bytes32"
