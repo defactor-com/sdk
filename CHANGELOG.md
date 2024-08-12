@@ -1,5 +1,11 @@
 # @defactor-com/defactor-sdk
 
+## 3.0.3
+
+### Patch Changes
+
+- 38f2765: Add staking as an accepted type
+
 ## 3.0.2
 
 ### Patch Changes
