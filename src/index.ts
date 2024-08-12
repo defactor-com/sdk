@@ -2,6 +2,7 @@ import * as Artifacts from './artifacts'
 import { AdminPools, ERC20CollateralPool, Pools } from './pools'
 import * as AssistedProvider from './provider/assisted.provider'
 import * as SelfProvider from './provider/self.provider'
+import { Staking } from './staking'
 import { Erc20 } from './utilities/erc20'
 import * as generics from './utilities/generics'
 import * as util from './utilities/util'
@@ -25,6 +26,7 @@ export {
   SelfProvider,
   Utilities,
   ERC20CollateralPool,
+  Staking,
   Erc20,
   Pools,
   AdminPools
