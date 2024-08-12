@@ -1,5 +1,11 @@
 # @defactor-com/defactor-sdk
 
+## 3.0.2
+
+### Patch Changes
+
+- c1cd772: Add staking to the export index
+
 ## 3.0.1
 
 ### Patch Changes
