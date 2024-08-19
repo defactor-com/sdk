@@ -95,8 +95,11 @@ describe('SelfProvider - Staking', () => {
     it('success - get rewards end time', async () => {
       const rewardsEndTime = await provider.contract.getRewardsEndTime()
       const rewardsEndDate = new Date(Number(rewardsEndTime) * 1000)
+      const rewardsEndTimeMs = rewardsEndDate.getTime()
 
-      expect(rewardsEndTime).toBe(BigInt(rewardsEndDate.getTime() / 1000 || 0))
+      expect(rewardsEndTime).toBe(
+        BigInt(!isNaN(rewardsEndTimeMs) ? rewardsEndTimeMs / 1000 : 0)
+      )
     })
 
     it('success - get total FACTR staked', async () => {
