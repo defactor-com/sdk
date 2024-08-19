@@ -26,6 +26,9 @@ export interface Functions {
   getUserTotalStakes(address: string): Promise<number>
   getUserStake(address: string, stakeIndex: bigint): Promise<Stake>
   getUserStakes(address: string): Promise<Array<Stake>>
+  getRewardsEndTime(): Promise<bigint>
+  getTotalFactrStaked(): Promise<bigint>
+  getBaseTokenAddress(): Promise<string>
   stakingEndTime(): Promise<bigint>
   addPlan(
     lockDuration: bigint,

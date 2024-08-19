@@ -22,6 +22,18 @@ export class Staking
     super(address, apiUrl, privateKey, abi || miscStaking.abi)
   }
 
+  async getRewardsEndTime(): Promise<bigint> {
+    return await this.contract.rewardsEndTime()
+  }
+
+  async getTotalFactrStaked(): Promise<bigint> {
+    return await this.contract.totalFactrStaked()
+  }
+
+  async getBaseTokenAddress(): Promise<string> {
+    return await this.contract.FACTR()
+  }
+
   async getUserTotalStakes(address: string): Promise<number> {
     const userStakes = await this.getUserStakes(address)
 
@@ -204,7 +216,9 @@ export class Staking
 
     await this._checkIsAdmin()
 
-    if (stakingEndTime < rewardsEndTime) {
+    const currentRewardsEndTime = await this.getRewardsEndTime()
+
+    if (stakingEndTime < currentRewardsEndTime) {
       throw new Error(stakingErrorMessage.stakingCantBeLessThanRewardsEnd)
     }
 
