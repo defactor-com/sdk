@@ -1,5 +1,11 @@
 # @defactor-com/defactor-sdk
 
+## 3.0.4
+
+### Patch Changes
+
+- faa0717: Fix `setDates` staking function and add to staking class `getRewardsEndTime`, `getTotalFactrStaked`, and `getBaseTokenAddress` functions to get smart contract configuration values.
+
 ## 3.0.3
 
 ### Patch Changes
