@@ -1,5 +1,11 @@
 # @defactor-com/defactor-sdk
 
+## 3.0.5
+
+### Patch Changes
+
+- 8509dbc: Update staking abi to include DatesUpdated new event
+
 ## 3.0.4
 
 ### Patch Changes
