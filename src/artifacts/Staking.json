@@ -74,6 +74,25 @@
       "inputs": [
         {
           "indexed": false,
+          "internalType": "uint48",
+          "name": "stakingEndTime",
+          "type": "uint48"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint48",
+          "name": "rewardsEndTime",
+          "type": "uint48"
+        }
+      ],
+      "name": "DatesUpdated",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
           "internalType": "uint8",
           "name": "version",
           "type": "uint8"
