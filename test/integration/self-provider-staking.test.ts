@@ -6,6 +6,7 @@ import { commonErrorMessage, stakingErrorMessage } from '../../src/errors'
 import { SelfProvider } from '../../src/provider'
 import { Staking } from '../../src/staking'
 import { Plan } from '../../src/types/staking'
+import { Role } from '../../src/utilities/util'
 import {
   ADMIN_TESTING_PRIVATE_KEY,
   AMOY_STAKING_CONTRACT_ADDRESS,
@@ -163,6 +164,199 @@ describe('SelfProvider - Staking', () => {
         const isPaused = await provider.contract.isPaused()
 
         expect(isPaused).toBe(false)
+      })
+    })
+
+    describe('grantRole()', () => {
+      it('failure - Contract is paused', async () => {
+        const tx = await provider.contract.pause()
+
+        await waitUntilConfirmationCompleted(
+          provider.contract.jsonRpcProvider,
+          tx
+        )
+
+        await expect(
+          provider.contract.grantRole(
+            Role.ADMIN,
+            notAdminProvider.contract.signer!.address
+          )
+        ).rejects.toThrow(commonErrorMessage.contractIsPaused)
+
+        const tx2 = await provider.contract.unpause()
+
+        await waitUntilConfirmationCompleted(
+          provider.contract.jsonRpcProvider,
+          tx2
+        )
+      })
+      it('failure - The signer is not admin', async () => {
+        expect.assertions(1)
+
+        await expect(
+          notAdminProvider.contract.grantRole(
+            Role.ADMIN,
+            notAdminProvider.contract.signer!.address
+          )
+        ).rejects.toThrow(commonErrorMessage.addressIsNotAdmin)
+      })
+      it('failure - Wrong address format', async () => {
+        expect.assertions(1)
+
+        await expect(
+          provider.contract.grantRole(Role.ADMIN, '0xinvalid')
+        ).rejects.toThrow(commonErrorMessage.wrongAddressFormat)
+      })
+      it('success - Grant Admin role', async () => {
+        expect.assertions(1)
+
+        const tx = await provider.contract.grantRole(
+          Role.ADMIN,
+          notAdminProvider.contract.signer!.address
+        )
+
+        await waitUntilConfirmationCompleted(
+          provider.contract.jsonRpcProvider,
+          tx
+        )
+
+        const isAdmin = await notAdminProvider.contract.contract.hasRole(
+          Role.ADMIN,
+          notAdminProvider.contract.signer
+        )
+
+        expect(isAdmin).toBe(true)
+      })
+      it('success - Granting a different role does not replace the previous one', async () => {
+        const role = '0x' + '00'.repeat(31) + '01'
+
+        expect.assertions(2)
+
+        const tx = await provider.contract.grantRole(
+          role,
+          notAdminProvider.contract.signer!.address
+        )
+
+        await waitUntilConfirmationCompleted(
+          provider.contract.jsonRpcProvider,
+          tx
+        )
+
+        const hasRole = await notAdminProvider.contract.contract.hasRole(
+          role,
+          notAdminProvider.contract.signer
+        )
+        const isAdmin = await notAdminProvider.contract.contract.hasRole(
+          Role.ADMIN,
+          notAdminProvider.contract.signer
+        )
+
+        expect(hasRole).toBe(true)
+        expect(isAdmin).toBe(true)
+      })
+    })
+
+    describe('revokeRole()', () => {
+      it('failure - Contract is paused', async () => {
+        const tx = await provider.contract.pause()
+
+        await waitUntilConfirmationCompleted(
+          provider.contract.jsonRpcProvider,
+          tx
+        )
+
+        await expect(
+          provider.contract.revokeRole(
+            Role.ADMIN,
+            notAdminProvider.contract.signer!.address
+          )
+        ).rejects.toThrow(commonErrorMessage.contractIsPaused)
+
+        const tx2 = await provider.contract.unpause()
+
+        await waitUntilConfirmationCompleted(
+          provider.contract.jsonRpcProvider,
+          tx2
+        )
+      })
+      it('failure - The signer is not admin', async () => {
+        expect.assertions(1)
+
+        const tx = await provider.contract.revokeRole(
+          Role.ADMIN,
+          notAdminProvider.contract.signer!.address
+        )
+
+        await waitUntilConfirmationCompleted(
+          provider.contract.jsonRpcProvider,
+          tx
+        )
+
+        await expect(
+          notAdminProvider.contract.revokeRole(
+            Role.ADMIN,
+            notAdminProvider.contract.signer!.address
+          )
+        ).rejects.toThrow(commonErrorMessage.addressIsNotAdmin)
+      })
+      it('failure - Wrong address format', async () => {
+        expect.assertions(1)
+
+        await expect(
+          provider.contract.revokeRole(Role.ADMIN, '0xinvalid')
+        ).rejects.toThrow(commonErrorMessage.wrongAddressFormat)
+      })
+      it('success - Revoke Admin role', async () => {
+        expect.assertions(1)
+
+        const grantRoleTx = await provider.contract.grantRole(
+          Role.ADMIN,
+          notAdminProvider.contract.signer!.address
+        )
+
+        await waitUntilConfirmationCompleted(
+          provider.contract.jsonRpcProvider,
+          grantRoleTx
+        )
+
+        const tx = await provider.contract.revokeRole(
+          Role.ADMIN,
+          notAdminProvider.contract.signer!.address
+        )
+
+        await waitUntilConfirmationCompleted(
+          provider.contract.jsonRpcProvider,
+          tx
+        )
+
+        const isAdmin = await notAdminProvider.contract.contract.hasRole(
+          Role.ADMIN,
+          notAdminProvider.contract.signer
+        )
+
+        expect(isAdmin).toBe(false)
+      })
+      it('success - Revoke a different role', async () => {
+        const role = '0x' + '00'.repeat(31) + '01'
+
+        expect.assertions(1)
+
+        const tx = await provider.contract.revokeRole(
+          role,
+          notAdminProvider.contract.signer!.address
+        )
+
+        await waitUntilConfirmationCompleted(
+          provider.contract.jsonRpcProvider,
+          tx
+        )
+
+        const hasRole = await notAdminProvider.contract.contract.hasRole(
+          role,
+          notAdminProvider.contract.signer
+        )
+
+        expect(hasRole).toBe(false)
       })
     })
   })
