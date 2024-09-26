@@ -1,5 +1,11 @@
 # @defactor-com/defactor-sdk
 
+## 3.0.6
+
+### Patch Changes
+
+- 1ba24e3: Add grantRole and revokeRole functions to base contract class
+
 ## 3.0.5
 
 ### Patch Changes
