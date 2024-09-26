@@ -2,7 +2,7 @@ import { Contract, ethers } from 'ethers'
 
 import { miscErc20CollateralPool } from '../artifacts'
 import { commonErrorMessage } from '../errors'
-import { Abi, PrivateKey } from '../types/types'
+import { Abi, PrivateKey, RoleOption } from '../types/types'
 import { Role } from '../utilities/util'
 
 export type BaseContractConstructorParams = ConstructorParameters<
@@ -75,6 +75,41 @@ export abstract class BaseContract {
     await this._checkIsAdmin()
 
     const pop = await this.contract.unpause.populateTransaction()
+
+    return this.signer ? await this.signer.sendTransaction(pop) : pop
+  }
+
+  async grantRole(
+    role: RoleOption,
+    address: string
+  ): Promise<ethers.ContractTransaction | ethers.TransactionResponse> {
+    await this._checkIsNotPaused()
+    await this._checkIsAdmin()
+
+    if (!ethers.isAddress(address)) {
+      throw new Error(commonErrorMessage.wrongAddressFormat)
+    }
+
+    const pop = await this.contract.grantRole.populateTransaction(role, address)
+
+    return this.signer ? await this.signer.sendTransaction(pop) : pop
+  }
+
+  async revokeRole(
+    role: RoleOption,
+    address: string
+  ): Promise<ethers.ContractTransaction | ethers.TransactionResponse> {
+    await this._checkIsNotPaused()
+    await this._checkIsAdmin()
+
+    if (!ethers.isAddress(address)) {
+      throw new Error(commonErrorMessage.wrongAddressFormat)
+    }
+
+    const pop = await this.contract.revokeRole.populateTransaction(
+      role,
+      address
+    )
 
     return this.signer ? await this.signer.sendTransaction(pop) : pop
   }

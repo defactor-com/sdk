@@ -3,6 +3,7 @@ import { ethers } from 'ethers'
 import { ERC20CollateralPool } from '../pools/erc20-collateral-pool'
 import { Pools } from '../pools/pools'
 import { Staking } from '../staking/staking'
+import { Role } from '../utilities/util'
 
 export type ERC20CollateralPoolConstructorParams = ConstructorParameters<
   typeof ERC20CollateralPool
@@ -26,3 +27,5 @@ export type Pagination<T> = {
   data: Array<T>
   more: boolean
 }
+
+export type RoleOption = (typeof Role)[keyof typeof Role]
