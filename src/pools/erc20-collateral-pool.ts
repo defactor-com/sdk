@@ -272,6 +272,7 @@ export class ERC20CollateralPool
     }
 
     const formattedPool = {
+      maxLended: pool.collateralDetails.maxLended,
       endTime: pool.endTime,
       interest: pool.interest,
       collateralToken: pool.collateralDetails.collateralToken,
@@ -298,6 +299,13 @@ export class ERC20CollateralPool
 
     if (amount <= 0) {
       throw new Error(poolCommonErrorMessage.noNegativeAmountOrZero)
+    }
+
+    if (
+      pool.lended - pool.repaid + amount >
+      BigInt(pool.collateralDetails.maxLended)
+    ) {
+      throw new Error(ecpErrorMessage.maxLendedIsReached)
     }
 
     const pop = await this.contract.lend.populateTransaction(poolId, amount)
