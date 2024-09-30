@@ -22,6 +22,7 @@ export const erc20CollateralPoolErrorMessage = {
   noNegativeOffset: 'Offset cannot be negative',
   noNegativeLimitOrZero: 'Limit cannot be negative or 0',
   maxLimitAllowed: 'Max limit allowed is 1000',
+  maxLentIsReached: 'Max lent is reached',
   endTimeReached: 'Pool has ended',
   poolIsNotClosed: 'Pool is not closed',
   poolIsClosed: 'Pool is closed',
