@@ -1,36 +1,24 @@
 import { ethers } from 'ethers'
 
 import { miscErc20CollateralPoolToplend } from '../artifacts'
-import { BaseContract } from '../base-classes'
 import {
   commonErrorMessage,
   erc20CollateralPoolErrorMessage as ecpErrorMessage,
   poolCommonErrorMessage
 } from '../errors'
+import { ERC20CollateralPool } from '../pools/erc20-collateral-pool'
 import {
   Borrow,
   Erc20CollateralTokenPoolDetail,
-  Functions,
   Lend,
   Pool,
   PoolInput,
-  PoolLiquidationInfo,
-  ERC20CollateralPoolViews as Views
+  PoolLiquidationInfo
 } from '../types/erc20-collateral-pool-toplend'
-import { AdminFunctions } from '../types/pools'
 import { Abi, Pagination, PrivateKey } from '../types/types'
 import { NULL_ADDRESS, Role } from '../utilities/util'
 
-export class ERC20CollateralPoolToplend
-  extends BaseContract
-  implements Functions, Views, AdminFunctions
-{
-  readonly LIQUIDATION_PROTOCOL_FEE = BigInt(5)
-  readonly LIQUIDATION_FEE = BigInt(5)
-  readonly OZ_IN_G = BigInt(31_10347680)
-  readonly ONE_YEAR = BigInt(365)
-  readonly HOUNDRED = BigInt(100)
-
+export class ERC20CollateralPoolToplend extends ERC20CollateralPool {
   constructor(
     address: string,
     apiUrl: string,
@@ -53,12 +41,12 @@ export class ERC20CollateralPoolToplend
     return await this.contract.USDC()
   }
 
-  private existPool(pool: Pool): boolean {
+  protected existPool(pool: Pool): boolean {
     // logic taken from the smart contract validation
     return pool.collateralDetails.collateralToken !== NULL_ADDRESS
   }
 
-  private async _existBorrow(
+  protected async _existBorrow(
     poolId: bigint,
     borrowId: bigint,
     borrowerAddress: string
@@ -68,7 +56,7 @@ export class ERC20CollateralPoolToplend
     return borrowId < totalBorrows
   }
 
-  private async _getPoolById(poolId: bigint): Promise<Pool | null> {
+  protected async _getPoolById(poolId: bigint): Promise<Pool | null> {
     const pool = await this.contract.pools(poolId)
 
     if (!this.existPool(pool)) {
@@ -78,7 +66,7 @@ export class ERC20CollateralPoolToplend
     return pool
   }
 
-  private async _getBorrow(
+  protected async _getBorrow(
     poolId: bigint,
     borrowerAddress: string,
     borrowId: bigint
@@ -86,7 +74,7 @@ export class ERC20CollateralPoolToplend
     return await this.contract.borrows(poolId, borrowerAddress, borrowId)
   }
 
-  private _isPoolCompleted(pool: Pool) {
+  protected _isPoolCompleted(pool: Pool) {
     return (
       pool.liquidatedCollateral > BigInt(0) ||
       pool.collateralTokenAmount == BigInt(0) ||
@@ -98,14 +86,14 @@ export class ERC20CollateralPoolToplend
     return await this.contract.poolsLength()
   }
 
-  private async _getTotalLending(
+  protected async _getTotalLending(
     poolId: bigint,
     address: string
   ): Promise<bigint> {
     return await this.contract.lendingsLength(poolId, address)
   }
 
-  private async _getLoan(
+  protected async _getLoan(
     poolId: bigint,
     address: string,
     lendingId: bigint
