@@ -1,5 +1,11 @@
 # @defactor-com/defactor-sdk
 
+## 3.1.0
+
+### Minor Changes
+
+- bff8633: Add support for top lend constrain for erc20 collateral pool contract
+
 ## 3.0.6
 
 ### Patch Changes
