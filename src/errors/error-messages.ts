@@ -25,6 +25,7 @@ export const erc20CollateralPoolErrorMessage = {
   maxLentIsReached: 'Max lent is reached',
   endTimeReached: 'Pool has ended',
   poolIsNotClosed: 'Pool is not closed',
+  maxLendedIsReached: 'Max lended is reached',
   poolIsClosed: 'Pool is closed',
   poolIsNotCompleted: 'Pool is not completed',
   loanAlreadyClaimed: 'Loan already claimed',
