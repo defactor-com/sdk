@@ -20,7 +20,7 @@
     },
     {
       "inputs": [],
-      "name": "MaxLendedIsReached",
+      "name": "InvalidUSDCAddress",
       "type": "error"
     },
     {
@@ -407,37 +407,6 @@
       "type": "event"
     },
     {
-      "anonymous": false,
-      "inputs": [
-        {
-          "indexed": true,
-          "internalType": "uint256",
-          "name": "poolId",
-          "type": "uint256"
-        },
-        {
-          "indexed": false,
-          "internalType": "address",
-          "name": "user",
-          "type": "address"
-        },
-        {
-          "indexed": false,
-          "internalType": "uint256",
-          "name": "borrowId",
-          "type": "uint256"
-        },
-        {
-          "indexed": false,
-          "internalType": "address",
-          "name": "liquidator",
-          "type": "address"
-        }
-      ],
-      "name": "UserPositionLiquidated",
-      "type": "event"
-    },
-    {
       "inputs": [],
       "name": "DEFAULT_ADMIN_ROLE",
       "outputs": [
@@ -504,6 +473,19 @@
     },
     {
       "inputs": [],
+      "name": "OZ_IN_G",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
       "name": "USDC",
       "outputs": [
         {
@@ -529,11 +511,6 @@
         },
         {
           "components": [
-            {
-              "internalType": "uint256",
-              "name": "maxLended",
-              "type": "uint256"
-            },
             {
               "internalType": "uint48",
               "name": "endTime",
@@ -579,11 +556,6 @@
       "inputs": [
         {
           "components": [
-            {
-              "internalType": "uint256",
-              "name": "maxLended",
-              "type": "uint256"
-            },
             {
               "internalType": "uint48",
               "name": "endTime",
@@ -634,11 +606,6 @@
         },
         {
           "components": [
-            {
-              "internalType": "uint256",
-              "name": "maxLended",
-              "type": "uint256"
-            },
             {
               "internalType": "uint48",
               "name": "endTime",
@@ -697,11 +664,6 @@
         },
         {
           "components": [
-            {
-              "internalType": "uint256",
-              "name": "maxLended",
-              "type": "uint256"
-            },
             {
               "internalType": "uint48",
               "name": "endTime",
@@ -956,35 +918,6 @@
       "type": "function"
     },
     {
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "poolId",
-          "type": "uint256"
-        },
-        {
-          "internalType": "address",
-          "name": "user",
-          "type": "address"
-        },
-        {
-          "internalType": "uint256",
-          "name": "borrowId",
-          "type": "uint256"
-        }
-      ],
-      "name": "getLiquidatableAmountWithProtocolFee",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
       "inputs": [],
       "name": "getPools",
       "outputs": [
@@ -1047,11 +980,6 @@
             },
             {
               "components": [
-                {
-                  "internalType": "uint256",
-                  "name": "maxLended",
-                  "type": "uint256"
-                },
                 {
                   "internalType": "contract ERC20Upgradeable",
                   "name": "collateralToken",
@@ -1252,29 +1180,6 @@
       "type": "function"
     },
     {
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "poolId",
-          "type": "uint256"
-        },
-        {
-          "internalType": "address",
-          "name": "user",
-          "type": "address"
-        },
-        {
-          "internalType": "uint256",
-          "name": "borrowId",
-          "type": "uint256"
-        }
-      ],
-      "name": "liquidateUserPosition",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
       "inputs": [],
       "name": "pause",
       "outputs": [],
@@ -1361,11 +1266,6 @@
         },
         {
           "components": [
-            {
-              "internalType": "uint256",
-              "name": "maxLended",
-              "type": "uint256"
-            },
             {
               "internalType": "contract ERC20Upgradeable",
               "name": "collateralToken",
