@@ -1,43 +1,36 @@
 import { ethers } from 'ethers'
 
-import { miscErc20CollateralPool } from '../artifacts'
-import { BaseContract } from '../base-classes'
+import { miscErc20CollateralPoolToplend } from '../artifacts'
 import {
   commonErrorMessage,
   erc20CollateralPoolErrorMessage as ecpErrorMessage,
   poolCommonErrorMessage
 } from '../errors'
+import { ERC20CollateralPool } from '../pools/erc20-collateral-pool'
 import {
   Borrow,
   Erc20CollateralTokenPoolDetail,
-  Functions,
   Lend,
   Pool,
   PoolInput,
-  PoolLiquidationInfo,
-  ERC20CollateralPoolViews as Views
-} from '../types/erc20-collateral-token'
-import { AdminFunctions } from '../types/pools'
+  PoolLiquidationInfo
+} from '../types/erc20-collateral-pool-toplend'
 import { Abi, Pagination, PrivateKey } from '../types/types'
 import { NULL_ADDRESS, Role } from '../utilities/util'
 
-export class ERC20CollateralPool
-  extends BaseContract
-  implements Functions, Views, AdminFunctions
-{
-  readonly LIQUIDATION_PROTOCOL_FEE = BigInt(5)
-  readonly LIQUIDATION_FEE = BigInt(5)
-  readonly OZ_IN_G = BigInt(31_10347680)
-  readonly ONE_YEAR = BigInt(365)
-  readonly HOUNDRED = BigInt(100)
-
+export class ERC20CollateralPoolToplend extends ERC20CollateralPool {
   constructor(
     address: string,
     apiUrl: string,
     privateKey: PrivateKey | null,
     abi?: Abi
   ) {
-    super(address, apiUrl, privateKey, abi || miscErc20CollateralPool.abi)
+    super(
+      address,
+      apiUrl,
+      privateKey,
+      abi || miscErc20CollateralPoolToplend.abi
+    )
   }
 
   async USDC_FEES_COLLECTED(): Promise<bigint> {
@@ -272,6 +265,7 @@ export class ERC20CollateralPool
     }
 
     const formattedPool = {
+      maxLended: pool.collateralDetails.maxLended,
       endTime: pool.endTime,
       interest: pool.interest,
       collateralToken: pool.collateralDetails.collateralToken,
@@ -298,6 +292,13 @@ export class ERC20CollateralPool
 
     if (amount <= 0) {
       throw new Error(poolCommonErrorMessage.noNegativeAmountOrZero)
+    }
+
+    if (
+      pool.lended - pool.repaid + amount >
+      BigInt(pool.collateralDetails.maxLended)
+    ) {
+      throw new Error(ecpErrorMessage.maxLentIsReached)
     }
 
     const pop = await this.contract.lend.populateTransaction(poolId, amount)

@@ -940,7 +940,7 @@ describe('SelfProvider - ERC20CollateralPool', () => {
         ).rejects.toThrow(commonErrorMessage.addressIsNotAdmin)
       })
 
-      it('failure - create pool with end time in the pass', async () => {
+      it('failure - create pool with end time in the past', async () => {
         provider = new SelfProvider(
           ERC20CollateralPool,
           ERC20_COLLATERAL_POOL_ETH_ADDRESS,
@@ -970,7 +970,7 @@ describe('SelfProvider - ERC20CollateralPool', () => {
           ADMIN_TESTING_PRIVATE_KEY
         )
 
-        await provider.contract.addPool({
+        const tx = await provider.contract.addPool({
           endTime: 1911925999,
           interest: 10,
           collateralDetails: {
@@ -981,7 +981,7 @@ describe('SelfProvider - ERC20CollateralPool', () => {
           }
         })
 
-        expect(true).toBe(true)
+        expect(tx).toBeDefined()
       })
     })
 
