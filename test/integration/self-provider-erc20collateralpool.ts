@@ -715,7 +715,6 @@ describe('SelfProvider - ERC20CollateralPool', () => {
           lastUpdated: 0,
           endTime: Date.now() + ONE_DAY_MS,
           collateralDetails: {
-            maxLended: 100000000,
             collateralToken: COLLATERAL_TOKEN,
             collateralTokenChainlink: COLLATERAL_TOKEN_CHAINLINK,
             collateralTokenFactor: 0,
@@ -742,7 +741,6 @@ describe('SelfProvider - ERC20CollateralPool', () => {
           lastUpdated: 0,
           endTime: 0,
           collateralDetails: {
-            maxLended: 100000000,
             collateralToken: COLLATERAL_TOKEN,
             collateralTokenChainlink: COLLATERAL_TOKEN_CHAINLINK,
             collateralTokenFactor: 0,
@@ -769,7 +767,6 @@ describe('SelfProvider - ERC20CollateralPool', () => {
           lastUpdated: 0,
           endTime: Date.now() - ONE_DAY_MS,
           collateralDetails: {
-            maxLended: 100000000,
             collateralToken: COLLATERAL_TOKEN,
             collateralTokenChainlink: COLLATERAL_TOKEN_CHAINLINK,
             collateralTokenFactor: 0,
@@ -873,17 +870,6 @@ describe('SelfProvider - ERC20CollateralPool', () => {
         ).rejects.toThrow(poolCommonErrorMessage.noNegativeAmountOrZero)
       })
 
-      it('failure - max lended is reached', async () => {
-        const pool = await provider.contract.getPool(BigInt(0))
-        const maxLended = BigInt(pool.collateralDetails.maxLended)
-        const currentLended = pool.lended - pool.repaid
-        const lendingAmount = maxLended - currentLended + BigInt(1)
-
-        await expect(
-          provider.contract.lend(BigInt(0), lendingAmount)
-        ).rejects.toThrow(ecpErrorMessage.maxLendedIsReached)
-      })
-
       it('success - lend tokens', async () => {
         const lendingAmount = BigInt(10_000000)
 
@@ -915,7 +901,6 @@ describe('SelfProvider - ERC20CollateralPool', () => {
             endTime: 1911925999,
             interest: 10,
             collateralDetails: {
-              maxLended: 100000000,
               collateralToken: 'invalid',
               collateralTokenChainlink: COLLATERAL_TOKEN_CHAINLINK,
               collateralTokenFactor: 10,
@@ -931,7 +916,6 @@ describe('SelfProvider - ERC20CollateralPool', () => {
             endTime: 1911925999,
             interest: 10,
             collateralDetails: {
-              maxLended: 100000000,
               collateralToken: COLLATERAL_TOKEN,
               collateralTokenChainlink: 'invalid',
               collateralTokenFactor: 10,
@@ -947,7 +931,6 @@ describe('SelfProvider - ERC20CollateralPool', () => {
             endTime: 1911925999,
             interest: 10,
             collateralDetails: {
-              maxLended: 100000000,
               collateralToken: COLLATERAL_TOKEN,
               collateralTokenChainlink: COLLATERAL_TOKEN_CHAINLINK,
               collateralTokenFactor: 10,
@@ -970,7 +953,6 @@ describe('SelfProvider - ERC20CollateralPool', () => {
             endTime: 1706925614,
             interest: 10,
             collateralDetails: {
-              maxLended: 100000000,
               collateralToken: COLLATERAL_TOKEN,
               collateralTokenChainlink: COLLATERAL_TOKEN_CHAINLINK,
               collateralTokenFactor: 10,
@@ -992,7 +974,6 @@ describe('SelfProvider - ERC20CollateralPool', () => {
           endTime: 1911925999,
           interest: 10,
           collateralDetails: {
-            maxLended: 100000000,
             collateralToken: COLLATERAL_TOKEN,
             collateralTokenChainlink: COLLATERAL_TOKEN_CHAINLINK,
             collateralTokenFactor: 10,
@@ -1133,7 +1114,6 @@ describe('SelfProvider - ERC20CollateralPool', () => {
           endTime: Date.now() + ONE_DAY_MS,
           interest: 10,
           collateralDetails: {
-            maxLended: 100000000,
             collateralToken: COLLATERAL_TOKEN,
             collateralTokenChainlink: COLLATERAL_TOKEN_CHAINLINK,
             collateralTokenFactor: 10,
@@ -1165,7 +1145,6 @@ describe('SelfProvider - ERC20CollateralPool', () => {
           endTime: Date.now() + ONE_SEC_MS * 10,
           interest: 10,
           collateralDetails: {
-            maxLended: 100000000,
             collateralToken: COLLATERAL_TOKEN,
             collateralTokenChainlink: COLLATERAL_TOKEN_CHAINLINK,
             collateralTokenFactor: 10,

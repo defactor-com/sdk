@@ -20,7 +20,6 @@ export type Lend = {
 
 // TODO: use uint8 instead of number for collateralTokenFactor and collateralTokenPercentage
 export type CollateralDetails = {
-  maxLended: number
   collateralToken: string
   collateralTokenChainlink: string
   collateralTokenFactor: number
@@ -145,7 +144,6 @@ export const poolKeys: Array<keyof Pool> = [
 ]
 
 export const collateralDetailsKeys: Array<keyof CollateralDetails> = [
-  'maxLended',
   'collateralToken',
   'collateralTokenChainlink',
   'collateralTokenFactor',
