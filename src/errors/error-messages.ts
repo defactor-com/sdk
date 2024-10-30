@@ -32,7 +32,10 @@ export const erc20CollateralPoolErrorMessage = {
   poolCannotBeLiquidated: 'Pool cannot be liquidated',
   timeMustBeInFuture: 'Time must be in the future',
   amountOverpassPoolBalance: 'Amount overpass the pool available amount',
-  borrowAlreadyRepaid: 'Borrow already repaid'
+  borrowAlreadyRepaid: 'Borrow already repaid',
+  amountTooLow: 'The amount is less than or equal to the minimum',
+  minLendedMustBeLessThanMaxLended:
+    'The min lended amount must be less than max lended amount'
 }
 
 export const counterPartyPoolErrorMessage = {

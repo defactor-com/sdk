@@ -26,8 +26,7 @@ export class ERC20CollateralPool
   implements Functions, Views, AdminFunctions
 {
   readonly LIQUIDATION_PROTOCOL_FEE = BigInt(5)
-  readonly LIQUIDATION_FEE = BigInt(5)
-  readonly OZ_IN_G = BigInt(31_10347680)
+  readonly LIQUIDATION_FEE = BigInt(10)
   readonly ONE_YEAR = BigInt(365)
   readonly HOUNDRED = BigInt(100)
 
@@ -263,6 +262,18 @@ export class ERC20CollateralPool
       throw new Error(ecpErrorMessage.timeMustBeInFuture)
     }
 
+    if (
+      pool.collateralDetails.maxLended <= 0 ||
+      pool.collateralDetails.minLended <= 0 ||
+      pool.collateralDetails.minBorrow <= 0
+    ) {
+      throw new Error(poolCommonErrorMessage.noNegativeAmountOrZero)
+    }
+
+    if (pool.collateralDetails.minLended > pool.collateralDetails.maxLended) {
+      throw new Error(ecpErrorMessage.minLendedMustBeLessThanMaxLended)
+    }
+
     if (this.signer) {
       const isAdmin = await this.contract.hasRole(Role.ADMIN, this.signer)
 
@@ -274,6 +285,9 @@ export class ERC20CollateralPool
     const formattedPool = {
       endTime: pool.endTime,
       interest: pool.interest,
+      maxLended: pool.collateralDetails.maxLended,
+      minLended: pool.collateralDetails.minLended,
+      minBorrow: pool.collateralDetails.minBorrow,
       collateralToken: pool.collateralDetails.collateralToken,
       collateralTokenChainlink: pool.collateralDetails.collateralTokenChainlink,
       collateralTokenFactor: pool.collateralDetails.collateralTokenFactor,
@@ -300,6 +314,14 @@ export class ERC20CollateralPool
       throw new Error(poolCommonErrorMessage.noNegativeAmountOrZero)
     }
 
+    if (amount < pool.collateralDetails.minLended) {
+      throw new Error(ecpErrorMessage.amountTooLow)
+    }
+
+    if (pool.lended - pool.repaid + amount > pool.collateralDetails.maxLended) {
+      throw new Error(ecpErrorMessage.maxLendedIsReached)
+    }
+
     const pop = await this.contract.lend.populateTransaction(poolId, amount)
 
     return this.signer ? await this.signer.sendTransaction(pop) : pop
@@ -313,6 +335,10 @@ export class ERC20CollateralPool
 
     if (amount <= 0) {
       throw new Error(poolCommonErrorMessage.noNegativeAmountOrZero)
+    }
+
+    if (amount < pool.collateralDetails.minBorrow) {
+      throw new Error(ecpErrorMessage.amountTooLow)
     }
 
     if (pool.endTime <= Date.now() / 1000) {
