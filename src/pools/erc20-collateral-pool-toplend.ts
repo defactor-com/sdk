@@ -256,6 +256,18 @@ export class ERC20CollateralPoolToplend extends ERC20CollateralPool {
       throw new Error(ecpErrorMessage.timeMustBeInFuture)
     }
 
+    if (
+      pool.collateralDetails.maxLended <= 0 ||
+      pool.collateralDetails.minLended <= 0 ||
+      pool.collateralDetails.minBorrow <= 0
+    ) {
+      throw new Error(poolCommonErrorMessage.noNegativeAmountOrZero)
+    }
+
+    if (pool.collateralDetails.minLended > pool.collateralDetails.maxLended) {
+      throw new Error(ecpErrorMessage.minLendedMustBeLessThanMaxLended)
+    }
+
     if (this.signer) {
       const isAdmin = await this.contract.hasRole(Role.ADMIN, this.signer)
 
@@ -266,6 +278,8 @@ export class ERC20CollateralPoolToplend extends ERC20CollateralPool {
 
     const formattedPool = {
       maxLended: pool.collateralDetails.maxLended,
+      minLended: pool.collateralDetails.minLended,
+      minBorrow: pool.collateralDetails.minBorrow,
       endTime: pool.endTime,
       interest: pool.interest,
       collateralToken: pool.collateralDetails.collateralToken,
@@ -294,6 +308,10 @@ export class ERC20CollateralPoolToplend extends ERC20CollateralPool {
       throw new Error(poolCommonErrorMessage.noNegativeAmountOrZero)
     }
 
+    if (amount < pool.collateralDetails.minLended) {
+      throw new Error(ecpErrorMessage.amountTooLow)
+    }
+
     if (
       pool.lended - pool.repaid + amount >
       BigInt(pool.collateralDetails.maxLended)
@@ -314,6 +332,10 @@ export class ERC20CollateralPoolToplend extends ERC20CollateralPool {
 
     if (amount <= 0) {
       throw new Error(poolCommonErrorMessage.noNegativeAmountOrZero)
+    }
+
+    if (amount < pool.collateralDetails.minBorrow) {
+      throw new Error(ecpErrorMessage.amountTooLow)
     }
 
     if (pool.endTime <= Date.now() / 1000) {

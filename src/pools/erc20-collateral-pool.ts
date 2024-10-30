@@ -283,11 +283,11 @@ export class ERC20CollateralPool
     }
 
     const formattedPool = {
-      endTime: pool.endTime,
-      interest: pool.interest,
       maxLended: pool.collateralDetails.maxLended,
       minLended: pool.collateralDetails.minLended,
       minBorrow: pool.collateralDetails.minBorrow,
+      endTime: pool.endTime,
+      interest: pool.interest,
       collateralToken: pool.collateralDetails.collateralToken,
       collateralTokenChainlink: pool.collateralDetails.collateralTokenChainlink,
       collateralTokenFactor: pool.collateralDetails.collateralTokenFactor,
