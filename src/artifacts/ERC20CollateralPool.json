@@ -15,6 +15,11 @@
     },
     {
       "inputs": [],
+      "name": "AmountTooLow",
+      "type": "error"
+    },
+    {
+      "inputs": [],
       "name": "ChainlinkDataTooOld",
       "type": "error"
     },
@@ -535,6 +540,16 @@
               "type": "uint256"
             },
             {
+              "internalType": "uint256",
+              "name": "minLended",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "minBorrow",
+              "type": "uint256"
+            },
+            {
               "internalType": "uint48",
               "name": "endTime",
               "type": "uint48"
@@ -582,6 +597,16 @@
             {
               "internalType": "uint256",
               "name": "maxLended",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "minLended",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "minBorrow",
               "type": "uint256"
             },
             {
@@ -637,6 +662,16 @@
             {
               "internalType": "uint256",
               "name": "maxLended",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "minLended",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "minBorrow",
               "type": "uint256"
             },
             {
@@ -700,6 +735,16 @@
             {
               "internalType": "uint256",
               "name": "maxLended",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "minLended",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "minBorrow",
               "type": "uint256"
             },
             {
@@ -1053,6 +1098,16 @@
                   "type": "uint256"
                 },
                 {
+                  "internalType": "uint256",
+                  "name": "minLended",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "minBorrow",
+                  "type": "uint256"
+                },
+                {
                   "internalType": "contract ERC20Upgradeable",
                   "name": "collateralToken",
                   "type": "address"
@@ -1364,6 +1419,16 @@
             {
               "internalType": "uint256",
               "name": "maxLended",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "minLended",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "minBorrow",
               "type": "uint256"
             },
             {
