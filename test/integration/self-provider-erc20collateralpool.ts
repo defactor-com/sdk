@@ -827,9 +827,10 @@ describe('SelfProvider - ERC20CollateralPool', () => {
 
       it('success - borrow from the pool', async () => {
         const amountToBorrow = BigInt(15)
+        const poolId = BigInt(0)
         const collateralAmount =
           await provider.contract.calculateCollateralTokenAmount(
-            BigInt(5),
+            poolId,
             amountToBorrow
           )
 
@@ -843,7 +844,7 @@ describe('SelfProvider - ERC20CollateralPool', () => {
           tx
         )
 
-        const trx = await provider.contract.borrow(BigInt(5), amountToBorrow)
+        const trx = await provider.contract.borrow(poolId, amountToBorrow)
 
         expect({
           to: trx.to,
@@ -887,22 +888,25 @@ describe('SelfProvider - ERC20CollateralPool', () => {
 
       it('failure - lend an amount of tokens less than min lended', async () => {
         const lendingAmount = BigInt(2)
+        const poolId = BigInt(0)
 
         await expect(
-          provider.contract.lend(BigInt(0), lendingAmount)
+          provider.contract.lend(poolId, lendingAmount)
         ).rejects.toThrow(ecpErrorMessage.amountTooLow)
       })
 
       it('failure - lend an amount of tokens greater than max lended', async () => {
         const lendingAmount = BigInt(MAX_BIGINT)
+        const poolId = BigInt(0)
 
         await expect(
-          provider.contract.lend(BigInt(0), lendingAmount)
+          provider.contract.lend(poolId, lendingAmount)
         ).rejects.toThrow(ecpErrorMessage.maxLentIsReached)
       })
 
       it('success - lend tokens', async () => {
         const lendingAmount = BigInt(10_000000)
+        const poolId = BigInt(0)
 
         const tx = await usdcTokenContract.approve(
           provider.contract.address,
@@ -913,7 +917,7 @@ describe('SelfProvider - ERC20CollateralPool', () => {
           tx
         )
 
-        const trx = await provider.contract.lend(BigInt(0), lendingAmount)
+        const trx = await provider.contract.lend(poolId, lendingAmount)
 
         expect({
           to: trx.to,
@@ -1059,6 +1063,24 @@ describe('SelfProvider - ERC20CollateralPool', () => {
         ).rejects.toThrow(poolCommonErrorMessage.noNegativeAmountOrZero)
       })
 
+      it('failure - create pool with a min borrow greater than max lended', async () => {
+        await expect(
+          provider.contract.addPool({
+            endTime: 1911925999,
+            interest: 10,
+            collateralDetails: {
+              minLended: 1,
+              minBorrow: 10000000,
+              maxLended: 100,
+              collateralToken: COLLATERAL_TOKEN,
+              collateralTokenChainlink: COLLATERAL_TOKEN_CHAINLINK,
+              collateralTokenFactor: 10,
+              collateralTokenPercentage: 15
+            }
+          })
+        ).rejects.toThrow(ecpErrorMessage.minBorrowMustBeLessThanMaxLended)
+      })
+
       it('success - create pool', async () => {
         provider = new SelfProvider(
           ERC20CollateralPool,
@@ -1071,7 +1093,7 @@ describe('SelfProvider - ERC20CollateralPool', () => {
           endTime: 1911925999,
           interest: 10,
           collateralDetails: {
-            minLended: 10,
+            minLended: 5,
             minBorrow: 10,
             maxLended: 10000000,
             collateralToken: COLLATERAL_TOKEN,

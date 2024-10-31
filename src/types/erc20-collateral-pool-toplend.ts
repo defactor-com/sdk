@@ -33,7 +33,7 @@ export type CollateralDetails = {
 export type PoolInput = {
   endTime: number
   interest: number
-  collateralDetails: CollateralDetails
+  collateralDetails: Omit<CollateralDetails, 'minLended' | 'minBorrow'>
 }
 
 // TODO: use uint48 instead of number for lastUpdated and endTime

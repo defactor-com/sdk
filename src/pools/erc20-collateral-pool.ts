@@ -274,6 +274,10 @@ export class ERC20CollateralPool
       throw new Error(ecpErrorMessage.minLendedMustBeLessThanMaxLended)
     }
 
+    if (pool.collateralDetails.minBorrow > pool.collateralDetails.maxLended) {
+      throw new Error(ecpErrorMessage.minBorrowMustBeLessThanMaxLended)
+    }
+
     if (this.signer) {
       const isAdmin = await this.contract.hasRole(Role.ADMIN, this.signer)
 

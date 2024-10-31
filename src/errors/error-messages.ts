@@ -34,7 +34,9 @@ export const erc20CollateralPoolErrorMessage = {
   borrowAlreadyRepaid: 'Borrow already repaid',
   amountTooLow: 'The amount is less than or equal to the minimum',
   minLendedMustBeLessThanMaxLended:
-    'The min lended amount must be less than max lended amount'
+    'The min lended amount must be less than max lended amount',
+  minBorrowMustBeLessThanMaxLended:
+    'The min borrow amount must be less than max lended amount'
 }
 
 export const counterPartyPoolErrorMessage = {

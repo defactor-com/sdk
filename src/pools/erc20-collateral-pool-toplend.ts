@@ -19,6 +19,8 @@ import { Abi, Pagination, PrivateKey } from '../types/types'
 import { NULL_ADDRESS, Role } from '../utilities/util'
 
 export class ERC20CollateralPoolToplend extends ERC20CollateralPool {
+  readonly LIQUIDATION_FEE = BigInt(5)
+
   constructor(
     address: string,
     apiUrl: string,
@@ -256,16 +258,8 @@ export class ERC20CollateralPoolToplend extends ERC20CollateralPool {
       throw new Error(ecpErrorMessage.timeMustBeInFuture)
     }
 
-    if (
-      pool.collateralDetails.maxLended <= 0 ||
-      pool.collateralDetails.minLended <= 0 ||
-      pool.collateralDetails.minBorrow <= 0
-    ) {
+    if (pool.collateralDetails.maxLended <= 0) {
       throw new Error(poolCommonErrorMessage.noNegativeAmountOrZero)
-    }
-
-    if (pool.collateralDetails.minLended > pool.collateralDetails.maxLended) {
-      throw new Error(ecpErrorMessage.minLendedMustBeLessThanMaxLended)
     }
 
     if (this.signer) {
@@ -278,8 +272,6 @@ export class ERC20CollateralPoolToplend extends ERC20CollateralPool {
 
     const formattedPool = {
       maxLended: pool.collateralDetails.maxLended,
-      minLended: pool.collateralDetails.minLended,
-      minBorrow: pool.collateralDetails.minBorrow,
       endTime: pool.endTime,
       interest: pool.interest,
       collateralToken: pool.collateralDetails.collateralToken,
