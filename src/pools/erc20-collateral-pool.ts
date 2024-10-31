@@ -263,9 +263,9 @@ export class ERC20CollateralPool
     }
 
     if (
-      pool.collateralDetails.maxLended <= 0 ||
-      pool.collateralDetails.minLended <= 0 ||
-      pool.collateralDetails.minBorrow <= 0
+      BigInt(pool.collateralDetails.maxLended || 0) <= 0 ||
+      BigInt(pool.collateralDetails.minLended || 0) <= 0 ||
+      BigInt(pool.collateralDetails.minBorrow || 0) <= 0
     ) {
       throw new Error(poolCommonErrorMessage.noNegativeAmountOrZero)
     }
