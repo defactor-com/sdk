@@ -1512,6 +1512,73 @@ describe('SelfProvider - ERC20CollateralPool', () => {
           )
         ).rejects.toThrow(ecpErrorMessage.borrowAlreadyRepaid)
       })
+      it('success - liquidate user position', async () => {
+        const poolId = BigInt(0)
+        const address = TESTING_PUBLIC_KEY
+        const borrowId = BigInt(0)
+        const pool = await provider.contract.getPool(poolId)
+        const borrow = await provider.contract.getBorrow(
+          poolId,
+          address,
+          borrowId
+        )
+        const repayInterest = await provider.contract.calculateRepayInterest(
+          poolId,
+          address,
+          borrowId
+        )
+        const liquidatableAmount = borrow.amount + repayInterest
+        const LIQUIDATION_PROTOCOL_FEE =
+          provider.contract.LIQUIDATION_PROTOCOL_FEE
+        const LIQUIDATION_FEE = provider.contract.LIQUIDATION_FEE
+        const HOUNDRED = provider.contract.HOUNDRED
+        const liquidatableAmountWithLiquidationFee =
+          (liquidatableAmount *
+            (LIQUIDATION_FEE + LIQUIDATION_PROTOCOL_FEE + HOUNDRED)) /
+          HOUNDRED
+        const collateralTokenDecimals = 18 // Depends of the collateralToken contract
+        const usdcDecimals = 6
+        const chainlinkDecimals = usdcDecimals // Depends of the collateralTokenChainlink oracle contract
+        const chainlinkPrice = BigInt(31_10347680) // Depends of the collateralTokenChainlink oracle contract
+        const estimatedErc20Value =
+          (chainlinkPrice * BigInt(1e18) * HOUNDRED) /
+          BigInt(pool.collateralDetails.collateralTokenFactor) /
+          BigInt(10 ** chainlinkDecimals)
+        let collateralTokenForLiquidator =
+          (BigInt(1e18) *
+            (liquidatableAmountWithLiquidationFee *
+              BigInt(10) ** (BigInt(18) - BigInt(usdcDecimals)))) /
+          estimatedErc20Value /
+          BigInt(10) ** (BigInt(18) - BigInt(collateralTokenDecimals))
+
+        if (collateralTokenForLiquidator > borrow.collateralTokenAmount) {
+          collateralTokenForLiquidator = borrow.collateralTokenAmount
+        }
+
+        const tx = await usdcTokenContract.approve(
+          provider.contract.address,
+          collateralTokenForLiquidator
+        )
+
+        await waitUntilConfirmationCompleted(
+          provider.contract.jsonRpcProvider,
+          tx
+        )
+
+        const trx = await provider.contract.liquidateUserPosition(
+          poolId,
+          address,
+          borrowId
+        )
+
+        expect({
+          to: trx.to,
+          from: trx.from
+        }).toEqual({
+          to: ERC20_COLLATERAL_POOL_ETH_ADDRESS,
+          from: TESTING_PUBLIC_KEY
+        })
+      })
     })
   })
 })
