@@ -20,6 +20,7 @@ import {
   TESTING_PUBLIC_KEY,
   USD_TOKEN_ADDRESS,
   loadEnv,
+  setPause,
   waitUntilConfirmationCompleted
 } from '../test-util'
 
@@ -58,6 +59,43 @@ describe('SelfProvider - ERC20CollateralPool', () => {
       providerUrl,
       TESTING_PRIVATE_KEY
     )
+  })
+
+  describe('Admin Functions', () => {
+    describe('pause()', () => {
+      it('success - pause contract', async () => {
+        await setPause(provider, false)
+
+        expect.assertions(1)
+
+        const tx = await provider.contract.pause()
+
+        await waitUntilConfirmationCompleted(
+          provider.contract.jsonRpcProvider,
+          tx
+        )
+
+        const isPaused = await provider.contract.isPaused()
+
+        expect(isPaused).toBe(true)
+      })
+    })
+    describe('unpause()', () => {
+      it('success - unpause the contract', async () => {
+        expect.assertions(1)
+
+        const tx = await provider.contract.unpause()
+
+        await waitUntilConfirmationCompleted(
+          provider.contract.jsonRpcProvider,
+          tx
+        )
+
+        const isPaused = await provider.contract.isPaused()
+
+        expect(isPaused).toBe(false)
+      })
+    })
   })
 
   describe('Views', () => {
@@ -857,6 +895,15 @@ describe('SelfProvider - ERC20CollateralPool', () => {
     })
 
     describe('lend()', () => {
+      it('failure - the contract is paused', async () => {
+        expect.assertions(1)
+        await setPause(provider, true)
+        await expect(
+          provider.contract.lend(BigInt(0), BigInt(0))
+        ).rejects.toThrow(commonErrorMessage.contractIsPaused)
+        await setPause(provider, false)
+      })
+
       it('failure - pool does not exist', async () => {
         const lendingAmount = BigInt(10_000000)
 

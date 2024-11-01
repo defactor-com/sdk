@@ -235,14 +235,6 @@ export class ERC20CollateralPoolToplend extends ERC20CollateralPool {
     )
   }
 
-  pause(): Promise<ethers.ContractTransaction | ethers.TransactionResponse> {
-    throw new Error('Method not implemented.')
-  }
-
-  unpause(): Promise<ethers.ContractTransaction | ethers.TransactionResponse> {
-    throw new Error('Method not implemented.')
-  }
-
   async addPool(
     pool: PoolInput
   ): Promise<ethers.ContractTransaction | ethers.TransactionResponse> {
@@ -290,6 +282,8 @@ export class ERC20CollateralPoolToplend extends ERC20CollateralPool {
     poolId: bigint,
     amount: bigint
   ): Promise<ethers.ContractTransaction | ethers.TransactionResponse> {
+    await this._checkIsNotPaused()
+
     const pool = await this.getPool(poolId)
 
     if (pool.endTime <= Date.now() / 1000) {
@@ -320,6 +314,8 @@ export class ERC20CollateralPoolToplend extends ERC20CollateralPool {
     poolId: bigint,
     amount: bigint
   ): Promise<ethers.ContractTransaction | ethers.TransactionResponse> {
+    await this._checkIsNotPaused()
+
     const pool = await this.getPool(poolId)
 
     if (amount <= 0) {
@@ -445,6 +441,7 @@ export class ERC20CollateralPoolToplend extends ERC20CollateralPool {
     borrowerAddress: string,
     borrowId: bigint
   ): Promise<ethers.ContractTransaction | ethers.TransactionResponse> {
+    await this._checkIsNotPaused()
     await this.getPool(poolId)
 
     if (!ethers.isAddress(borrowerAddress)) {
@@ -467,6 +464,8 @@ export class ERC20CollateralPoolToplend extends ERC20CollateralPool {
     address: string,
     lendingId: bigint
   ): Promise<ethers.ContractTransaction | ethers.TransactionResponse> {
+    await this._checkIsNotPaused()
+
     const pool = await this.getPool(poolId)
 
     if (pool.endTime > Date.now() / 1000) {
@@ -538,6 +537,9 @@ export class ERC20CollateralPoolToplend extends ERC20CollateralPool {
   async liquidatePool(
     poolId: bigint
   ): Promise<ethers.ContractTransaction | ethers.TransactionResponse> {
+    await this._checkIsNotPaused()
+    await this._checkIsAdmin()
+
     const pool = await this.getPool(poolId)
 
     if (pool.endTime > Date.now()) {
