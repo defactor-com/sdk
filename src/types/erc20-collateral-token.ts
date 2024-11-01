@@ -147,6 +147,9 @@ export const poolKeys: Array<keyof Pool> = [
 ]
 
 export const collateralDetailsKeys: Array<keyof CollateralDetails> = [
+  'maxLended',
+  'minLended',
+  'minBorrow',
   'collateralToken',
   'collateralTokenChainlink',
   'collateralTokenFactor',
