@@ -6,6 +6,10 @@ Support new version of the ERC20 Collateral Pool contract
 
 ### Breaking changes
 
+  - Add functions `getLiquidatableAmountWithProtocolFee` and `liquidateUserPosition` into `ERC20CollateralPool` class.
+
+  - Now `liquidatePool` function requires `DEFAULT_ADMIN_ROLE`.
+
   - The collateral details in `ERC20CollateralPool` class that implements the erc20 collateral pool contract now require `maxLended`, `minLended`, and `minBorrow`.
 
   - The `LIQUIDATION_FEE` in the `ERC20CollateralPool` base class has changed from 5 to 10.
