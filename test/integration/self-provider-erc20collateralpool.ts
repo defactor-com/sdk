@@ -831,6 +831,46 @@ describe('SelfProvider - ERC20CollateralPool', () => {
         expect(liquidationInfo).toEqual(expectedLiquidationInfo)
       })
     })
+    describe('getLiquidatableAmountWithProtocolFee()', () => {
+      it('failure - pool id does not exist', async () => {
+        await expect(
+          provider.contract.getLiquidatableAmountWithProtocolFee(
+            MAX_BIGINT,
+            TESTING_PUBLIC_KEY,
+            BigInt(0)
+          )
+        ).rejects.toThrow(poolCommonErrorMessage.noExistPoolId(MAX_BIGINT))
+      })
+      it('failure - wrong address format', async () => {
+        await expect(
+          provider.contract.getLiquidatableAmountWithProtocolFee(
+            BigInt(0),
+            '0xinvalid',
+            BigInt(0)
+          )
+        ).rejects.toThrow(commonErrorMessage.wrongAddressFormat)
+      })
+      it('failure - borrow id does not exist', async () => {
+        await expect(
+          provider.contract.getLiquidatableAmountWithProtocolFee(
+            BigInt(0),
+            TESTING_PUBLIC_KEY,
+            MAX_BIGINT
+          )
+        ).rejects.toThrow(ecpErrorMessage.noExistBorrowId(MAX_BIGINT))
+      })
+      it('success - get liquidatable amount with protocol fee', async () => {
+        const amount =
+          await provider.contract.getLiquidatableAmountWithProtocolFee(
+            BigInt(6),
+            TESTING_PUBLIC_KEY,
+            BigInt(0)
+          )
+
+        expect(typeof amount).toBe('bigint')
+        expect(amount).toBeGreaterThanOrEqual(BigInt(0))
+      })
+    })
   })
 
   describe('Functions', () => {
@@ -1423,6 +1463,54 @@ describe('SelfProvider - ERC20CollateralPool', () => {
         const loanId = BigInt(0)
 
         await provider.contract.claimRewards(poolId, TESTING_PUBLIC_KEY, loanId)
+      })
+    })
+
+    describe('liquidateUserPosition', () => {
+      it('failure - wrong address format', async () => {
+        await expect(
+          provider.contract.liquidateUserPosition(
+            BigInt(0),
+            '0xinvalid',
+            BigInt(0)
+          )
+        ).rejects.toThrow(commonErrorMessage.wrongAddressFormat)
+      })
+      it('failure - pool id does not exist', async () => {
+        await expect(
+          provider.contract.liquidateUserPosition(
+            MAX_BIGINT,
+            TESTING_PUBLIC_KEY,
+            BigInt(0)
+          )
+        ).rejects.toThrow(poolCommonErrorMessage.noExistPoolId(MAX_BIGINT))
+      })
+      it('failure - the pool is not closed', async () => {
+        await expect(
+          provider.contract.liquidateUserPosition(
+            BigInt(6),
+            TESTING_PUBLIC_KEY,
+            BigInt(0)
+          )
+        ).rejects.toThrow(ecpErrorMessage.poolIsNotClosed)
+      })
+      it('failure - borrow id does not exist', async () => {
+        await expect(
+          provider.contract.liquidateUserPosition(
+            BigInt(7),
+            TESTING_PUBLIC_KEY,
+            MAX_BIGINT
+          )
+        ).rejects.toThrow(ecpErrorMessage.noExistBorrowId(MAX_BIGINT))
+      })
+      it('failure - borrow already repaid', async () => {
+        await expect(
+          provider.contract.liquidateUserPosition(
+            BigInt(7),
+            TESTING_PUBLIC_KEY,
+            BigInt(0)
+          )
+        ).rejects.toThrow(ecpErrorMessage.borrowAlreadyRepaid)
       })
     })
   })
