@@ -457,7 +457,6 @@ export class ERC20CollateralPool
     borrowId: bigint
   ): Promise<ethers.ContractTransaction | ethers.TransactionResponse> {
     await this._checkIsNotPaused()
-
     await this.getPool(poolId)
 
     if (!ethers.isAddress(borrowerAddress)) {
@@ -517,7 +516,7 @@ export class ERC20CollateralPool
   }
 
   async getLiquidationInfo(pool: Pool): Promise<PoolLiquidationInfo> {
-    if (pool.endTime > Date.now()) {
+    if (pool.endTime > Date.now() / 1000) {
       throw new Error(ecpErrorMessage.poolIsNotClosed)
     }
 
@@ -558,7 +557,7 @@ export class ERC20CollateralPool
 
     const pool = await this.getPool(poolId)
 
-    if (pool.endTime > Date.now()) {
+    if (pool.endTime > Date.now() / 1000) {
       throw new Error(ecpErrorMessage.poolIsNotClosed)
     }
 
@@ -582,14 +581,17 @@ export class ERC20CollateralPool
 
     await this.getPool(poolId)
 
-    const pop =
-      await this.contract.getLiquidatableAmountWithProtocolFee.populateTransaction(
-        poolId,
-        address,
-        borrowId
-      )
+    const existBorrow = await this._existBorrow(poolId, borrowId, address)
 
-    return this.signer ? await this.signer.sendTransaction(pop) : pop
+    if (!existBorrow) {
+      throw new Error(ecpErrorMessage.noExistBorrowId(borrowId))
+    }
+
+    return await this.contract.getLiquidatableAmountWithProtocolFee(
+      poolId,
+      address,
+      borrowId
+    )
   }
 
   async liquidateUserPosition(
@@ -606,7 +608,7 @@ export class ERC20CollateralPool
 
     const pool = await this.getPool(poolId)
 
-    if (pool.endTime > Date.now()) {
+    if (pool.endTime > Date.now() / 1000) {
       throw new Error(ecpErrorMessage.poolIsNotClosed)
     }
 

@@ -501,7 +501,7 @@ export class ERC20CollateralPoolToplend extends ERC20CollateralPool {
   }
 
   async getLiquidationInfo(pool: Pool): Promise<PoolLiquidationInfo> {
-    if (pool.endTime > Date.now()) {
+    if (pool.endTime > Date.now() / 1000) {
       throw new Error(ecpErrorMessage.poolIsNotClosed)
     }
 
@@ -542,7 +542,7 @@ export class ERC20CollateralPoolToplend extends ERC20CollateralPool {
 
     const pool = await this.getPool(poolId)
 
-    if (pool.endTime > Date.now()) {
+    if (pool.endTime > Date.now() / 1000) {
       throw new Error(ecpErrorMessage.poolIsNotClosed)
     }
 
