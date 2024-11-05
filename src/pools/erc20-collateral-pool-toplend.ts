@@ -19,6 +19,8 @@ import { Abi, Pagination, PrivateKey } from '../types/types'
 import { NULL_ADDRESS, Role } from '../utilities/util'
 
 export class ERC20CollateralPoolToplend extends ERC20CollateralPool {
+  readonly LIQUIDATION_FEE = BigInt(5)
+
   constructor(
     address: string,
     apiUrl: string,
@@ -233,14 +235,6 @@ export class ERC20CollateralPoolToplend extends ERC20CollateralPool {
     )
   }
 
-  pause(): Promise<ethers.ContractTransaction | ethers.TransactionResponse> {
-    throw new Error('Method not implemented.')
-  }
-
-  unpause(): Promise<ethers.ContractTransaction | ethers.TransactionResponse> {
-    throw new Error('Method not implemented.')
-  }
-
   async addPool(
     pool: PoolInput
   ): Promise<ethers.ContractTransaction | ethers.TransactionResponse> {
@@ -254,6 +248,10 @@ export class ERC20CollateralPoolToplend extends ERC20CollateralPool {
 
     if (pool.endTime <= Date.now() / 1000) {
       throw new Error(ecpErrorMessage.timeMustBeInFuture)
+    }
+
+    if (pool.collateralDetails.maxLended <= 0) {
+      throw new Error(poolCommonErrorMessage.noNegativeAmountOrZero)
     }
 
     if (this.signer) {
@@ -284,6 +282,8 @@ export class ERC20CollateralPoolToplend extends ERC20CollateralPool {
     poolId: bigint,
     amount: bigint
   ): Promise<ethers.ContractTransaction | ethers.TransactionResponse> {
+    await this._checkIsNotPaused()
+
     const pool = await this.getPool(poolId)
 
     if (pool.endTime <= Date.now() / 1000) {
@@ -292,6 +292,10 @@ export class ERC20CollateralPoolToplend extends ERC20CollateralPool {
 
     if (amount <= 0) {
       throw new Error(poolCommonErrorMessage.noNegativeAmountOrZero)
+    }
+
+    if (amount < pool.collateralDetails.minLended) {
+      throw new Error(ecpErrorMessage.amountTooLow)
     }
 
     if (
@@ -310,10 +314,16 @@ export class ERC20CollateralPoolToplend extends ERC20CollateralPool {
     poolId: bigint,
     amount: bigint
   ): Promise<ethers.ContractTransaction | ethers.TransactionResponse> {
+    await this._checkIsNotPaused()
+
     const pool = await this.getPool(poolId)
 
     if (amount <= 0) {
       throw new Error(poolCommonErrorMessage.noNegativeAmountOrZero)
+    }
+
+    if (amount < pool.collateralDetails.minBorrow) {
+      throw new Error(ecpErrorMessage.amountTooLow)
     }
 
     if (pool.endTime <= Date.now() / 1000) {
@@ -431,6 +441,7 @@ export class ERC20CollateralPoolToplend extends ERC20CollateralPool {
     borrowerAddress: string,
     borrowId: bigint
   ): Promise<ethers.ContractTransaction | ethers.TransactionResponse> {
+    await this._checkIsNotPaused()
     await this.getPool(poolId)
 
     if (!ethers.isAddress(borrowerAddress)) {
@@ -453,6 +464,8 @@ export class ERC20CollateralPoolToplend extends ERC20CollateralPool {
     address: string,
     lendingId: bigint
   ): Promise<ethers.ContractTransaction | ethers.TransactionResponse> {
+    await this._checkIsNotPaused()
+
     const pool = await this.getPool(poolId)
 
     if (pool.endTime > Date.now() / 1000) {
@@ -488,7 +501,7 @@ export class ERC20CollateralPoolToplend extends ERC20CollateralPool {
   }
 
   async getLiquidationInfo(pool: Pool): Promise<PoolLiquidationInfo> {
-    if (pool.endTime > Date.now()) {
+    if (pool.endTime > Date.now() / 1000) {
       throw new Error(ecpErrorMessage.poolIsNotClosed)
     }
 
@@ -524,9 +537,12 @@ export class ERC20CollateralPoolToplend extends ERC20CollateralPool {
   async liquidatePool(
     poolId: bigint
   ): Promise<ethers.ContractTransaction | ethers.TransactionResponse> {
+    await this._checkIsNotPaused()
+    await this._checkIsAdmin()
+
     const pool = await this.getPool(poolId)
 
-    if (pool.endTime > Date.now()) {
+    if (pool.endTime > Date.now() / 1000) {
       throw new Error(ecpErrorMessage.poolIsNotClosed)
     }
 

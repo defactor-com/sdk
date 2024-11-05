@@ -1,6 +1,6 @@
 import { ethers } from 'ethers'
 
-import { Pools } from '../src/pools'
+import { ERC20CollateralPool, Pools } from '../src/pools'
 import { SelfProvider } from '../src/provider'
 import { Staking } from '../src/staking/staking'
 import { CollateralToken } from '../src/types/pools'
@@ -181,7 +181,7 @@ export const getRandomERC20Collaterals = (
 }
 
 export const setPause = async (
-  provider: SelfProvider<Pools | Staking>,
+  provider: SelfProvider<Pools | Staking | ERC20CollateralPool>,
   value: boolean
 ) => {
   const isPaused = await provider.contract.isPaused()

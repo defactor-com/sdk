@@ -21,6 +21,8 @@ export type Lend = {
 // TODO: use uint8 instead of number for collateralTokenFactor and collateralTokenPercentage
 export type CollateralDetails = {
   maxLended: number
+  minLended: number
+  minBorrow: number
   collateralToken: string
   collateralTokenChainlink: string
   collateralTokenFactor: number
@@ -31,7 +33,7 @@ export type CollateralDetails = {
 export type PoolInput = {
   endTime: number
   interest: number
-  collateralDetails: CollateralDetails
+  collateralDetails: Omit<CollateralDetails, 'minLended' | 'minBorrow'>
 }
 
 // TODO: use uint48 instead of number for lastUpdated and endTime

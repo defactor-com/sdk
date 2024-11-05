@@ -25,14 +25,18 @@ export const erc20CollateralPoolErrorMessage = {
   maxLentIsReached: 'Max lent is reached',
   endTimeReached: 'Pool has ended',
   poolIsNotClosed: 'Pool is not closed',
-  maxLendedIsReached: 'Max lended is reached',
   poolIsClosed: 'Pool is closed',
   poolIsNotCompleted: 'Pool is not completed',
   loanAlreadyClaimed: 'Loan already claimed',
   poolCannotBeLiquidated: 'Pool cannot be liquidated',
   timeMustBeInFuture: 'Time must be in the future',
   amountOverpassPoolBalance: 'Amount overpass the pool available amount',
-  borrowAlreadyRepaid: 'Borrow already repaid'
+  borrowAlreadyRepaid: 'Borrow already repaid',
+  amountTooLow: 'The amount is less than or equal to the minimum',
+  minLentMustBeLessThanMaxLent:
+    'The min lent amount must be less than max lent amount',
+  minBorrowMustBeLessThanMaxLent:
+    'The min borrow amount must be less than max lent amount'
 }
 
 export const counterPartyPoolErrorMessage = {

@@ -26,8 +26,7 @@ export class ERC20CollateralPool
   implements Functions, Views, AdminFunctions
 {
   readonly LIQUIDATION_PROTOCOL_FEE = BigInt(5)
-  readonly LIQUIDATION_FEE = BigInt(5)
-  readonly OZ_IN_G = BigInt(31_10347680)
+  readonly LIQUIDATION_FEE = BigInt(10)
   readonly ONE_YEAR = BigInt(365)
   readonly HOUNDRED = BigInt(100)
 
@@ -240,14 +239,6 @@ export class ERC20CollateralPool
     )
   }
 
-  pause(): Promise<ethers.ContractTransaction | ethers.TransactionResponse> {
-    throw new Error('Method not implemented.')
-  }
-
-  unpause(): Promise<ethers.ContractTransaction | ethers.TransactionResponse> {
-    throw new Error('Method not implemented.')
-  }
-
   async addPool(
     pool: PoolInput
   ): Promise<ethers.ContractTransaction | ethers.TransactionResponse> {
@@ -263,6 +254,22 @@ export class ERC20CollateralPool
       throw new Error(ecpErrorMessage.timeMustBeInFuture)
     }
 
+    if (
+      BigInt(pool.collateralDetails.maxLended || 0) <= 0 ||
+      BigInt(pool.collateralDetails.minLended || 0) <= 0 ||
+      BigInt(pool.collateralDetails.minBorrow || 0) <= 0
+    ) {
+      throw new Error(poolCommonErrorMessage.noNegativeAmountOrZero)
+    }
+
+    if (pool.collateralDetails.minLended > pool.collateralDetails.maxLended) {
+      throw new Error(ecpErrorMessage.minLentMustBeLessThanMaxLent)
+    }
+
+    if (pool.collateralDetails.minBorrow > pool.collateralDetails.maxLended) {
+      throw new Error(ecpErrorMessage.minBorrowMustBeLessThanMaxLent)
+    }
+
     if (this.signer) {
       const isAdmin = await this.contract.hasRole(Role.ADMIN, this.signer)
 
@@ -272,6 +279,9 @@ export class ERC20CollateralPool
     }
 
     const formattedPool = {
+      maxLended: pool.collateralDetails.maxLended,
+      minLended: pool.collateralDetails.minLended,
+      minBorrow: pool.collateralDetails.minBorrow,
       endTime: pool.endTime,
       interest: pool.interest,
       collateralToken: pool.collateralDetails.collateralToken,
@@ -290,6 +300,8 @@ export class ERC20CollateralPool
     poolId: bigint,
     amount: bigint
   ): Promise<ethers.ContractTransaction | ethers.TransactionResponse> {
+    await this._checkIsNotPaused()
+
     const pool = await this.getPool(poolId)
 
     if (pool.endTime <= Date.now() / 1000) {
@@ -298,6 +310,14 @@ export class ERC20CollateralPool
 
     if (amount <= 0) {
       throw new Error(poolCommonErrorMessage.noNegativeAmountOrZero)
+    }
+
+    if (amount < pool.collateralDetails.minLended) {
+      throw new Error(ecpErrorMessage.amountTooLow)
+    }
+
+    if (pool.lended - pool.repaid + amount > pool.collateralDetails.maxLended) {
+      throw new Error(ecpErrorMessage.maxLentIsReached)
     }
 
     const pop = await this.contract.lend.populateTransaction(poolId, amount)
@@ -309,10 +329,16 @@ export class ERC20CollateralPool
     poolId: bigint,
     amount: bigint
   ): Promise<ethers.ContractTransaction | ethers.TransactionResponse> {
+    await this._checkIsNotPaused()
+
     const pool = await this.getPool(poolId)
 
     if (amount <= 0) {
       throw new Error(poolCommonErrorMessage.noNegativeAmountOrZero)
+    }
+
+    if (amount < pool.collateralDetails.minBorrow) {
+      throw new Error(ecpErrorMessage.amountTooLow)
     }
 
     if (pool.endTime <= Date.now() / 1000) {
@@ -430,6 +456,7 @@ export class ERC20CollateralPool
     borrowerAddress: string,
     borrowId: bigint
   ): Promise<ethers.ContractTransaction | ethers.TransactionResponse> {
+    await this._checkIsNotPaused()
     await this.getPool(poolId)
 
     if (!ethers.isAddress(borrowerAddress)) {
@@ -452,6 +479,8 @@ export class ERC20CollateralPool
     address: string,
     lendingId: bigint
   ): Promise<ethers.ContractTransaction | ethers.TransactionResponse> {
+    await this._checkIsNotPaused()
+
     const pool = await this.getPool(poolId)
 
     if (pool.endTime > Date.now() / 1000) {
@@ -487,7 +516,7 @@ export class ERC20CollateralPool
   }
 
   async getLiquidationInfo(pool: Pool): Promise<PoolLiquidationInfo> {
-    if (pool.endTime > Date.now()) {
+    if (pool.endTime > Date.now() / 1000) {
       throw new Error(ecpErrorMessage.poolIsNotClosed)
     }
 
@@ -523,9 +552,12 @@ export class ERC20CollateralPool
   async liquidatePool(
     poolId: bigint
   ): Promise<ethers.ContractTransaction | ethers.TransactionResponse> {
+    await this._checkIsNotPaused()
+    await this._checkIsAdmin()
+
     const pool = await this.getPool(poolId)
 
-    if (pool.endTime > Date.now()) {
+    if (pool.endTime > Date.now() / 1000) {
       throw new Error(ecpErrorMessage.poolIsNotClosed)
     }
 
@@ -534,6 +566,63 @@ export class ERC20CollateralPool
     }
 
     const pop = await this.contract.liquidatePool.populateTransaction(poolId)
+
+    return this.signer ? await this.signer.sendTransaction(pop) : pop
+  }
+
+  async getLiquidatableAmountWithProtocolFee(
+    poolId: bigint,
+    address: string,
+    borrowId: bigint
+  ) {
+    if (!ethers.isAddress(address)) {
+      throw new Error(commonErrorMessage.wrongAddressFormat)
+    }
+
+    await this.getPool(poolId)
+
+    const existBorrow = await this._existBorrow(poolId, borrowId, address)
+
+    if (!existBorrow) {
+      throw new Error(ecpErrorMessage.noExistBorrowId(borrowId))
+    }
+
+    return await this.contract.getLiquidatableAmountWithProtocolFee(
+      poolId,
+      address,
+      borrowId
+    )
+  }
+
+  async liquidateUserPosition(
+    poolId: bigint,
+    address: string,
+    borrowId: bigint
+  ) {
+    await this._checkIsNotPaused()
+    await this._checkIsAdmin()
+
+    if (!ethers.isAddress(address)) {
+      throw new Error(commonErrorMessage.wrongAddressFormat)
+    }
+
+    const pool = await this.getPool(poolId)
+
+    if (pool.endTime > Date.now() / 1000) {
+      throw new Error(ecpErrorMessage.poolIsNotClosed)
+    }
+
+    const borrow = await this.getBorrow(poolId, address, borrowId)
+
+    if (borrow.repayTime > 0) {
+      throw new Error(ecpErrorMessage.borrowAlreadyRepaid)
+    }
+
+    const pop = await this.contract.liquidateUserPosition.populateTransaction(
+      poolId,
+      address,
+      borrowId
+    )
 
     return this.signer ? await this.signer.sendTransaction(pop) : pop
   }
