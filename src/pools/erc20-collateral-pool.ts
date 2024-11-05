@@ -263,11 +263,11 @@ export class ERC20CollateralPool
     }
 
     if (pool.collateralDetails.minLended > pool.collateralDetails.maxLended) {
-      throw new Error(ecpErrorMessage.minLendedMustBeLessThanMaxLended)
+      throw new Error(ecpErrorMessage.minLentMustBeLessThanMaxLent)
     }
 
     if (pool.collateralDetails.minBorrow > pool.collateralDetails.maxLended) {
-      throw new Error(ecpErrorMessage.minBorrowMustBeLessThanMaxLended)
+      throw new Error(ecpErrorMessage.minBorrowMustBeLessThanMaxLent)
     }
 
     if (this.signer) {

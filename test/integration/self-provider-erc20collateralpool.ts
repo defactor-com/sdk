@@ -1111,7 +1111,7 @@ describe('SelfProvider - ERC20CollateralPool', () => {
               collateralTokenPercentage: 15
             }
           })
-        ).rejects.toThrow(ecpErrorMessage.minLendedMustBeLessThanMaxLended)
+        ).rejects.toThrow(ecpErrorMessage.minLentMustBeLessThanMaxLent)
       })
 
       it('failure - create pool with a min lended of zero', async () => {
@@ -1165,7 +1165,7 @@ describe('SelfProvider - ERC20CollateralPool', () => {
               collateralTokenPercentage: 15
             }
           })
-        ).rejects.toThrow(ecpErrorMessage.minBorrowMustBeLessThanMaxLended)
+        ).rejects.toThrow(ecpErrorMessage.minBorrowMustBeLessThanMaxLent)
       })
 
       it('success - create pool', async () => {
