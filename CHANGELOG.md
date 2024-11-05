@@ -1,5 +1,19 @@
 # @defactor-com/defactor-sdk
 
+## 4.0.0
+
+### Major Changes
+
+- 46f0f63: Support new version of the ERC20 Collateral Pool contract
+
+  ### Breaking changes
+
+  - Add functions `getLiquidatableAmountWithProtocolFee` and `liquidateUserPosition` into `ERC20CollateralPool` class.
+  - Now `liquidatePool` function requires `DEFAULT_ADMIN_ROLE`.
+  - The collateral details in `ERC20CollateralPool` class that implements the erc20 collateral pool contract now require `maxLended`, `minLended`, and `minBorrow`.
+  - The `LIQUIDATION_FEE` in the `ERC20CollateralPool` base class has changed from 5 to 10.
+  - The `OZ_IN_G` was removed from the `ERC20CollateralPool` base class and the classes from which it inherits.
+
 ## 3.1.0
 
 ### Minor Changes
