@@ -96,3 +96,10 @@ export const stakingErrorMessage = {
   nonNegativeIndexId: 'Neither Index nor Id can be negative',
   nonNegativeDates: 'Neither staking nor reward end date can be negative'
 }
+
+export const buybackErrorMessage = {
+  nonNegativeBuybackId: 'Buyback id cannot be negative',
+  noNegativeAmountOrZero: 'Amount cannot be negative or 0',
+  noNegativeSecondsOrZero: 'Seconds cannot be negative or 0',
+  noNegativeBps: 'Bps cannot be negative or 0'
+}
