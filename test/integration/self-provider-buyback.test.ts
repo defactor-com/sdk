@@ -109,5 +109,28 @@ describe('SelfProvider - Buyback', () => {
 
       expect(ethers.isAddress(address)).toBe(true)
     })
+    it('success - get recover', async () => {
+      const address = await provider.contract.getRecovererAddress()
+
+      expect(ethers.isAddress(address)).toBe(true)
+    })
+    it('success - get buy frequency', async () => {
+      expect.assertions(2)
+
+      const buyFrequency = await provider.contract.getBuyFrequency()
+
+      expect(typeof buyFrequency).toBe('bigint')
+      expect(buyFrequency).toBeGreaterThanOrEqual(BigInt(0))
+    })
+    it('success - get max liquidity slippage', async () => {
+      expect.assertions(3)
+
+      const maxLiquiditySlippage =
+        await provider.contract.getMaxLiquiditySlippage()
+
+      expect(typeof maxLiquiditySlippage).toBe('bigint')
+      expect(maxLiquiditySlippage).toBeGreaterThanOrEqual(BigInt(0))
+      expect(maxLiquiditySlippage).toBeLessThanOrEqual(BigInt(10000))
+    })
   })
 })
