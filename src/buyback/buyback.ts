@@ -1,6 +1,6 @@
 import { ContractTransaction, TransactionResponse, ethers } from 'ethers'
 
-import { miscStaking } from '../artifacts'
+import { miscBuyback } from '../artifacts'
 import { CoreContract } from '../base-classes'
 import { buybackErrorMessage, commonErrorMessage } from '../errors'
 import {
@@ -28,7 +28,7 @@ export class Buyback
     privateKey: PrivateKey | null,
     abi?: Abi
   ) {
-    super(address, apiUrl, privateKey, abi || miscStaking.abi)
+    super(address, apiUrl, privateKey, abi || miscBuyback.abi)
   }
 
   async getVault1(): Promise<string> {
