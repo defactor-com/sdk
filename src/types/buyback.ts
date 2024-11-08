@@ -51,3 +51,20 @@ export interface Views {
     pool: string
   ): Promise<bigint>
 }
+
+export interface Constants {
+  getVault1(): Promise<string>
+  getVault2(): Promise<string>
+  getVault3(): Promise<string>
+  getVault4(): Promise<string>
+  getUniswapFactory(): Promise<string>
+  getUniswapRouter(): Promise<string>
+  getFACTR(): Promise<string>
+  getUSDC(): Promise<string>
+  getWETH(): Promise<string>
+  getPool1Fee(): Promise<bigint>
+  getPool2Fee(): Promise<bigint>
+  getBuyFrequency(): Promise<bigint>
+  getMaxLiquiditySlippage(): Promise<bigint>
+  getRecovererAddress(): Promise<string>
+}

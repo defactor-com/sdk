@@ -1,18 +1,22 @@
 import { ContractTransaction, TransactionResponse, ethers } from 'ethers'
 
 import { miscStaking } from '../artifacts'
-import { BaseContract } from '../base-classes'
+import { CoreContract } from '../base-classes'
 import { buybackErrorMessage, commonErrorMessage } from '../errors'
 import {
   BuybackAmounts,
   BuybackStruct,
+  Constants,
   CustomBuybackStruct,
   Functions,
   Views
 } from '../types/buyback'
 import { Abi, PrivateKey } from '../types/types'
 
-export class Buyback extends BaseContract implements Functions, Views {
+export class Buyback
+  extends CoreContract
+  implements Functions, Views, Constants
+{
   readonly ONE_HUNDRED = BigInt(100)
   readonly THREE_HUNDRED = BigInt(300)
   readonly ONE_THOUSAND = BigInt(1_000)
@@ -25,6 +29,62 @@ export class Buyback extends BaseContract implements Functions, Views {
     abi?: Abi
   ) {
     super(address, apiUrl, privateKey, abi || miscStaking.abi)
+  }
+
+  async getVault1(): Promise<string> {
+    return await this.contract.vault1()
+  }
+
+  async getVault2(): Promise<string> {
+    return await this.contract.vault2()
+  }
+
+  async getVault3(): Promise<string> {
+    return await this.contract.vault3()
+  }
+
+  async getVault4(): Promise<string> {
+    return await this.contract.vault4()
+  }
+
+  async getUniswapFactory(): Promise<string> {
+    return await this.contract.uniswapFactory()
+  }
+
+  async getUniswapRouter(): Promise<string> {
+    return await this.contract.uniswapRouter()
+  }
+
+  async getFACTR(): Promise<string> {
+    return await this.contract.FACTR()
+  }
+
+  async getUSDC(): Promise<string> {
+    return await this.contract.USDC()
+  }
+
+  async getWETH(): Promise<string> {
+    return await this.contract.WETH()
+  }
+
+  async getPool1Fee(): Promise<bigint> {
+    return await this.contract.POOL_1_FEE()
+  }
+
+  async getPool2Fee(): Promise<bigint> {
+    return await this.contract.POOL_2_FEE()
+  }
+
+  async getBuyFrequency(): Promise<bigint> {
+    return await this.contract.BUY_FREQUENCY()
+  }
+
+  async getMaxLiquiditySlippage(): Promise<bigint> {
+    return await this.contract.MAX_LIQUIDITY_SLIPPAGE()
+  }
+
+  async getRecovererAddress(): Promise<string> {
+    return await this.contract.RECOVERER()
   }
 
   async fetchActiveLocks(fromId: bigint): Promise<Array<BuybackStruct>> {
