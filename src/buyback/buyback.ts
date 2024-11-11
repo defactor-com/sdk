@@ -12,6 +12,8 @@ import {
   Views
 } from '../types/buyback'
 import { Abi, PrivateKey } from '../types/types'
+import { Erc20 } from '../utilities/erc20'
+import { getUnixEpochTime } from '../utilities/util'
 
 export class Buyback
   extends CoreContract
@@ -21,6 +23,9 @@ export class Buyback
   readonly THREE_HUNDRED = BigInt(300)
   readonly ONE_THOUSAND = BigInt(1_000)
   readonly TEN_THOUSAND = BigInt(10_000)
+  private USDC: Erc20 | undefined
+  protected readonly ONE_DAY_SEC = BigInt(86400)
+  protected readonly ONE_YEAR_SEC = this.ONE_DAY_SEC * BigInt(365)
 
   constructor(
     address: string,
@@ -29,6 +34,16 @@ export class Buyback
     abi?: Abi
   ) {
     super(address, apiUrl, privateKey, abi || miscBuyback.abi)
+  }
+
+  private async _getUsdcContract(): Promise<Erc20> {
+    if (!this.USDC) {
+      const address = await this.getUSDC()
+
+      this.USDC = new Erc20(address, this.apiUrl, null)
+    }
+
+    return this.USDC
   }
 
   async getVault1(): Promise<string> {
@@ -87,10 +102,77 @@ export class Buyback
     return await this.contract.RECOVERER()
   }
 
+  protected async _getBuybackById(
+    buybackId: bigint
+  ): Promise<BuybackStruct | null> {
+    if (buybackId < BigInt(0) || buybackId >= BigInt(1) << BigInt(256)) {
+      return null
+    }
+
+    const buyback: BuybackStruct = await this.contract.buybacks(buybackId)
+
+    if (!buyback.timeLocked) {
+      return null
+    }
+
+    return {
+      buyAmount: buyback.buyAmount,
+      spendAmount: buyback.spendAmount,
+      timeLocked: buyback.timeLocked,
+      withdrawn: buyback.withdrawn
+    }
+  }
+
+  async getBuyback(buybackId: bigint) {
+    const buyback = await this._getBuybackById(buybackId)
+
+    if (!buyback) {
+      throw new Error(buybackErrorMessage.nonExistBuybackId(buybackId))
+    }
+
+    return buyback
+  }
+
+  protected async _getCustomBuybackById(
+    buybackId: bigint
+  ): Promise<CustomBuybackStruct | null> {
+    if (buybackId < BigInt(0) || buybackId >= BigInt(1) << BigInt(256)) {
+      return null
+    }
+
+    const customBuyback: CustomBuybackStruct =
+      await this.contract.customBuybacks(buybackId)
+
+    if (!customBuyback.timeLocked) {
+      return null
+    }
+
+    return {
+      buyAmount: customBuyback.buyAmount,
+      spendAmount: customBuyback.spendAmount,
+      timeLocked: customBuyback.timeLocked,
+      withdrawn: customBuyback.withdrawn,
+      distributionArray: customBuyback.distributionArray,
+      collectionArray: customBuyback.collectionArray
+    }
+  }
+
+  async getCustomBuyback(buybackId: bigint) {
+    const customBuyback = await this._getCustomBuybackById(buybackId)
+
+    if (!customBuyback) {
+      throw new Error(buybackErrorMessage.nonExistCustomBuybackId(buybackId))
+    }
+
+    return customBuyback
+  }
+
   async fetchActiveLocks(fromId: bigint): Promise<Array<BuybackStruct>> {
     if (fromId < 0) {
       throw new Error(buybackErrorMessage.nonNegativeBuybackId)
     }
+
+    await this.getBuyback(fromId)
 
     return await this.contract.fetchActiveLocks(fromId)
   }
@@ -102,6 +184,8 @@ export class Buyback
       throw new Error(buybackErrorMessage.nonNegativeBuybackId)
     }
 
+    await this.getCustomBuyback(fromId)
+
     return await this.contract.fetchActiveCustomLocks(fromId)
   }
 
@@ -111,7 +195,7 @@ export class Buyback
     usdcAmount: bigint
   ): Promise<bigint> {
     if (usdcAmount <= 0) {
-      throw new Error(buybackErrorMessage.noNegativeAmountOrZero)
+      throw new Error(buybackErrorMessage.nonNegativeAmountOrZero)
     }
 
     if (!ethers.isAddress(pool1) || !ethers.isAddress(pool2)) {
@@ -137,11 +221,21 @@ export class Buyback
     }
 
     if (amountIn <= 0) {
-      throw new Error(buybackErrorMessage.noNegativeAmountOrZero)
+      throw new Error(buybackErrorMessage.nonNegativeAmountOrZero)
+    }
+
+    if (amountIn >= BigInt(1) << BigInt(128)) {
+      throw new Error(commonErrorMessage.nonGreaterThan('amountIn', '128 bits'))
     }
 
     if (secondsAgo <= 0) {
-      throw new Error(buybackErrorMessage.noNegativeSecondsOrZero)
+      throw new Error(buybackErrorMessage.nonNegativeSecondsOrZero)
+    }
+
+    if (secondsAgo >= BigInt(1) << BigInt(32)) {
+      throw new Error(
+        commonErrorMessage.nonGreaterThan('secondsAgo', '32 bits')
+      )
     }
 
     return await this.contract.estimateAmountOut(
@@ -154,6 +248,14 @@ export class Buyback
   }
 
   async buyback(): Promise<ContractTransaction | TransactionResponse> {
+    const usdcContract = await this._getUsdcContract()
+    const decimals = await usdcContract.decimals()
+    const usdcBalance = await usdcContract.balanceOf(this.address)
+
+    if (usdcBalance < this.ONE_THOUSAND * BigInt(10) ** decimals) {
+      throw new Error(buybackErrorMessage.buybackConstraint)
+    }
+
     const pop = await this.contract.buyback.populateTransaction()
 
     return this.signer ? await this.signer.sendTransaction(pop) : pop
@@ -162,8 +264,14 @@ export class Buyback
   async buybackWithdraw(
     id: bigint
   ): Promise<ContractTransaction | TransactionResponse> {
-    if (id < 0) {
-      throw new Error(buybackErrorMessage.nonNegativeBuybackId)
+    const buyback = await this.getBuyback(id)
+
+    if (buyback.withdrawn) {
+      throw new Error(buybackErrorMessage.alreadyWithdrawn)
+    }
+
+    if (buyback.timeLocked + this.ONE_YEAR_SEC >= getUnixEpochTime()) {
+      throw new Error(buybackErrorMessage.unlockPeriodNotFinished)
     }
 
     const pop = await this.contract.buybackWithdraw.populateTransaction(id)
@@ -177,7 +285,20 @@ export class Buyback
     distributionArray: Array<BuybackAmounts>
   ): Promise<ContractTransaction | TransactionResponse> {
     if (usdcAmount <= 0) {
-      throw new Error(buybackErrorMessage.noNegativeAmountOrZero)
+      throw new Error(buybackErrorMessage.nonNegativeAmountOrZero)
+    }
+
+    if (usdcAmount >= BigInt(1) << BigInt(256)) {
+      throw new Error(
+        commonErrorMessage.nonGreaterThan('usdcAmount', '256 bits')
+      )
+    }
+
+    const usdcContract = await this._getUsdcContract()
+    const decimals = await usdcContract.decimals()
+
+    if (usdcAmount < this.ONE_THOUSAND * BigInt(10) ** decimals) {
+      throw new Error(buybackErrorMessage.buybackConstraint)
     }
 
     for (const buybackAmount of collectionArray.concat(distributionArray)) {
@@ -185,9 +306,18 @@ export class Buyback
         throw new Error(commonErrorMessage.wrongAddressFormat)
       }
 
-      if (buybackAmount.bps < 0) {
-        throw new Error(buybackErrorMessage.noNegativeBps)
+      if (buybackAmount.bps <= 0) {
+        throw new Error(buybackErrorMessage.nonNegativeOrZeroBps)
       }
+    }
+
+    const collectionBpsSum = collectionArray.reduce(
+      (total, current) => total + current.bps,
+      BigInt(0)
+    )
+
+    if (collectionBpsSum !== this.TEN_THOUSAND) {
+      throw new Error(buybackErrorMessage.collectionBpsConstraint)
     }
 
     const pop = await this.contract.customBuyback.populateTransaction(
@@ -202,8 +332,14 @@ export class Buyback
   async customBuybackWithdraw(
     id: bigint
   ): Promise<ContractTransaction | TransactionResponse> {
-    if (id < 0) {
-      throw new Error(buybackErrorMessage.nonNegativeBuybackId)
+    const customBuyback = await this.getCustomBuyback(id)
+
+    if (customBuyback.withdrawn) {
+      throw new Error(buybackErrorMessage.alreadyWithdrawn)
+    }
+
+    if (customBuyback.timeLocked + this.ONE_YEAR_SEC >= getUnixEpochTime()) {
+      throw new Error(buybackErrorMessage.unlockPeriodNotFinished)
     }
 
     const pop =
