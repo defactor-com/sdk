@@ -72,6 +72,11 @@ describe('SelfProvider - Buyback', () => {
           provider.contract.buybackWithdraw(BigInt(0))
         ).rejects.toThrow(buybackErrorMessage.alreadyWithdrawn)
       })
+      it.skip('failure - unlock period not finished', async () => {
+        await expect(
+          provider.contract.buybackWithdraw(BigInt(0))
+        ).rejects.toThrow(buybackErrorMessage.unlockPeriodNotFinished)
+      })
     })
     describe('customBuyback()', () => {
       it('failure - usdcAmount is negative', async () => {
@@ -86,13 +91,13 @@ describe('SelfProvider - Buyback', () => {
       })
       it('failure - usdcAmount is less than 1000', async () => {
         await expect(
-          provider.contract.customBuyback(BigInt(900000000), [], [])
+          provider.contract.customBuyback(BigInt(900_000000), [], [])
         ).rejects.toThrow(buybackErrorMessage.buybackConstraint)
       })
       it('failure - collection array does not have valid addresses', async () => {
         await expect(
           provider.contract.customBuyback(
-            BigInt(1000000000),
+            BigInt(1000_000000),
             [{ account: '0xinvalid', bps: BigInt(0) }],
             []
           )
@@ -101,7 +106,7 @@ describe('SelfProvider - Buyback', () => {
       it('failure - distribution array does not have valid addresses', async () => {
         await expect(
           provider.contract.customBuyback(
-            BigInt(1000000000),
+            BigInt(1000_000000),
             [],
             [{ account: '0xinvalid', bps: BigInt(0) }]
           )
@@ -110,7 +115,7 @@ describe('SelfProvider - Buyback', () => {
       it('failure - collection array have zero bps', async () => {
         await expect(
           provider.contract.customBuyback(
-            BigInt(1000000000),
+            BigInt(1000_000000),
             [
               { account: signerAddress, bps: BigInt(1) },
               { account: signerAddress, bps: BigInt(1) },
@@ -123,7 +128,7 @@ describe('SelfProvider - Buyback', () => {
       it('failure - collection array have negative bps', async () => {
         await expect(
           provider.contract.customBuyback(
-            BigInt(1000000000),
+            BigInt(1000_000000),
             [
               { account: signerAddress, bps: BigInt(1) },
               { account: signerAddress, bps: BigInt(1) },
@@ -136,10 +141,10 @@ describe('SelfProvider - Buyback', () => {
       it('failure - collection array bps is not 100%', async () => {
         await expect(
           provider.contract.customBuyback(
-            BigInt(1000000000),
+            BigInt(1000_000000),
             [
-              { account: signerAddress, bps: BigInt(8000) },
-              { account: signerAddress, bps: BigInt(1500) }
+              { account: signerAddress, bps: BigInt(80_00) },
+              { account: signerAddress, bps: BigInt(15_00) }
             ],
             []
           )
@@ -151,6 +156,11 @@ describe('SelfProvider - Buyback', () => {
         await expect(
           provider.contract.customBuybackWithdraw(BigInt(0))
         ).rejects.toThrow(buybackErrorMessage.alreadyWithdrawn)
+      })
+      it.skip('failure - unlock period not finished', async () => {
+        await expect(
+          provider.contract.customBuybackWithdraw(BigInt(0))
+        ).rejects.toThrow(buybackErrorMessage.unlockPeriodNotFinished)
       })
     })
   })
