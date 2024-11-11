@@ -1,6 +1,7 @@
 import { ethers } from 'ethers'
 import timekeeper from 'timekeeper'
 
+import { Erc20 } from '../../src'
 import { Buyback } from '../../src/buyback'
 import { SelfProvider } from '../../src/provider'
 import {
@@ -95,19 +96,43 @@ describe('SelfProvider - Buyback', () => {
       expect(ethers.isAddress(address)).toBe(true)
     })
     it('success - get factr', async () => {
+      expect.assertions(3)
+
       const address = await provider.contract.getFACTR()
 
       expect(ethers.isAddress(address)).toBe(true)
+
+      const erc20 = new Erc20(address, provider.contract.apiUrl, null)
+      const decimals = await erc20.decimals()
+
+      expect(typeof decimals).toBe('bigint')
+      expect(decimals).toBeGreaterThanOrEqual(BigInt(0))
     })
     it('success - get usdc', async () => {
+      expect.assertions(3)
+
       const address = await provider.contract.getUSDC()
 
       expect(ethers.isAddress(address)).toBe(true)
+
+      const erc20 = new Erc20(address, provider.contract.apiUrl, null)
+      const decimals = await erc20.decimals()
+
+      expect(typeof decimals).toBe('bigint')
+      expect(decimals).toBeGreaterThanOrEqual(BigInt(0))
     })
     it('success - get weth', async () => {
+      expect.assertions(3)
+
       const address = await provider.contract.getWETH()
 
       expect(ethers.isAddress(address)).toBe(true)
+
+      const erc20 = new Erc20(address, provider.contract.apiUrl, null)
+      const decimals = await erc20.decimals()
+
+      expect(typeof decimals).toBe('bigint')
+      expect(decimals).toBeGreaterThanOrEqual(BigInt(0))
     })
     it('success - get recover', async () => {
       const address = await provider.contract.getRecovererAddress()
