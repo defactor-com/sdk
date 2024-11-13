@@ -458,10 +458,43 @@ describe('SelfProvider - Buyback', () => {
       })
     })
     describe('recoverERC20()', () => {
-      it('failure - the tokenIn is not a valid address', async () => {
+      it('failure - the token is not a valid address', async () => {
         await expect(
           provider.contract.recoverERC20('0xInvalid')
         ).rejects.toThrow(commonErrorMessage.wrongAddressFormat)
+      })
+      it('failure - the signer address is not the recoverer address', async () => {
+        const usdc = await provider.contract.getUSDC()
+
+        await expect(provider.contract.recoverERC20(usdc)).rejects.toThrow(
+          buybackErrorMessage.addressIsNotRecoverer
+        )
+      })
+      it('failure - the token is the usdc address', async () => {
+        const usdc = await provider.contract.getUSDC()
+        const providerWithoutPk = new SelfProvider(
+          Buyback,
+          BUYBACK_CONTRACT_ADDRESS,
+          provider.contract.apiUrl,
+          ''
+        )
+
+        await expect(
+          providerWithoutPk.contract.recoverERC20(usdc)
+        ).rejects.toThrow(commonErrorMessage.invalidToken)
+      })
+      it('failure - the token is the factr address', async () => {
+        const factr = await provider.contract.getFACTR()
+        const providerWithoutPk = new SelfProvider(
+          Buyback,
+          BUYBACK_CONTRACT_ADDRESS,
+          provider.contract.apiUrl,
+          ''
+        )
+
+        await expect(
+          providerWithoutPk.contract.recoverERC20(factr)
+        ).rejects.toThrow(commonErrorMessage.invalidToken)
       })
     })
   })
