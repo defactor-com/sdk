@@ -1,5 +1,11 @@
 # @defactor-com/defactor-sdk
 
+## 4.0.1
+
+### Patch Changes
+
+- 787762f: Update the abi of the `erc20 collateral pool` contract to fix interest format
+
 ## 4.0.0
 
 ### Major Changes
