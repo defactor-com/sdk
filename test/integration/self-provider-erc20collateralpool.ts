@@ -1021,7 +1021,7 @@ describe('SelfProvider - ERC20CollateralPool', () => {
         await expect(
           provider.contract.addPool({
             endTime: 1911925999,
-            interest: 10,
+            interest: 1000, // 10%
             collateralDetails: {
               minLended: 1,
               minBorrow: 1,
@@ -1039,7 +1039,7 @@ describe('SelfProvider - ERC20CollateralPool', () => {
         await expect(
           provider.contract.addPool({
             endTime: 1911925999,
-            interest: 10,
+            interest: 1000, // 10%
             collateralDetails: {
               minLended: 1,
               minBorrow: 1,
@@ -1057,7 +1057,7 @@ describe('SelfProvider - ERC20CollateralPool', () => {
         await expect(
           provider.contract.addPool({
             endTime: 1911925999,
-            interest: 10,
+            interest: 1000, // 10%
             collateralDetails: {
               minLended: 1,
               minBorrow: 1,
@@ -1082,7 +1082,7 @@ describe('SelfProvider - ERC20CollateralPool', () => {
         await expect(
           provider.contract.addPool({
             endTime: 1706925614,
-            interest: 10,
+            interest: 1000, // 10%
             collateralDetails: {
               minLended: 1,
               minBorrow: 1,
@@ -1100,7 +1100,7 @@ describe('SelfProvider - ERC20CollateralPool', () => {
         await expect(
           provider.contract.addPool({
             endTime: 1911925999,
-            interest: 10,
+            interest: 1000, // 10%
             collateralDetails: {
               minLended: 10000000000,
               minBorrow: 1,
@@ -1118,7 +1118,7 @@ describe('SelfProvider - ERC20CollateralPool', () => {
         await expect(
           provider.contract.addPool({
             endTime: 1911925999,
-            interest: 10,
+            interest: 1000, // 10%
             collateralDetails: {
               minLended: 0,
               minBorrow: 1,
@@ -1136,7 +1136,7 @@ describe('SelfProvider - ERC20CollateralPool', () => {
         await expect(
           provider.contract.addPool({
             endTime: 1911925999,
-            interest: 10,
+            interest: 1000, // 10%
             collateralDetails: {
               minLended: 1,
               minBorrow: 0,
@@ -1154,7 +1154,7 @@ describe('SelfProvider - ERC20CollateralPool', () => {
         await expect(
           provider.contract.addPool({
             endTime: 1911925999,
-            interest: 10,
+            interest: 1000, // 10%
             collateralDetails: {
               minLended: 1,
               minBorrow: 10000000,
@@ -1178,7 +1178,7 @@ describe('SelfProvider - ERC20CollateralPool', () => {
 
         const tx = await provider.contract.addPool({
           endTime: 1911925999,
-          interest: 10,
+          interest: 1000, // 10%
           collateralDetails: {
             minLended: 5,
             minBorrow: 10,
@@ -1321,7 +1321,7 @@ describe('SelfProvider - ERC20CollateralPool', () => {
 
         const tx = await provider.contract.addPool({
           endTime: Date.now() + ONE_DAY_MS,
-          interest: 10,
+          interest: 1000, // 10%
           collateralDetails: {
             minLended: 1,
             minBorrow: 1,
@@ -1355,7 +1355,7 @@ describe('SelfProvider - ERC20CollateralPool', () => {
 
         const tx = await provider.contract.addPool({
           endTime: Date.now() + ONE_SEC_MS * 10,
-          interest: 10,
+          interest: 1000, // 10%
           collateralDetails: {
             minLended: 1,
             minBorrow: 1,
