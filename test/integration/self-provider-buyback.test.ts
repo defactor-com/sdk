@@ -1,4 +1,4 @@
-import { ethers } from 'ethers'
+import { ethers, isError } from 'ethers'
 import timekeeper from 'timekeeper'
 
 import { Erc20 } from '../../src'
@@ -9,6 +9,8 @@ import {
   ADMIN_TESTING_PRIVATE_KEY,
   BUYBACK_CONTRACT_ADDRESS,
   MAX_BIGINT,
+  ONE_DAY_SEC,
+  ONE_YEAR_SEC,
   loadEnv
 } from '../test-util'
 
@@ -58,6 +60,7 @@ describe('SelfProvider - Buyback', () => {
     })
   })
 
+  // TODO - Add success test cases https://github.com/defactor-com/sdk/issues/231 #231
   describe('Functions', () => {
     describe('buyback()', () => {
       it.skip('failure - usdc balance is is less than 1000', async () => {
@@ -76,6 +79,23 @@ describe('SelfProvider - Buyback', () => {
         await expect(
           provider.contract.buybackWithdraw(BigInt(0))
         ).rejects.toThrow(buybackErrorMessage.unlockPeriodNotFinished)
+      })
+      it.skip('success - buyback withdraw', async () => {
+        const buyback = await provider.contract.getBuyback(BigInt(0))
+        const dateAfterLock =
+          (Number(buyback.timeLocked) + ONE_YEAR_SEC + ONE_DAY_SEC) * 1000
+
+        timekeeper.travel(new Date(dateAfterLock))
+
+        expect.assertions(1)
+
+        try {
+          await provider.contract.buybackWithdraw(BigInt(0))
+        } catch (error) {
+          expect(isError(error, 'CALL_EXCEPTION')).toBeTruthy()
+        }
+
+        timekeeper.reset()
       })
     })
     describe('customBuyback()', () => {
@@ -161,6 +181,25 @@ describe('SelfProvider - Buyback', () => {
         await expect(
           provider.contract.customBuybackWithdraw(BigInt(0))
         ).rejects.toThrow(buybackErrorMessage.unlockPeriodNotFinished)
+      })
+      it.skip('success - buyback withdraw', async () => {
+        const customBuyback = await provider.contract.getCustomBuyback(
+          BigInt(0)
+        )
+        const dateAfterLock =
+          (Number(customBuyback.timeLocked) + ONE_YEAR_SEC + ONE_DAY_SEC) * 1000
+
+        timekeeper.travel(new Date(dateAfterLock))
+
+        expect.assertions(1)
+
+        try {
+          await provider.contract.customBuybackWithdraw(BigInt(0))
+        } catch (error) {
+          expect(isError(error, 'CALL_EXCEPTION')).toBeTruthy()
+        }
+
+        timekeeper.reset()
       })
     })
   })
