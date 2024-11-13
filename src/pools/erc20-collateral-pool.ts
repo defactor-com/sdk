@@ -262,7 +262,7 @@ export class ERC20CollateralPool
       throw new Error(poolCommonErrorMessage.noNegativeAmountOrZero)
     }
 
-    if (pool.collateralDetails.minLended > pool.collateralDetails.maxLended) {
+    if (pool.collateralDetails.maxLended < pool.collateralDetails.minLended) {
       throw new Error(ecpErrorMessage.minLentMustBeLessThanMaxLent)
     }
 
