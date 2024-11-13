@@ -3,7 +3,8 @@ export const commonErrorMessage = {
   addressIsNotAdmin: 'Sender address is not admin',
   wrongAddressFormat: `Address does not follow the ethereum address format`,
   nonGreaterThan: (valueName: string, maxValue: string) =>
-    `The ${valueName} value cannot be greater than ${maxValue}`
+    `The ${valueName} value cannot be greater than ${maxValue}`,
+  invalidToken: 'Invalid token address'
 }
 
 export const poolCommonErrorMessage = {
@@ -111,5 +112,6 @@ export const buybackErrorMessage = {
   buybackConstraint: 'USDC Balance should be at least 1000',
   collectionBpsConstraint: 'Sum of BPSs should equal 100%',
   unlockPeriodNotFinished: 'Unlock period not finished',
-  alreadyWithdrawn: 'Unlock already withdrawn'
+  alreadyWithdrawn: 'Unlock already withdrawn',
+  addressIsNotRecoverer: 'Sender address is not recoverer address'
 }

@@ -349,13 +349,28 @@ export class Buyback
   }
 
   async recoverERC20(
-    address: string
+    token: string
   ): Promise<ContractTransaction | TransactionResponse> {
-    if (!ethers.isAddress(address)) {
+    if (!ethers.isAddress(token)) {
       throw new Error(commonErrorMessage.wrongAddressFormat)
     }
 
-    const pop = await this.contract.recoverERC20.populateTransaction(address)
+    if (this.signer) {
+      const recoverer = await this.getRecovererAddress()
+
+      if (this.signer.address !== recoverer) {
+        throw new Error(buybackErrorMessage.addressIsNotRecoverer)
+      }
+    }
+
+    const factr = await this.getFACTR()
+    const usdc = await this.getUSDC()
+
+    if (token === factr || token === usdc) {
+      throw new Error(commonErrorMessage.invalidToken)
+    }
+
+    const pop = await this.contract.recoverERC20.populateTransaction(token)
 
     return this.signer ? await this.signer.sendTransaction(pop) : pop
   }
