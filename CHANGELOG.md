@@ -1,5 +1,11 @@
 # @defactor-com/defactor-sdk
 
+## 4.0.2
+
+### Patch Changes
+
+- 234ca7d: Add support to multiple contract actions for the `buyback` contract
+
 ## 4.0.1
 
 ### Patch Changes
