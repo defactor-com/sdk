@@ -1,7 +1,10 @@
 export const commonErrorMessage = {
   contractIsPaused: 'The contract is paused',
   addressIsNotAdmin: 'Sender address is not admin',
-  wrongAddressFormat: `Address does not follow the ethereum address format`
+  wrongAddressFormat: `Address does not follow the ethereum address format`,
+  nonGreaterThan: (valueName: string, maxValue: string) =>
+    `The ${valueName} value cannot be greater than ${maxValue}`,
+  invalidToken: 'Invalid token address'
 }
 
 export const poolCommonErrorMessage = {
@@ -95,4 +98,20 @@ export const stakingErrorMessage = {
     'Staking end time cannot be less than rewards end time',
   nonNegativeIndexId: 'Neither Index nor Id can be negative',
   nonNegativeDates: 'Neither staking nor reward end date can be negative'
+}
+
+export const buybackErrorMessage = {
+  nonNegativeBuybackId: 'Buyback id cannot be negative',
+  nonNegativeAmountOrZero: 'Amount cannot be negative or 0',
+  nonNegativeSecondsOrZero: 'Seconds cannot be negative or 0',
+  nonNegativeOrZeroBps: 'Bps cannot be negative or 0',
+  nonExistBuybackId: (buybackId: bigint) =>
+    `Buyback id ${buybackId.toString()} does not exist`,
+  nonExistCustomBuybackId: (buybackId: bigint) =>
+    `Custom buyback id ${buybackId.toString()} does not exist`,
+  buybackConstraint: 'USDC Balance should be at least 1000',
+  collectionBpsConstraint: 'Sum of BPSs should equal 100%',
+  unlockPeriodNotFinished: 'Unlock period not finished',
+  alreadyWithdrawn: 'Unlock already withdrawn',
+  addressIsNotRecoverer: 'Sender address is not recoverer address'
 }

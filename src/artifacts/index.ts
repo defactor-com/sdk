@@ -1,4 +1,5 @@
 import miscAdminPools from './AdminPools.json'
+import miscBuyback from './Buyback.json'
 import miscErc20 from './ERC20.json'
 import miscErc20CollateralPool from './ERC20CollateralPool.json'
 import miscErc20CollateralPoolToplend from './ERC20CollateralPoolToplend.json'
@@ -11,5 +12,6 @@ export {
   miscAdminPools,
   miscErc20,
   miscStaking,
-  miscErc20CollateralPoolToplend
+  miscErc20CollateralPoolToplend,
+  miscBuyback
 }
