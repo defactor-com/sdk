@@ -8,7 +8,7 @@ import {
 } from './pools'
 import * as AssistedProvider from './provider/assisted.provider'
 import * as SelfProvider from './provider/self.provider'
-import { Staking } from './staking'
+import { Staking, StakingExpiration } from './staking'
 import { Erc20 } from './utilities/erc20'
 import * as generics from './utilities/generics'
 import * as util from './utilities/util'
@@ -33,6 +33,7 @@ export {
   Utilities,
   ERC20CollateralPool,
   Staking,
+  StakingExpiration,
   Erc20,
   Pools,
   AdminPools,
