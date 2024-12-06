@@ -3,6 +3,7 @@ import { ethers } from 'ethers'
 export type Plan = {
   lockDuration: bigint
   apy: bigint
+  expires?: bigint
 }
 
 export type Stake = {
@@ -56,5 +57,12 @@ export interface Functions {
   ): Promise<ethers.ContractTransaction | ethers.TransactionResponse>
   claimRewards(
     stakeIndex: bigint
+  ): Promise<ethers.ContractTransaction | ethers.TransactionResponse>
+}
+
+export interface ExpirationFunctions {
+  setPlanExpiration(
+    planId: bigint,
+    planExpiration: bigint
   ): Promise<ethers.ContractTransaction | ethers.TransactionResponse>
 }
