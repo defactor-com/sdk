@@ -20,29 +20,6 @@ export class StakingExpiration extends Staking implements ExpirationFunctions {
     return await this.contract.TOKEN()
   }
 
-  async addPlan(
-    lockDuration: bigint,
-    apy: bigint
-  ): Promise<ContractTransaction | TransactionResponse> {
-    await this._checkIsAdmin()
-
-    if (lockDuration < 0) {
-      throw new Error(stakingErrorMessage.nonNegativeLockDuration)
-    }
-
-    if (apy < 0) {
-      throw new Error(stakingErrorMessage.nonNegativeApy)
-    }
-
-    const pop = await this.contract.addPlan.populateTransaction(
-      lockDuration.toString(),
-      '0',
-      apy.toString()
-    )
-
-    return this.signer ? await this.signer.sendTransaction(pop) : pop
-  }
-
   async setPlanExpiration(
     planId: bigint,
     planExpiration: bigint
