@@ -1,10 +1,21 @@
 import { ContractTransaction, TransactionResponse } from 'ethers'
 
+import { miscStakingExpiration } from '../artifacts'
 import { stakingErrorMessage } from '../errors'
 import { ExpirationFunctions } from '../types/staking'
+import { Abi, PrivateKey } from '../types/types'
 import { Staking } from './staking'
 
 export class StakingExpiration extends Staking implements ExpirationFunctions {
+  constructor(
+    address: string,
+    apiUrl: string,
+    privateKey: PrivateKey | null,
+    abi?: Abi
+  ) {
+    super(address, apiUrl, privateKey, abi || miscStakingExpiration.abi)
+  }
+
   async getBaseTokenAddress(): Promise<string> {
     return await this.contract.TOKEN()
   }
