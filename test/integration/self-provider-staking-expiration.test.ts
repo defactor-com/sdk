@@ -10,6 +10,7 @@ import {
   AMOY_STAKING_CONTRACT_ADDRESS,
   FACTR_TOKEN_ADDRESS,
   MAX_BIGINT,
+  ONE_DAY_SEC,
   loadEnv
 } from '../test-util'
 
@@ -27,22 +28,22 @@ describe('SelfProvider - Staking with plan Expiration', () => {
       apy: BigInt(5)
     },
     {
-      lockDuration: BigInt(30 * 24 * 60 * 60),
+      lockDuration: BigInt(30 * ONE_DAY_SEC),
       expires: BigInt(0),
       apy: BigInt(8)
     },
     {
-      lockDuration: BigInt(90 * 24 * 60 * 60),
+      lockDuration: BigInt(90 * ONE_DAY_SEC),
       expires: BigInt(0),
       apy: BigInt(10)
     },
     {
-      lockDuration: BigInt(180 * 24 * 60 * 60),
+      lockDuration: BigInt(180 * ONE_DAY_SEC),
       expires: BigInt(0),
       apy: BigInt(20)
     },
     {
-      lockDuration: BigInt(360 * 24 * 60 * 60),
+      lockDuration: BigInt(360 * ONE_DAY_SEC),
       expires: BigInt(0),
       apy: BigInt(40)
     }

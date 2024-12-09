@@ -11,6 +11,7 @@ import {
   ADMIN_TESTING_PRIVATE_KEY,
   AMOY_STAKING_CONTRACT_ADDRESS,
   FACTR_TOKEN_ADDRESS,
+  ONE_DAY_SEC,
   TESTING_PRIVATE_KEY,
   approveTokenAmount,
   loadEnv,
@@ -32,11 +33,11 @@ describe('SelfProvider - Staking', () => {
       apy: BigInt(5)
     },
     {
-      lockDuration: BigInt(90 * 24 * 60 * 60),
+      lockDuration: BigInt(90 * ONE_DAY_SEC),
       apy: BigInt(10)
     },
     {
-      lockDuration: BigInt(180 * 24 * 60 * 60),
+      lockDuration: BigInt(180 * ONE_DAY_SEC),
       apy: BigInt(25)
     }
   ]
@@ -365,7 +366,7 @@ describe('SelfProvider - Staking', () => {
     describe('addPlan()', () => {
       it('failure - not an admin', async () => {
         const res = notAdminProvider.contract.addPlan(
-          BigInt(180 * 24 * 60 * 60),
+          BigInt(180 * ONE_DAY_SEC),
           BigInt(25)
         )
 
@@ -388,7 +389,7 @@ describe('SelfProvider - Staking', () => {
 
       it('success - the plan is registered', async () => {
         const res = provider.contract.addPlan(
-          BigInt(180 * 24 * 60 * 60),
+          BigInt(180 * ONE_DAY_SEC),
           BigInt(25)
         )
 
