@@ -1,5 +1,14 @@
 # @defactor-com/defactor-sdk
 
+## 4.0.3
+
+### Patch Changes
+
+- 8f5531c: Add support to Staking contract version with expiring plans
+
+  - Extend `Plan` type to include optional `expires` attribute
+  - Add `StakingExpiration` to support the version with expiring plans
+
 ## 4.0.2
 
 ### Patch Changes
