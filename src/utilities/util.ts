@@ -48,3 +48,11 @@ export const normalizeLending = (loan: Lend) => {
 
   return convertBigIntToString(normalizedLending)
 }
+
+export const is32BytesString = (stringBytes: string): boolean => {
+  if (!ethers.isBytesLike(stringBytes)) return false
+
+  return (
+    stringBytes.startsWith('0x') && stringBytes.substring(2).length / 2 === 32
+  )
+}

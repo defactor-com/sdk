@@ -4,7 +4,9 @@ export const commonErrorMessage = {
   wrongAddressFormat: `Address does not follow the ethereum address format`,
   nonGreaterThan: (valueName: string, maxValue: string) =>
     `The ${valueName} value cannot be greater than ${maxValue}`,
-  invalidToken: 'Invalid token address'
+  invalidToken: 'Invalid token address',
+  invalidBytesLike: 'The string value is not a valid BytesLike representation',
+  nonNegativeValue: 'Value cannot be negative'
 }
 
 export const poolCommonErrorMessage = {
@@ -119,5 +121,8 @@ export const buybackErrorMessage = {
 }
 
 export const vestingErrorMessage = {
-  addressIsNotOperator: 'Sender is not operator'
+  addressIsNotOperator: 'Sender is not operator',
+  nonNegativeAmountOrZero: 'Amount cannot be negative or 0',
+  onlyBeneficiaryOrOperator:
+    'Only beneficiary and operator can release vested tokens'
 }
