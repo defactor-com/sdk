@@ -8,11 +8,13 @@ import {
   Abi,
   BuybackConstructorParams,
   ERC20CollateralPoolConstructorParams,
-  PoolsConstructorParams
+  PoolsConstructorParams,
+  VestingConstructorParams
 } from '../types/types'
+import { Vesting } from '../vesting'
 
 export class AssistedProvider<
-  T extends PoolsClass | ERC20CollateralPool | Staking | Buyback
+  T extends PoolsClass | ERC20CollateralPool | Staking | Buyback | Vesting
 > extends BaseProvider<T> {
   readonly abi: Abi
 
@@ -22,6 +24,7 @@ export class AssistedProvider<
         | PoolsConstructorParams
         | ERC20CollateralPoolConstructorParams
         | BuybackConstructorParams
+        | VestingConstructorParams
     ) => T,
     address: string,
     apiUrl: string,

@@ -1,3 +1,5 @@
+import { ethers } from 'ethers'
+
 import {
   Borrow,
   CollateralDetails,
@@ -13,7 +15,8 @@ import { convertBigIntToString, normalizer } from './generics'
 export const NULL_ADDRESS = '0x0000000000000000000000000000000000000000'
 
 export const Role = {
-  ADMIN: '0x' + '00'.repeat(32)
+  ADMIN: '0x' + '00'.repeat(32),
+  OPERATOR: ethers.keccak256(ethers.toUtf8Bytes('OPERATOR_ROLE'))
 } as const
 
 export const sleep = (ms: number): Promise<void> => {

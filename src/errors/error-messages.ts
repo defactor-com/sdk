@@ -117,3 +117,7 @@ export const buybackErrorMessage = {
   alreadyWithdrawn: 'Unlock already withdrawn',
   addressIsNotRecoverer: 'Sender address is not recoverer address'
 }
+
+export const vestingErrorMessage = {
+  addressIsNotOperator: 'Sender is not operator'
+}

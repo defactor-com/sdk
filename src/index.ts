@@ -12,12 +12,14 @@ import { Staking, StakingExpiration } from './staking'
 import { Erc20 } from './utilities/erc20'
 import * as generics from './utilities/generics'
 import * as util from './utilities/util'
+import { Vesting } from './vesting'
 
 export * as TypesBuyback from './types/buyback'
 export * as TypesErc20CollateralPool from './types/erc20-collateral-token'
 export * as TypesErc20CollateralPoolToplend from './types/erc20-collateral-pool-toplend'
 export * as TypesPool from './types/pools'
 export * as TypesStaking from './types/staking'
+export * as TypesVesting from './types/vesting'
 export * as Types from './types/types'
 export * from './base-classes/core-contract'
 export * from './base-classes/base-contract'
@@ -37,7 +39,8 @@ export {
   Erc20,
   Pools,
   AdminPools,
-  ERC20CollateralPoolToplend
+  ERC20CollateralPoolToplend,
+  Vesting
 }
 
 export const DefactorSDK = {
@@ -49,5 +52,6 @@ export const DefactorSDK = {
   ERC20CollateralPool,
   Erc20,
   AdminPools,
-  Pools
+  Pools,
+  Vesting
 }
