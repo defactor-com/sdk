@@ -1,6 +1,7 @@
+import { ethers, isError } from 'ethers'
 import timekeeper from 'timekeeper'
 
-import { commonErrorMessage } from '../../src/errors'
+import { commonErrorMessage, vestingErrorMessage } from '../../src/errors'
 import { SelfProvider } from '../../src/provider'
 import { Role } from '../../src/utilities/util'
 import { Vesting } from '../../src/vesting'
@@ -18,6 +19,16 @@ describe('SelfProvider - Vesting', () => {
   let provider: SelfProvider<Vesting>
   let notAdminProvider: SelfProvider<Vesting>
   let signerAddress: string
+  const dummySchedule = {
+    cliff: BigInt(0),
+    start: BigInt(0),
+    duration: BigInt(0),
+    secondsPerSlice: BigInt(0),
+    beneficiary: ethers.ZeroAddress,
+    tokenAddress: ethers.ZeroAddress,
+    amount: BigInt(1_000000),
+    initialAmount: BigInt(0)
+  }
 
   beforeAll(async () => {
     await loadEnv()
@@ -100,12 +111,114 @@ describe('SelfProvider - Vesting', () => {
     })
   })
 
+  describe('Functions', () => {
+    describe('release()', () => {
+      it('failure - the address is not the beneficiary', async () => {
+        await expect(
+          notAdminProvider.contract.release(dummySchedule, [])
+        ).rejects.toThrow(vestingErrorMessage.onlyBeneficiaryOrOperator)
+      })
+      it('failure - the address is not the operator', async () => {
+        const scheduleWithBeneficiary = {
+          ...dummySchedule,
+          beneficiary: notAdminProvider.contract.signer!.address
+        }
+
+        await expect(
+          notAdminProvider.contract.release(scheduleWithBeneficiary, [])
+        ).rejects.toThrow(vestingErrorMessage.onlyBeneficiaryOrOperator)
+      })
+      it('failure - the merkle is invalid', async () => {
+        const scheduleWithBeneficiary = {
+          ...dummySchedule,
+          beneficiary: notAdminProvider.contract.signer!.address
+        }
+
+        expect.assertions(1)
+
+        try {
+          await provider.contract.release(scheduleWithBeneficiary, [])
+        } catch (error) {
+          expect(isError(error, 'CALL_EXCEPTION')).toBeTruthy()
+        }
+      })
+    })
+    describe('addValidMerkletreeRoot()', () => {
+      it('failure - the root is not a valid byte like string', async () => {
+        const root = 'root'
+
+        await expect(
+          notAdminProvider.contract.addValidMerkletreeRoot(root, true)
+        ).rejects.toThrow(commonErrorMessage.invalidBytesLike)
+      })
+      it('failure - the address is not the operator', async () => {
+        const root = provider.contract.getScheduleHash(dummySchedule)
+
+        await expect(
+          notAdminProvider.contract.addValidMerkletreeRoot(root, true)
+        ).rejects.toThrow(vestingErrorMessage.addressIsNotOperator)
+      })
+    })
+  })
+
   describe('Views', () => {
     it('success - get the operator role', async () => {
       const operatorRole =
         await provider.contract.contract.OPERATOR_ROLE.staticCallResult()
 
       expect(Role.OPERATOR).toBe(operatorRole[0])
+    })
+    describe('getScheduleHash', () => {
+      it('failure - token address is not a valid address', async () => {
+        const schedule = { ...dummySchedule, tokenAddress: '0xInvalid' }
+
+        try {
+          provider.contract.getScheduleHash(schedule)
+        } catch (error) {
+          expect(error instanceof Error)
+          expect((error as Error).message).toBe(
+            commonErrorMessage.wrongAddressFormat
+          )
+        }
+      })
+      it('failure - cliff is bigger than 64 bits', async () => {
+        const schedule = { ...dummySchedule, cliff: BigInt(1) << BigInt(128) }
+
+        try {
+          provider.contract.getScheduleHash(schedule)
+        } catch (error) {
+          expect(error instanceof Error)
+          expect((error as Error).message).toBe(
+            commonErrorMessage.nonGreaterThan('cliff', '64 bits')
+          )
+        }
+      })
+      it('success - get the schedule hash', async () => {
+        const hash = provider.contract.getScheduleHash(dummySchedule)
+
+        expect(ethers.isBytesLike(hash)).toBe(true)
+      })
+    })
+    describe('getComputedRoot', () => {
+      it('failure - invalid hashed in the proof', async () => {
+        const hash = provider.contract.getScheduleHash(dummySchedule)
+
+        try {
+          provider.contract.getComputedRoot(hash, [hash, ethers.ZeroAddress])
+        } catch (error) {
+          expect(error instanceof Error)
+          expect((error as Error).message).toBe(
+            commonErrorMessage.invalidBytesLike
+          )
+        }
+      })
+      it('success - get the computed root using the proof array', async () => {
+        const hash = provider.contract.getScheduleHash(dummySchedule)
+        const root = provider.contract.getComputedRoot(hash, [])
+
+        expect(ethers.isBytesLike(root)).toBe(true)
+        expect(root).toBe(hash)
+      })
     })
   })
 })
