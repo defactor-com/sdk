@@ -3,10 +3,13 @@ import timekeeper from 'timekeeper'
 
 import { commonErrorMessage, vestingErrorMessage } from '../../src/errors'
 import { SelfProvider } from '../../src/provider'
+import { VestingSchedule } from '../../src/types/vesting'
 import { Role } from '../../src/utilities/util'
 import { Vesting } from '../../src/vesting'
 import {
   ADMIN_TESTING_PRIVATE_KEY,
+  FACTR_TOKEN_ADDRESS,
+  ONE_SEC,
   SECOND_TESTING_PRIVATE_KEY,
   VESTING_CONTRACT_ADDRESS,
   loadEnv,
@@ -19,6 +22,7 @@ describe('SelfProvider - Vesting', () => {
   let provider: SelfProvider<Vesting>
   let notAdminProvider: SelfProvider<Vesting>
   let signerAddress: string
+  let validSchedule: VestingSchedule
   const dummySchedule = {
     cliff: BigInt(0),
     start: BigInt(0),
@@ -55,6 +59,17 @@ describe('SelfProvider - Vesting', () => {
 
     if (!signerAddress) {
       throw new Error('signer address is not defined')
+    }
+
+    validSchedule = {
+      cliff: BigInt(0),
+      start: BigInt(1734994292),
+      duration: BigInt(60 * ONE_SEC),
+      secondsPerSlice: BigInt((60 * ONE_SEC) / 4),
+      beneficiary: signerAddress,
+      tokenAddress: FACTR_TOKEN_ADDRESS,
+      amount: BigInt(1) * BigInt(1e18), // 1 FACTR
+      initialAmount: BigInt(0)
     }
   })
 
@@ -128,7 +143,7 @@ describe('SelfProvider - Vesting', () => {
           notAdminProvider.contract.release(scheduleWithBeneficiary, [])
         ).rejects.toThrow(vestingErrorMessage.onlyBeneficiaryOrOperator)
       })
-      it('failure - the merkle is invalid', async () => {
+      it('failure - invalid merkle tree', async () => {
         const scheduleWithBeneficiary = {
           ...dummySchedule,
           beneficiary: notAdminProvider.contract.signer!.address
@@ -157,6 +172,13 @@ describe('SelfProvider - Vesting', () => {
         await expect(
           notAdminProvider.contract.addValidMerkletreeRoot(root, true)
         ).rejects.toThrow(vestingErrorMessage.addressIsNotOperator)
+      })
+      it('success - add valid merkle tree root', async () => {
+        const root = provider.contract.getScheduleHash(validSchedule)
+
+        await expect(
+          provider.contract.addValidMerkletreeRoot(root, true)
+        ).resolves.not.toThrow()
       })
     })
   })
@@ -218,6 +240,59 @@ describe('SelfProvider - Vesting', () => {
 
         expect(ethers.isBytesLike(root)).toBe(true)
         expect(root).toBe(hash)
+      })
+    })
+    describe('getReleasableAmount()', () => {
+      it('failure - invalid merkle tree', async () => {
+        const scheduleWithBeneficiary = {
+          ...dummySchedule,
+          beneficiary: notAdminProvider.contract.signer!.address
+        }
+
+        expect.assertions(1)
+
+        try {
+          await provider.contract.getReleasableAmount(
+            scheduleWithBeneficiary,
+            []
+          )
+        } catch (error) {
+          expect(isError(error, 'CALL_EXCEPTION')).toBeTruthy()
+        }
+      })
+      it('success - get the releasable amount', async () => {
+        const releasableAmount = await provider.contract.getReleasableAmount(
+          validSchedule,
+          []
+        )
+
+        expect(typeof releasableAmount).toBe('bigint')
+        expect(releasableAmount).toBeGreaterThanOrEqual(BigInt(0))
+      })
+    })
+    describe('getReleasedAmount()', () => {
+      it('failure - invalid merkle tree', async () => {
+        const scheduleWithBeneficiary = {
+          ...dummySchedule,
+          beneficiary: notAdminProvider.contract.signer!.address
+        }
+
+        expect.assertions(1)
+
+        try {
+          await provider.contract.getReleasedAmount(scheduleWithBeneficiary, [])
+        } catch (error) {
+          expect(isError(error, 'CALL_EXCEPTION')).toBeTruthy()
+        }
+      })
+      it('success - get the released amount', async () => {
+        const releasedAmount = await provider.contract.getReleasedAmount(
+          validSchedule,
+          []
+        )
+
+        expect(typeof releasedAmount).toBe('bigint')
+        expect(releasedAmount).toBeGreaterThanOrEqual(BigInt(0))
       })
     })
   })
