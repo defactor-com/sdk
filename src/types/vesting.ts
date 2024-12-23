@@ -14,18 +14,18 @@ export type VestingSchedule = {
 export interface Functions {
   release(
     schedule: VestingSchedule,
-    proof: Array<ethers.BytesLike>
+    proof: Array<string>
   ): Promise<ethers.ContractTransaction | ethers.TransactionResponse>
 }
 
 export interface OperatorFunctions {
   addValidMerkletreeRoot(
-    root: ethers.BytesLike,
+    root: string,
     value: boolean
   ): Promise<ethers.ContractTransaction | ethers.TransactionResponse>
   revokeSchedules(
-    root: ethers.BytesLike,
-    leafs: Array<ethers.BytesLike>
+    root: string,
+    leafs: Array<string>
   ): Promise<ethers.ContractTransaction | ethers.TransactionResponse>
 }
 
@@ -39,13 +39,18 @@ export interface AdminFunctions {
   ): Promise<ethers.ContractTransaction | ethers.TransactionResponse>
 }
 
+export interface UtilityFunctions {
+  getScheduleHash(schedule: VestingSchedule): string
+  getComputedRoot(leaf: string, proof: Array<string>): string
+}
+
 export interface Views {
   getReleasedAmount(
     schedule: VestingSchedule,
-    proof: Array<ethers.BytesLike>
+    proof: Array<string>
   ): Promise<bigint>
   getReleasableAmount(
     schedule: VestingSchedule,
-    proof: Array<ethers.BytesLike>
+    proof: Array<string>
   ): Promise<bigint>
 }
