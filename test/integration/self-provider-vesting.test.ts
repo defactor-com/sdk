@@ -25,18 +25,9 @@ describe('SelfProvider - Vesting', () => {
   let notAdminProvider: SelfProvider<Vesting>
   let signerAddress: string
   let notAdminSignerAddress: string
+  let dummySchedule: VestingSchedule
   let validSchedule: VestingSchedule
   const multipleValidSchedule: Array<VestingSchedule> = []
-  const dummySchedule = {
-    cliff: BigInt(0),
-    start: BigInt(0),
-    duration: BigInt(0),
-    secondsPerSlice: BigInt(0),
-    beneficiary: ethers.ZeroAddress,
-    tokenAddress: ethers.ZeroAddress,
-    amount: BigInt(1_000000),
-    initialAmount: BigInt(0)
-  }
 
   const computeTreeAux = (
     tree: Array<string>,
@@ -83,6 +74,17 @@ describe('SelfProvider - Vesting', () => {
 
     if (!notAdminSignerAddress) {
       throw new Error('signer address is not defined')
+    }
+
+    dummySchedule = {
+      cliff: BigInt(0),
+      start: BigInt(0),
+      duration: BigInt(0),
+      secondsPerSlice: BigInt(0),
+      beneficiary: signerAddress,
+      tokenAddress: FACTR_TOKEN_ADDRESS,
+      amount: BigInt(1) * BigInt(1e18), // 1 FACTR
+      initialAmount: BigInt(0)
     }
 
     validSchedule = {
@@ -167,6 +169,91 @@ describe('SelfProvider - Vesting', () => {
         expect(isPaused).toBe(false)
       })
     })
+    describe('requestWithdraw()', () => {
+      it('failure - the address is not the admin', async () => {
+        await expect(
+          notAdminProvider.contract.requestWithdraw([FACTR_TOKEN_ADDRESS])
+        ).rejects.toThrow(commonErrorMessage.addressIsNotAdmin)
+      })
+      it('failure - the token array is empty', async () => {
+        await expect(provider.contract.requestWithdraw([])).rejects.toThrow(
+          vestingErrorMessage.tokensArrayIsEmpty
+        )
+      })
+      it('failure - the token address is invalid', async () => {
+        await expect(
+          provider.contract.requestWithdraw(['0xInvalid'])
+        ).rejects.toThrow(commonErrorMessage.wrongAddressFormat)
+      })
+      it('failure - the token address is zero', async () => {
+        await expect(
+          provider.contract.requestWithdraw([
+            FACTR_TOKEN_ADDRESS,
+            ethers.ZeroAddress
+          ])
+        ).rejects.toThrow(commonErrorMessage.nonZeroAddress)
+      })
+      it('success - request withdraw', async () => {
+        await expect(
+          provider.contract.requestWithdraw([FACTR_TOKEN_ADDRESS])
+        ).resolves.not.toThrow()
+      })
+    })
+    describe('withdraw()', () => {
+      it('failure - the address is not the admin', async () => {
+        await expect(
+          notAdminProvider.contract.withdraw(
+            [FACTR_TOKEN_ADDRESS],
+            signerAddress
+          )
+        ).rejects.toThrow(commonErrorMessage.addressIsNotAdmin)
+      })
+      it('failure - the token array is empty', async () => {
+        await expect(
+          provider.contract.withdraw([], signerAddress)
+        ).rejects.toThrow(vestingErrorMessage.tokensArrayIsEmpty)
+      })
+      it('failure - the token address is invalid', async () => {
+        await expect(
+          provider.contract.withdraw(['0xInvalid'], signerAddress)
+        ).rejects.toThrow(commonErrorMessage.wrongAddressFormat)
+      })
+      it('failure - the token address is zero', async () => {
+        await expect(
+          provider.contract.withdraw(
+            [FACTR_TOKEN_ADDRESS, ethers.ZeroAddress],
+            signerAddress
+          )
+        ).rejects.toThrow(commonErrorMessage.nonZeroAddress)
+      })
+      it('failure - the signer address is invalid', async () => {
+        await expect(
+          provider.contract.withdraw([FACTR_TOKEN_ADDRESS], '0xInvalid')
+        ).rejects.toThrow(commonErrorMessage.wrongAddressFormat)
+      })
+      it('failure - the signer address is zero', async () => {
+        await expect(
+          provider.contract.withdraw([FACTR_TOKEN_ADDRESS], ethers.ZeroAddress)
+        ).rejects.toThrow(commonErrorMessage.nonZeroAddress)
+      })
+      it('failure - the 30 days after request has not passed', async () => {
+        expect.assertions(2)
+
+        try {
+          await provider.contract.withdraw([FACTR_TOKEN_ADDRESS], signerAddress)
+        } catch (error) {
+          expect(isError(error, 'CALL_EXCEPTION')).toBeTruthy()
+          expect((error as ethers.CallExceptionError).revert?.args[0]).toBe(
+            'Not enough time has pased'
+          )
+        }
+      })
+      it.skip('success - withdraw', async () => {
+        await expect(
+          provider.contract.withdraw([FACTR_TOKEN_ADDRESS], signerAddress)
+        ).resolves.not.toThrow()
+      })
+    })
   })
 
   describe('Functions', () => {
@@ -192,7 +279,7 @@ describe('SelfProvider - Vesting', () => {
           beneficiary: notAdminProvider.contract.signer!.address
         }
 
-        expect.assertions(1)
+        expect.assertions(2)
 
         try {
           await provider.contract.release(scheduleWithBeneficiary, [])
@@ -308,6 +395,18 @@ describe('SelfProvider - Vesting', () => {
           )
         }
       })
+      it('failure - beneficiary address is zero address', async () => {
+        const schedule = { ...dummySchedule, beneficiary: ethers.ZeroAddress }
+
+        try {
+          provider.contract.getScheduleHash(schedule)
+        } catch (error) {
+          expect(error instanceof Error)
+          expect((error as Error).message).toBe(
+            commonErrorMessage.nonZeroAddress
+          )
+        }
+      })
       it('failure - cliff is bigger than 64 bits', async () => {
         const schedule = { ...dummySchedule, cliff: BigInt(1) << BigInt(128) }
 
@@ -354,7 +453,7 @@ describe('SelfProvider - Vesting', () => {
           beneficiary: notAdminProvider.contract.signer!.address
         }
 
-        expect.assertions(1)
+        expect.assertions(2)
 
         try {
           await provider.contract.getReleasableAmount(
@@ -456,7 +555,7 @@ describe('SelfProvider - Vesting', () => {
           beneficiary: notAdminProvider.contract.signer!.address
         }
 
-        expect.assertions(1)
+        expect.assertions(2)
 
         try {
           await provider.contract.getReleasedAmount(scheduleWithBeneficiary, [])
