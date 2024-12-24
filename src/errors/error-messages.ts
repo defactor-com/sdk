@@ -123,6 +123,7 @@ export const buybackErrorMessage = {
 export const vestingErrorMessage = {
   addressIsNotOperator: 'Sender is not operator',
   nonNegativeAmountOrZero: 'Amount cannot be negative or 0',
+  leafsArrayIsEmpty: 'The leafs array cannot be empty',
   onlyBeneficiaryOrOperator:
     'Only beneficiary and operator can release vested tokens'
 }

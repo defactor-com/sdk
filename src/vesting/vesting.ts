@@ -6,6 +6,7 @@ import { commonErrorMessage, vestingErrorMessage } from '../errors'
 import { Abi, PrivateKey } from '../types/types'
 import {
   Functions,
+  OperatorFunctions,
   UtilityFunctions,
   VestingSchedule,
   Views
@@ -14,9 +15,9 @@ import { Role, is32BytesString } from '../utilities/util'
 
 export class Vesting
   extends BaseContract
-  implements Functions, UtilityFunctions, Views
+  implements Functions, OperatorFunctions, UtilityFunctions, Views
 {
-  private readonly vestingScheduleInterface: Array<string>
+  public readonly vestingScheduleInterface: Array<string>
   private readonly vestingRootInterface: Array<string>
   constructor(
     address: string,
@@ -193,6 +194,28 @@ export class Vesting
     const pop = await this.contract.addValidMerkletreeRoot.populateTransaction(
       root,
       value
+    )
+
+    return this.signer ? await this.signer.sendTransaction(pop) : pop
+  }
+
+  async revokeSchedules(
+    root: string,
+    leafs: Array<string>
+  ): Promise<ethers.ContractTransaction | ethers.TransactionResponse> {
+    if (!leafs.length) {
+      throw new Error(vestingErrorMessage.leafsArrayIsEmpty)
+    }
+
+    if (!is32BytesString(root) || leafs.some(hash => !is32BytesString(hash))) {
+      throw new Error(commonErrorMessage.invalidBytesLike)
+    }
+
+    await this._checkIsOperator()
+
+    const pop = await this.contract.revokeSchedules.populateTransaction(
+      root,
+      leafs
     )
 
     return this.signer ? await this.signer.sendTransaction(pop) : pop
