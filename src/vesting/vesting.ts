@@ -181,7 +181,7 @@ export class Vesting
     await this._checkIsNotPaused()
 
     if (this.signer) {
-      const isBeneficiary = this.signer.address !== schedule.beneficiary
+      const isBeneficiary = this.signer.address === schedule.beneficiary
       const hasPermissions =
         isBeneficiary ||
         (await this.contract.hasRole(Role.OPERATOR, this.signer))
