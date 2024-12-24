@@ -10,8 +10,10 @@ import {
   ADMIN_TESTING_PRIVATE_KEY,
   FACTR_TOKEN_ADDRESS,
   ONE_SEC,
+  ONE_YEAR_SEC,
   SECOND_TESTING_PRIVATE_KEY,
   VESTING_CONTRACT_ADDRESS,
+  getUnixEpochTime,
   loadEnv,
   waitUntilConfirmationCompleted
 } from '../test-util'
@@ -22,7 +24,9 @@ describe('SelfProvider - Vesting', () => {
   let provider: SelfProvider<Vesting>
   let notAdminProvider: SelfProvider<Vesting>
   let signerAddress: string
+  let notAdminSignerAddress: string
   let validSchedule: VestingSchedule
+  const multipleValidSchedule: Array<VestingSchedule> = []
   const dummySchedule = {
     cliff: BigInt(0),
     start: BigInt(0),
@@ -32,6 +36,20 @@ describe('SelfProvider - Vesting', () => {
     tokenAddress: ethers.ZeroAddress,
     amount: BigInt(1_000000),
     initialAmount: BigInt(0)
+  }
+
+  const computeTreeAux = (
+    tree: Array<string>,
+    hashFunction: (hash0: string, hash1: string) => string
+  ): string => {
+    if (tree.length <= 1) {
+      return tree[0] || ''
+    }
+
+    const [hash0, hash1, ...subTree] = tree
+    const parent = hashFunction(hash0, hash1)
+
+    return computeTreeAux([parent, ...subTree], hashFunction)
   }
 
   beforeAll(async () => {
@@ -61,6 +79,12 @@ describe('SelfProvider - Vesting', () => {
       throw new Error('signer address is not defined')
     }
 
+    notAdminSignerAddress = provider.contract.signer?.address || ''
+
+    if (!notAdminSignerAddress) {
+      throw new Error('signer address is not defined')
+    }
+
     validSchedule = {
       cliff: BigInt(0),
       start: BigInt(1734994292),
@@ -71,6 +95,25 @@ describe('SelfProvider - Vesting', () => {
       amount: BigInt(1) * BigInt(1e18), // 1 FACTR
       initialAmount: BigInt(0)
     }
+
+    multipleValidSchedule.push({
+      ...validSchedule,
+      duration: BigInt(ONE_YEAR_SEC),
+      amount: BigInt(0.25 * 1e18)
+    })
+    multipleValidSchedule.push({
+      ...validSchedule,
+      duration: BigInt(ONE_YEAR_SEC),
+      beneficiary: notAdminSignerAddress,
+      amount: BigInt(0.15 * 1e18)
+    })
+    multipleValidSchedule.push({
+      ...validSchedule,
+      amount: BigInt(0.5 * 1e18),
+      cliff: validSchedule.start + BigInt(ONE_YEAR_SEC),
+      duration: BigInt(2 * ONE_YEAR_SEC),
+      initialAmount: BigInt(0.1 * 1e18)
+    })
   })
 
   beforeEach(() => {
@@ -180,6 +223,25 @@ describe('SelfProvider - Vesting', () => {
           provider.contract.addValidMerkletreeRoot(root, true)
         ).resolves.not.toThrow()
       })
+      it('success - add valid merkle tree root with multiple schedules', async () => {
+        const hashes = multipleValidSchedule.map(schedule =>
+          provider.contract.getScheduleHash(schedule)
+        )
+        const hashFunction = (hash0: string, hash1: string) =>
+          provider.contract.getComputedRoot(hash0, [hash1])
+        const root = computeTreeAux(hashes, hashFunction)
+
+        await expect(
+          provider.contract.addValidMerkletreeRoot(root, true)
+        ).resolves.not.toThrow()
+      })
+      it('success - remove a valid merkle tree root', async () => {
+        const root = provider.contract.getScheduleHash(dummySchedule)
+
+        await expect(
+          provider.contract.addValidMerkletreeRoot(root, false)
+        ).resolves.not.toThrow()
+      })
     })
   })
 
@@ -260,6 +322,18 @@ describe('SelfProvider - Vesting', () => {
           expect(isError(error, 'CALL_EXCEPTION')).toBeTruthy()
         }
       })
+      it('failure - invalid merkle tree', async () => {
+        const hash = provider.contract.getScheduleHash(dummySchedule)
+        const root = provider.contract.getComputedRoot(hash, [])
+
+        try {
+          await notAdminProvider.contract.getReleasableAmount(dummySchedule, [
+            root
+          ])
+        } catch (error) {
+          expect(isError(error, 'CALL_EXCEPTION')).toBeTruthy()
+        }
+      })
       it('success - get the releasable amount', async () => {
         const releasableAmount = await provider.contract.getReleasableAmount(
           validSchedule,
@@ -268,6 +342,40 @@ describe('SelfProvider - Vesting', () => {
 
         expect(typeof releasableAmount).toBe('bigint')
         expect(releasableAmount).toBeGreaterThanOrEqual(BigInt(0))
+        expect(releasableAmount).toBe(
+          validSchedule.amount + validSchedule.initialAmount
+        )
+      })
+      it('success - get the releasable amount when duration has not passed', async () => {
+        const schedule = multipleValidSchedule[0]
+        const hashes = multipleValidSchedule.map(schedule =>
+          provider.contract.getScheduleHash(schedule)
+        )
+        const releasableAmount = await provider.contract.getReleasableAmount(
+          schedule,
+          [hashes[1], hashes[2]]
+        )
+
+        expect(typeof releasableAmount).toBe('bigint')
+        expect(releasableAmount).toBeGreaterThanOrEqual(schedule.initialAmount)
+        expect(releasableAmount).toBeLessThan(
+          schedule.amount + schedule.initialAmount
+        )
+      })
+      it('success - get the releasable amount when cliff is not over', async () => {
+        const schedule = multipleValidSchedule[2]
+        const hashes = multipleValidSchedule.map(schedule =>
+          provider.contract.getScheduleHash(schedule)
+        )
+        const root = provider.contract.getComputedRoot(hashes[0], [hashes[1]])
+        const releasableAmount = await provider.contract.getReleasableAmount(
+          schedule,
+          [root]
+        )
+
+        expect(schedule.cliff).toBeGreaterThan(getUnixEpochTime())
+        expect(typeof releasableAmount).toBe('bigint')
+        expect(releasableAmount).toBe(schedule.initialAmount)
       })
     })
     describe('getReleasedAmount()', () => {
