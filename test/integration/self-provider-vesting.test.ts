@@ -200,6 +200,11 @@ describe('SelfProvider - Vesting', () => {
           expect(isError(error, 'CALL_EXCEPTION')).toBeTruthy()
         }
       })
+      it('success - release from a valid schedule', async () => {
+        await expect(
+          provider.contract.release(validSchedule, [])
+        ).resolves.not.toThrow()
+      })
     })
     describe('addValidMerkletreeRoot()', () => {
       it('failure - the root is not a valid byte like string', async () => {
