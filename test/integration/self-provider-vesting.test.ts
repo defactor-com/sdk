@@ -198,6 +198,9 @@ describe('SelfProvider - Vesting', () => {
           await provider.contract.release(scheduleWithBeneficiary, [])
         } catch (error) {
           expect(isError(error, 'CALL_EXCEPTION')).toBeTruthy()
+          expect((error as ethers.CallExceptionError).revert?.args[0]).toBe(
+            'Ivalid merkletree root'
+          )
         }
       })
       it('success - release from a valid schedule', async () => {
@@ -245,6 +248,41 @@ describe('SelfProvider - Vesting', () => {
 
         await expect(
           provider.contract.addValidMerkletreeRoot(root, false)
+        ).resolves.not.toThrow()
+      })
+    })
+    describe('revokeSchedules()', () => {
+      it('failure - the leafs array is empty', async () => {
+        const root = 'root'
+
+        await expect(
+          notAdminProvider.contract.revokeSchedules(root, [])
+        ).rejects.toThrow(vestingErrorMessage.leafsArrayIsEmpty)
+      })
+      it('failure - the root is not a valid byte like string', async () => {
+        const root = 'root'
+
+        await expect(
+          notAdminProvider.contract.revokeSchedules('0xInvalidHash', [root])
+        ).rejects.toThrow(commonErrorMessage.invalidBytesLike)
+      })
+      it('failure - the address is not the operator', async () => {
+        const root = provider.contract.getScheduleHash(dummySchedule)
+
+        await expect(
+          notAdminProvider.contract.revokeSchedules(root, [root])
+        ).rejects.toThrow(vestingErrorMessage.addressIsNotOperator)
+      })
+      it('success - revoke a schedule', async () => {
+        const hashes = multipleValidSchedule.map(schedule =>
+          provider.contract.getScheduleHash(schedule)
+        )
+        const hashFunction = (hash0: string, hash1: string) =>
+          provider.contract.getComputedRoot(hash0, [hash1])
+        const root = computeTreeAux(hashes, hashFunction)
+
+        await expect(
+          provider.contract.revokeSchedules(root, [hashes[1]])
         ).resolves.not.toThrow()
       })
     })
@@ -325,6 +363,9 @@ describe('SelfProvider - Vesting', () => {
           )
         } catch (error) {
           expect(isError(error, 'CALL_EXCEPTION')).toBeTruthy()
+          expect((error as ethers.CallExceptionError).revert?.args[0]).toBe(
+            'Ivalid merkletree root'
+          )
         }
       })
       it('failure - invalid merkle tree', async () => {
@@ -337,6 +378,27 @@ describe('SelfProvider - Vesting', () => {
           ])
         } catch (error) {
           expect(isError(error, 'CALL_EXCEPTION')).toBeTruthy()
+          expect((error as ethers.CallExceptionError).revert?.args[0]).toBe(
+            'Ivalid merkletree root'
+          )
+        }
+      })
+      it('failure - the schedule was revoked', async () => {
+        const schedule = multipleValidSchedule[1]
+        const hashes = multipleValidSchedule.map(schedule =>
+          provider.contract.getScheduleHash(schedule)
+        )
+
+        try {
+          await notAdminProvider.contract.getReleasableAmount(schedule, [
+            hashes[0],
+            hashes[2]
+          ])
+        } catch (error) {
+          expect(isError(error, 'CALL_EXCEPTION')).toBeTruthy()
+          expect((error as ethers.CallExceptionError).revert?.args[0]).toBe(
+            'This schedule was revoked'
+          )
         }
       })
       it('success - get the releasable amount', async () => {
@@ -344,11 +406,15 @@ describe('SelfProvider - Vesting', () => {
           validSchedule,
           []
         )
+        const releasedAmount = await provider.contract.getReleasedAmount(
+          validSchedule,
+          []
+        )
 
         expect(typeof releasableAmount).toBe('bigint')
         expect(releasableAmount).toBeGreaterThanOrEqual(BigInt(0))
         expect(releasableAmount).toBe(
-          validSchedule.amount + validSchedule.initialAmount
+          validSchedule.amount + validSchedule.initialAmount - releasedAmount
         )
       })
       it('success - get the releasable amount when duration has not passed', async () => {
@@ -396,6 +462,9 @@ describe('SelfProvider - Vesting', () => {
           await provider.contract.getReleasedAmount(scheduleWithBeneficiary, [])
         } catch (error) {
           expect(isError(error, 'CALL_EXCEPTION')).toBeTruthy()
+          expect((error as ethers.CallExceptionError).revert?.args[0]).toBe(
+            'Ivalid merkletree root'
+          )
         }
       })
       it('success - get the released amount', async () => {
