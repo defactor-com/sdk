@@ -5,6 +5,7 @@ import { BaseContract } from '../base-classes'
 import { commonErrorMessage, vestingErrorMessage } from '../errors'
 import { Abi, PrivateKey } from '../types/types'
 import {
+  AdminFunctions,
   Functions,
   OperatorFunctions,
   UtilityFunctions,
@@ -15,7 +16,12 @@ import { Role, is32BytesString } from '../utilities/util'
 
 export class Vesting
   extends BaseContract
-  implements Functions, OperatorFunctions, UtilityFunctions, Views
+  implements
+    AdminFunctions,
+    Functions,
+    OperatorFunctions,
+    UtilityFunctions,
+    Views
 {
   public readonly vestingScheduleInterface: Array<string>
   private readonly vestingRootInterface: Array<string>
@@ -50,6 +56,13 @@ export class Vesting
       !ethers.isAddress(schedule.tokenAddress)
     ) {
       throw new Error(commonErrorMessage.wrongAddressFormat)
+    }
+
+    if (
+      ethers.ZeroAddress === schedule.beneficiary ||
+      ethers.ZeroAddress === schedule.tokenAddress
+    ) {
+      throw new Error(commonErrorMessage.nonZeroAddress)
     }
 
     const ints64: Array<keyof typeof schedule> = [
@@ -165,6 +178,8 @@ export class Vesting
 
     this._checkScheduleData(schedule)
 
+    await this._checkIsNotPaused()
+
     if (this.signer) {
       const isBeneficiary = this.signer.address !== schedule.beneficiary
       const hasPermissions =
@@ -199,10 +214,10 @@ export class Vesting
     return this.signer ? await this.signer.sendTransaction(pop) : pop
   }
 
-  async revokeSchedules(
+  revokeSchedules = async (
     root: string,
     leafs: Array<string>
-  ): Promise<ethers.ContractTransaction | ethers.TransactionResponse> {
+  ): Promise<ethers.ContractTransaction | ethers.TransactionResponse> => {
     if (!leafs.length) {
       throw new Error(vestingErrorMessage.leafsArrayIsEmpty)
     }
@@ -216,6 +231,60 @@ export class Vesting
     const pop = await this.contract.revokeSchedules.populateTransaction(
       root,
       leafs
+    )
+
+    return this.signer ? await this.signer.sendTransaction(pop) : pop
+  }
+
+  requestWithdraw = async (
+    tokens: Array<string>
+  ): Promise<ethers.ContractTransaction | ethers.TransactionResponse> => {
+    if (!tokens.length) {
+      throw new Error(vestingErrorMessage.tokensArrayIsEmpty)
+    }
+
+    if (tokens.some(token => !ethers.isAddress(token))) {
+      throw new Error(commonErrorMessage.wrongAddressFormat)
+    }
+
+    if (tokens.some(token => token === ethers.ZeroAddress)) {
+      throw new Error(commonErrorMessage.nonZeroAddress)
+    }
+
+    await this._checkIsAdmin()
+
+    const pop = await this.contract.requestWithdraw.populateTransaction(tokens)
+
+    return this.signer ? await this.signer.sendTransaction(pop) : pop
+  }
+
+  withdraw = async (
+    tokens: Array<string>,
+    recipient: string
+  ): Promise<ethers.ContractTransaction | ethers.TransactionResponse> => {
+    if (!tokens.length) {
+      throw new Error(vestingErrorMessage.tokensArrayIsEmpty)
+    }
+
+    if (
+      recipient === ethers.ZeroAddress ||
+      tokens.some(token => token === ethers.ZeroAddress)
+    ) {
+      throw new Error(commonErrorMessage.nonZeroAddress)
+    }
+
+    if (
+      tokens.some(token => !ethers.isAddress(token)) ||
+      !ethers.isAddress(recipient)
+    ) {
+      throw new Error(commonErrorMessage.wrongAddressFormat)
+    }
+
+    await this._checkIsAdmin()
+
+    const pop = await this.contract.withdraw.populateTransaction(
+      tokens,
+      recipient
     )
 
     return this.signer ? await this.signer.sendTransaction(pop) : pop

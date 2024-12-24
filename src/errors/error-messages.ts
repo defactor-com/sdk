@@ -1,6 +1,7 @@
 export const commonErrorMessage = {
   contractIsPaused: 'The contract is paused',
   addressIsNotAdmin: 'Sender address is not admin',
+  nonZeroAddress: 'The address cannot be zero',
   wrongAddressFormat: `Address does not follow the ethereum address format`,
   nonGreaterThan: (valueName: string, maxValue: string) =>
     `The ${valueName} value cannot be greater than ${maxValue}`,
@@ -124,6 +125,7 @@ export const vestingErrorMessage = {
   addressIsNotOperator: 'Sender is not operator',
   nonNegativeAmountOrZero: 'Amount cannot be negative or 0',
   leafsArrayIsEmpty: 'The leafs array cannot be empty',
+  tokensArrayIsEmpty: 'The tokens array cannot be empty',
   onlyBeneficiaryOrOperator:
     'Only beneficiary and operator can release vested tokens'
 }
