@@ -266,7 +266,7 @@ describe('SelfProvider - Vesting', () => {
       it('failure - the address is not the operator', async () => {
         const scheduleWithBeneficiary = {
           ...dummySchedule,
-          beneficiary: notAdminProvider.contract.signer!.address
+          beneficiary: signerAddress
         }
 
         await expect(
