@@ -29,20 +29,6 @@ describe('SelfProvider - Vesting', () => {
   let validSchedule: VestingSchedule
   const multipleValidSchedule: Array<VestingSchedule> = []
 
-  const computeTreeAux = (
-    tree: Array<string>,
-    hashFunction: (hash0: string, hash1: string) => string
-  ): string => {
-    if (tree.length <= 1) {
-      return tree[0] || ''
-    }
-
-    const [hash0, hash1, ...subTree] = tree
-    const parent = hashFunction(hash0, hash1)
-
-    return computeTreeAux([parent, ...subTree], hashFunction)
-  }
-
   beforeAll(async () => {
     await loadEnv()
 
@@ -319,15 +305,10 @@ describe('SelfProvider - Vesting', () => {
         ).resolves.not.toThrow()
       })
       it('success - add valid merkle tree root with multiple schedules', async () => {
-        const hashes = multipleValidSchedule.map(schedule =>
-          provider.contract.getScheduleHash(schedule)
-        )
-        const hashFunction = (hash0: string, hash1: string) =>
-          provider.contract.getComputedRoot(hash0, [hash1])
-        const root = computeTreeAux(hashes, hashFunction)
+        const tree = provider.contract.buildMerkletree(multipleValidSchedule)
 
         await expect(
-          provider.contract.addValidMerkletreeRoot(root, true)
+          provider.contract.addValidMerkletreeRoot(tree.root, true)
         ).resolves.not.toThrow()
       })
       it('success - remove a valid merkle tree root', async () => {
@@ -361,15 +342,11 @@ describe('SelfProvider - Vesting', () => {
         ).rejects.toThrow(vestingErrorMessage.addressIsNotOperator)
       })
       it('success - revoke a schedule', async () => {
-        const hashes = multipleValidSchedule.map(schedule =>
-          provider.contract.getScheduleHash(schedule)
-        )
-        const hashFunction = (hash0: string, hash1: string) =>
-          provider.contract.getComputedRoot(hash0, [hash1])
-        const root = computeTreeAux(hashes, hashFunction)
+        const tree = provider.contract.buildMerkletree(multipleValidSchedule)
+        const proof = provider.contract.getProof(multipleValidSchedule[1], tree)
 
         await expect(
-          provider.contract.revokeSchedules(root, [hashes[1]])
+          provider.contract.revokeSchedules(tree.root, proof)
         ).resolves.not.toThrow()
       })
     })
@@ -484,15 +461,13 @@ describe('SelfProvider - Vesting', () => {
       })
       it('failure - the schedule was revoked', async () => {
         const schedule = multipleValidSchedule[1]
-        const hashes = multipleValidSchedule.map(schedule =>
-          provider.contract.getScheduleHash(schedule)
+        const merkleTree = provider.contract.buildMerkletree(
+          multipleValidSchedule
         )
+        const proof = provider.contract.getProof(schedule, merkleTree)
 
         try {
-          await notAdminProvider.contract.getReleasableAmount(schedule, [
-            hashes[0],
-            hashes[2]
-          ])
+          await notAdminProvider.contract.getReleasableAmount(schedule, proof)
         } catch (error) {
           expect(isError(error, 'CALL_EXCEPTION')).toBeTruthy()
           expect((error as ethers.CallExceptionError).revert?.args[0]).toBe(
@@ -518,12 +493,13 @@ describe('SelfProvider - Vesting', () => {
       })
       it('success - get the releasable amount when duration has not passed', async () => {
         const schedule = multipleValidSchedule[0]
-        const hashes = multipleValidSchedule.map(schedule =>
-          provider.contract.getScheduleHash(schedule)
+        const merkleTree = provider.contract.buildMerkletree(
+          multipleValidSchedule
         )
+        const proof = provider.contract.getProof(schedule, merkleTree)
         const releasableAmount = await provider.contract.getReleasableAmount(
           schedule,
-          [hashes[1], hashes[2]]
+          proof
         )
 
         expect(typeof releasableAmount).toBe('bigint')
@@ -534,13 +510,13 @@ describe('SelfProvider - Vesting', () => {
       })
       it('success - get the releasable amount when cliff is not over', async () => {
         const schedule = multipleValidSchedule[2]
-        const hashes = multipleValidSchedule.map(schedule =>
-          provider.contract.getScheduleHash(schedule)
+        const merkleTree = provider.contract.buildMerkletree(
+          multipleValidSchedule
         )
-        const root = provider.contract.getComputedRoot(hashes[0], [hashes[1]])
+        const proof = provider.contract.getProof(schedule, merkleTree)
         const releasableAmount = await provider.contract.getReleasableAmount(
           schedule,
-          [root]
+          proof
         )
 
         expect(schedule.cliff).toBeGreaterThan(getUnixEpochTime())
@@ -574,6 +550,59 @@ describe('SelfProvider - Vesting', () => {
 
         expect(typeof releasedAmount).toBe('bigint')
         expect(releasedAmount).toBeGreaterThanOrEqual(BigInt(0))
+      })
+    })
+  })
+
+  describe('Utils - openzeppelin / merkletree', () => {
+    describe('buildMerkleTree()', () => {
+      it('success - compute same root', () => {
+        const merkleTree = provider.contract.buildMerkletree(
+          multipleValidSchedule
+        )
+        const leafHash = provider.contract.getScheduleHash(
+          multipleValidSchedule[0]
+        )
+        const proof = merkleTree.getProof(leafHash)
+        const root = provider.contract.getComputedRoot(leafHash, proof)
+
+        expect(root === merkleTree.root)
+        expect(merkleTree.verify(leafHash, proof)).toBe(true)
+      })
+      it('success - compute same root', () => {
+        const multipleValidSchedule = Array.from(new Array(1500)).map(
+          (_e, index) => ({
+            ...validSchedule,
+            duration: BigInt(index)
+          })
+        )
+        const merkleTree = provider.contract.buildMerkletree(
+          multipleValidSchedule
+        )
+        const proof = provider.contract.getProof(
+          multipleValidSchedule[12],
+          merkleTree
+        )
+
+        expect(
+          provider.contract.verify(multipleValidSchedule[12], proof, merkleTree)
+        ).toBe(true)
+      })
+    })
+    describe('getProof()', () => {
+      it('success - compute same root', () => {
+        const merkleTree = provider.contract.buildMerkletree(
+          multipleValidSchedule
+        )
+        const leafHash = provider.contract.getScheduleHash(
+          multipleValidSchedule[1]
+        )
+        const proof = provider.contract.getProof(
+          multipleValidSchedule[1],
+          merkleTree
+        )
+
+        expect(merkleTree.verify(leafHash, proof)).toBe(true)
       })
     })
   })
