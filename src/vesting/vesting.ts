@@ -1,3 +1,4 @@
+import { SimpleMerkleTree } from '@openzeppelin/merkle-tree'
 import { ethers } from 'ethers'
 
 import { miscVesting } from '../artifacts'
@@ -288,5 +289,27 @@ export class Vesting
     )
 
     return this.signer ? await this.signer.sendTransaction(pop) : pop
+  }
+
+  buildMerkletree = (schedules: Array<VestingSchedule>): SimpleMerkleTree => {
+    const hashes = schedules.map(this.getScheduleHash)
+
+    return SimpleMerkleTree.of(hashes)
+  }
+
+  getProof = (schedule: VestingSchedule, tree: SimpleMerkleTree): string[] => {
+    const hash = this.getScheduleHash(schedule)
+
+    return tree.getProof(hash)
+  }
+
+  verify = (
+    schedule: VestingSchedule,
+    proof: Array<string>,
+    tree: SimpleMerkleTree
+  ): boolean => {
+    const hash = this.getScheduleHash(schedule)
+
+    return tree.verify(hash, proof)
   }
 }
