@@ -11,7 +11,8 @@ import {
   MAX_BIGINT,
   ONE_DAY_SEC,
   ONE_YEAR_SEC,
-  loadEnv
+  loadEnv,
+  waitUntilConfirmationCompleted
 } from '../test-util'
 
 jest.setTimeout(300000)
@@ -60,13 +61,33 @@ describe('SelfProvider - Buyback', () => {
     })
   })
 
-  // TODO - Add success test cases https://github.com/defactor-com/sdk/issues/231 #231
   describe('Functions', () => {
     describe('buyback()', () => {
-      it.skip('failure - usdc balance is is less than 1000', async () => {
+      it.skip('failure - usdc balance is less than 1000', async () => {
         await expect(provider.contract.buyback()).rejects.toThrow(
           buybackErrorMessage.buybackConstraint
         )
+      })
+      it.skip('success - usdc balance is more than 1000', async () => {
+        expect(!provider.contract.signer).toBe(false)
+
+        const usdc = await provider.contract.getUSDC()
+        const erc20 = new Erc20(usdc, provider.contract.apiUrl, null)
+        const decimals = await erc20.decimals()
+        const amount = provider.contract.ONE_THOUSAND * BigInt(10) ** decimals
+
+        const pop = await erc20.contract.transfer.populateTransaction(
+          provider.contract.address,
+          amount
+        )
+        const tx = await provider.contract.signer!.sendTransaction(pop)
+
+        await waitUntilConfirmationCompleted(
+          provider.contract.jsonRpcProvider,
+          tx
+        )
+
+        await expect(provider.contract.buyback()).resolves.not.toThrow()
       })
     })
     describe('buybackWithdraw()', () => {
@@ -169,6 +190,42 @@ describe('SelfProvider - Buyback', () => {
             []
           )
         ).rejects.toThrow(buybackErrorMessage.collectionBpsConstraint)
+      })
+      it.skip('success - custom buyback', async () => {
+        expect(!provider.contract.signer).toBe(false)
+
+        const usdc = await provider.contract.getUSDC()
+        const erc20 = new Erc20(usdc, provider.contract.apiUrl, null)
+        const decimals = await erc20.decimals()
+        const amount =
+          BigInt(2) * provider.contract.ONE_THOUSAND * BigInt(10) ** decimals
+        const tx = await erc20.approve(provider.contract.address, amount)
+
+        await waitUntilConfirmationCompleted(
+          provider.contract.jsonRpcProvider,
+          tx
+        )
+
+        const collectionArray = [
+          {
+            account: provider.contract.signer!.address,
+            bps: BigInt(100_00)
+          }
+        ]
+        const distributionArray = [
+          {
+            account: provider.contract.signer!.address,
+            bps: BigInt(100_00)
+          }
+        ]
+
+        await expect(
+          provider.contract.customBuyback(
+            amount,
+            collectionArray,
+            distributionArray
+          )
+        ).resolves.not.toThrow()
       })
     })
     describe('customBuybackWithdraw()', () => {

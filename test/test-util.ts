@@ -32,6 +32,8 @@ export const AMOY_STAKING_CONTRACT_ADDRESS =
   '0xF9539F81CFC87F80BafEBe68DD2ca681Be970Eaf'
 export const BUYBACK_CONTRACT_ADDRESS =
   '0x615e1f7970363Fbf7A1843eFc16f0E4e685610F9'
+export const VESTING_CONTRACT_ADDRESS =
+  '0x615e1f7970363Fbf7A1843eFc16f0E4e685610F9'
 
 export const loadEnv = async (): Promise<void> => {
   const dotenv = await import('dotenv')

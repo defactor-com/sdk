@@ -69,6 +69,7 @@
     "typescript": "^5.3.3"
   },
   "dependencies": {
+    "@openzeppelin/merkle-tree": "^1.0.7",
     "ethers": "^6.9.2"
   }
 }

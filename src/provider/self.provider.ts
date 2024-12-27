@@ -9,11 +9,13 @@ import {
   ERC20CollateralPoolConstructorParams,
   PoolsConstructorParams,
   PrivateKey,
-  StakingConstructorParams
+  StakingConstructorParams,
+  VestingConstructorParams
 } from '../types/types'
+import { Vesting } from '../vesting'
 
 export class SelfProvider<
-  T extends PoolsClass | ERC20CollateralPool | Staking | Buyback
+  T extends PoolsClass | ERC20CollateralPool | Staking | Buyback | Vesting
 > extends BaseProvider<T> {
   constructor(
     contractBuilder: new (
@@ -22,6 +24,7 @@ export class SelfProvider<
         | ERC20CollateralPoolConstructorParams
         | StakingConstructorParams
         | BuybackConstructorParams
+        | VestingConstructorParams
     ) => T,
     address: string,
     apiUrl: string,
