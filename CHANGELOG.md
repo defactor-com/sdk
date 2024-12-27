@@ -1,5 +1,14 @@
 # @defactor-com/defactor-sdk
 
+## 4.0.4
+
+### Patch Changes
+
+- 0bf161b: Add support to `vesting` contract
+
+  - Include `OPERATOR` role in the `Role` utility object
+  - Add `Vesting` class to support Vesting contract functions
+
 ## 4.0.3
 
 ### Patch Changes
