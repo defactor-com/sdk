@@ -27,6 +27,7 @@ describe('SelfProvider - Vesting', () => {
   let notAdminSignerAddress: string
   let dummySchedule: VestingSchedule
   let validSchedule: VestingSchedule
+  let notStartedSchedule: VestingSchedule
   const multipleValidSchedule: Array<VestingSchedule> = []
 
   beforeAll(async () => {
@@ -102,6 +103,17 @@ describe('SelfProvider - Vesting', () => {
       duration: BigInt(2 * ONE_YEAR_SEC),
       initialAmount: BigInt(0.1 * 1e18)
     })
+
+    notStartedSchedule = {
+      cliff: BigInt(0),
+      start: BigInt(1801668561), // 02/03/2027
+      duration: BigInt(ONE_YEAR_SEC),
+      secondsPerSlice: BigInt(ONE_YEAR_SEC / 4),
+      beneficiary: signerAddress,
+      tokenAddress: FACTR_TOKEN_ADDRESS,
+      amount: BigInt(1) * BigInt(1e18), // 1 FACTR
+      initialAmount: BigInt(0)
+    }
   })
 
   beforeEach(() => {
@@ -274,6 +286,32 @@ describe('SelfProvider - Vesting', () => {
           expect((error as ethers.CallExceptionError).revert?.args[0]).toBe(
             'Ivalid merkletree root'
           )
+        }
+      })
+      it('failure - schedule not started', async () => {
+        expect(notStartedSchedule.start > getUnixEpochTime())
+
+        const merkleTree = provider.contract.buildMerkletree([
+          notStartedSchedule
+        ])
+
+        await provider.contract.addValidMerkletreeRoot(merkleTree.root, true)
+
+        await expect(
+          provider.contract.release(notStartedSchedule, [])
+        ).rejects.toThrow(vestingErrorMessage.startTimeNotReached)
+
+        try {
+          const pop =
+            await provider.contract.contract.release.populateTransaction(
+              notStartedSchedule,
+              []
+            )
+
+          await provider.contract.signer!.sendTransaction(pop)
+        } catch (error) {
+          expect(isError(error, 'CALL_EXCEPTION')).toBeTruthy()
+          expect((error as ethers.CallExceptionError).revert?.args[0]).toBe(17)
         }
       })
       it('success - release from a valid schedule', async () => {
@@ -475,6 +513,28 @@ describe('SelfProvider - Vesting', () => {
           )
         }
       })
+      it('failure - schedule not started', async () => {
+        const releasableAmount = await provider.contract.getReleasableAmount(
+          notStartedSchedule,
+          []
+        )
+
+        expect(notStartedSchedule.start > getUnixEpochTime())
+        expect(releasableAmount).toBe(BigInt(0))
+
+        try {
+          const pop =
+            await provider.contract.contract.getReleasableAmount.populateTransaction(
+              notStartedSchedule,
+              []
+            )
+
+          await provider.contract.signer!.sendTransaction(pop)
+        } catch (error) {
+          expect(isError(error, 'CALL_EXCEPTION')).toBeTruthy()
+          expect((error as ethers.CallExceptionError).revert?.args[0]).toBe(17)
+        }
+      })
       it('success - get the releasable amount', async () => {
         const releasableAmount = await provider.contract.getReleasableAmount(
           validSchedule,
@@ -540,6 +600,28 @@ describe('SelfProvider - Vesting', () => {
           expect((error as ethers.CallExceptionError).revert?.args[0]).toBe(
             'Ivalid merkletree root'
           )
+        }
+      })
+      it('failure - schedule not started', async () => {
+        const releasedAmount = await provider.contract.getReleasedAmount(
+          notStartedSchedule,
+          []
+        )
+
+        expect(notStartedSchedule.start > getUnixEpochTime())
+        expect(releasedAmount).toBe(BigInt(0))
+
+        try {
+          const pop =
+            await provider.contract.contract.getReleasedAmount.populateTransaction(
+              notStartedSchedule,
+              []
+            )
+
+          await provider.contract.signer!.sendTransaction(pop)
+        } catch (error) {
+          expect(isError(error, 'CALL_EXCEPTION')).toBeTruthy()
+          expect((error as ethers.CallExceptionError).revert?.args[0]).toBe(17)
         }
       })
       it('success - get the released amount', async () => {
