@@ -1,5 +1,11 @@
 # @defactor-com/defactor-sdk
 
+## 4.1.0
+
+### Minor Changes
+
+- beb97b0: Add new vesting contract version with events
+
 ## 4.0.4
 
 ### Patch Changes
