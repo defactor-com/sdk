@@ -13,7 +13,7 @@ import {
   VestingSchedule,
   Views
 } from '../types/vesting'
-import { Role, is32BytesString } from '../utilities/util'
+import { Role, getUnixEpochTime, is32BytesString } from '../utilities/util'
 
 export class Vesting
   extends BaseContract
@@ -153,6 +153,10 @@ export class Vesting
 
     this._checkScheduleData(schedule)
 
+    const currentTimestamp = getUnixEpochTime()
+
+    if (schedule.start > currentTimestamp) return BigInt(0)
+
     return await this.contract.getReleasedAmount(schedule, proof)
   }
 
@@ -166,6 +170,10 @@ export class Vesting
 
     this._checkScheduleData(schedule)
 
+    const currentTimestamp = getUnixEpochTime()
+
+    if (schedule.start > currentTimestamp) return BigInt(0)
+
     return await this.contract.getReleasableAmount(schedule, proof)
   }
 
@@ -178,6 +186,12 @@ export class Vesting
     }
 
     this._checkScheduleData(schedule)
+
+    const currentTimestamp = getUnixEpochTime()
+
+    if (schedule.start > currentTimestamp) {
+      throw new Error(vestingErrorMessage.startTimeNotReached)
+    }
 
     await this._checkIsNotPaused()
 

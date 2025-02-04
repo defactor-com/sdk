@@ -126,6 +126,7 @@ export const vestingErrorMessage = {
   nonNegativeAmountOrZero: 'Amount cannot be negative or 0',
   leafsArrayIsEmpty: 'The leafs array cannot be empty',
   tokensArrayIsEmpty: 'The tokens array cannot be empty',
+  startTimeNotReached: 'The schedule has not started',
   onlyBeneficiaryOrOperator:
     'Only beneficiary and operator can release vested tokens'
 }
