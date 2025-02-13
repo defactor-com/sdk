@@ -5,7 +5,7 @@ import { Erc20 } from '../../src'
 import { commonErrorMessage, stakingErrorMessage } from '../../src/errors'
 import { SelfProvider } from '../../src/provider'
 import { Staking } from '../../src/staking'
-import { Plan } from '../../src/types/staking'
+import { Plan } from '../../src/types/staking/v1'
 import { Role } from '../../src/utilities/util'
 import {
   ADMIN_TESTING_PRIVATE_KEY,

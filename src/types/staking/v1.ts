@@ -19,11 +19,7 @@ export interface Constants {
   MIN_STAKE_AMOUNT(): Promise<bigint>
 }
 
-export interface Views {}
-
-export interface AdminFunctions {}
-
-export interface Functions {
+export interface Views {
   getUserTotalStakes(address: string): Promise<number>
   getUserStake(address: string, stakeIndex: bigint): Promise<Stake>
   getUserStakes(address: string): Promise<Array<Stake>>
@@ -31,11 +27,25 @@ export interface Functions {
   getTotalFactrStaked(): Promise<bigint>
   getBaseTokenAddress(): Promise<string>
   stakingEndTime(): Promise<bigint>
+  getPlans(): Promise<Array<Plan>>
+}
+
+export interface AdminFunctions {
   addPlan(
     lockDuration: bigint,
     apy: bigint
   ): Promise<ethers.ContractTransaction | ethers.TransactionResponse>
-  getPlans(): Promise<Array<Plan>>
+  setDates(
+    stakingEndTime: number,
+    rewardsEndTime: number
+  ): Promise<ethers.ContractTransaction | ethers.TransactionResponse>
+  withdraw(
+    tokenAddress: string,
+    to: string
+  ): Promise<ethers.ContractTransaction | ethers.TransactionResponse>
+}
+
+export interface Functions {
   stake(
     planId: bigint,
     amount: bigint
@@ -46,14 +56,6 @@ export interface Functions {
   restake(
     planId: bigint,
     stakeIndex: bigint
-  ): Promise<ethers.ContractTransaction | ethers.TransactionResponse>
-  setDates(
-    stakingEndTime: number,
-    rewardsEndTime: number
-  ): Promise<ethers.ContractTransaction | ethers.TransactionResponse>
-  withdraw(
-    tokenAddress: string,
-    to: string
   ): Promise<ethers.ContractTransaction | ethers.TransactionResponse>
   claimRewards(
     stakeIndex: bigint

@@ -1,9 +1,15 @@
 import { ContractTransaction, TransactionResponse, ethers } from 'ethers'
 
-import { miscStaking } from '../artifacts'
+import { miscStakingV1 } from '../artifacts'
 import { BaseContract } from '../base-classes'
 import { commonErrorMessage, stakingErrorMessage } from '../errors'
-import { AdminFunctions, Functions, Plan, Stake, Views } from '../types/staking'
+import {
+  AdminFunctions,
+  Functions,
+  Plan,
+  Stake,
+  Views
+} from '../types/staking/v1'
 import { Abi, PrivateKey } from '../types/types'
 
 export class Staking
@@ -19,7 +25,7 @@ export class Staking
     privateKey: PrivateKey | null,
     abi?: Abi
   ) {
-    super(address, apiUrl, privateKey, abi || miscStaking.abi)
+    super(address, apiUrl, privateKey, abi || miscStakingV1.abi)
   }
 
   async getRewardsEndTime(): Promise<bigint> {
