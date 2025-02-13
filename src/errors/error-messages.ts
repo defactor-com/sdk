@@ -7,7 +7,8 @@ export const commonErrorMessage = {
     `The ${valueName} value cannot be greater than ${maxValue}`,
   invalidToken: 'Invalid token address',
   invalidBytesLike: 'The string value is not a valid BytesLike representation',
-  nonNegativeValue: 'Value cannot be negative'
+  nonNegativeValue: 'Value cannot be negative',
+  nonNegativeDate: 'The timestamp cannot be negative'
 }
 
 export const poolCommonErrorMessage = {

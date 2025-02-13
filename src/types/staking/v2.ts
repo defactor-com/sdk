@@ -34,7 +34,7 @@ export interface Constants {
 }
 
 export interface Views {
-  getBalanceOf(address: string, token: string): Promise<bigint>
+  getBalanceOf(address: string, tokenAddress: string): Promise<bigint>
   calculateStakeRewardByIndex(
     address: string,
     timestamp: bigint,
@@ -43,7 +43,7 @@ export interface Views {
   calculateStakeRewardsForUser(
     address: string,
     timestamp: bigint
-  ): Promise<bigint>
+  ): Promise<Array<bigint>>
   getUserStake(address: string, stakeIndex: bigint): Promise<Stake>
   getUserStakes(address: string): Promise<Array<Stake>>
   getPlans(): Promise<Array<Plan>>
