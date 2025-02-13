@@ -1,12 +1,6 @@
-import { Buyback } from '../buyback/buyback'
-import { ERC20CollateralPool } from '../pools/erc20-collateral-pool'
-import { Pools as PoolsClass } from '../pools/pools'
-import { Staking } from '../staking/staking'
-import { Vesting } from '../vesting/vesting'
+import { CoreContract } from './core-contract'
 
-export abstract class BaseProvider<
-  T extends PoolsClass | ERC20CollateralPool | Staking | Buyback | Vesting
-> {
+export abstract class BaseProvider<T extends CoreContract> {
   readonly contract: T
 
   constructor(c: T) {

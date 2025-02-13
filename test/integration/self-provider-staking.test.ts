@@ -4,7 +4,7 @@ import timekeeper from 'timekeeper'
 import { Erc20 } from '../../src'
 import { commonErrorMessage, stakingErrorMessage } from '../../src/errors'
 import { SelfProvider } from '../../src/provider'
-import { Staking } from '../../src/staking'
+import { StakingV1 } from '../../src/staking'
 import { Plan } from '../../src/types/staking/v1'
 import { Role } from '../../src/utilities/util'
 import {
@@ -22,8 +22,8 @@ import {
 jest.setTimeout(300000)
 
 describe('SelfProvider - Staking', () => {
-  let provider: SelfProvider<Staking>
-  let notAdminProvider: SelfProvider<Staking>
+  let provider: SelfProvider<StakingV1>
+  let notAdminProvider: SelfProvider<StakingV1>
   let signerAddress: string
   let factrTokenContract: Erc20
 
@@ -56,14 +56,14 @@ describe('SelfProvider - Staking', () => {
     )
 
     provider = new SelfProvider(
-      Staking,
+      StakingV1,
       AMOY_STAKING_CONTRACT_ADDRESS,
       process.env.PROVIDER_URL,
       ADMIN_TESTING_PRIVATE_KEY
     )
 
     notAdminProvider = new SelfProvider(
-      Staking,
+      StakingV1,
       AMOY_STAKING_CONTRACT_ADDRESS,
       process.env.PROVIDER_URL,
       TESTING_PRIVATE_KEY

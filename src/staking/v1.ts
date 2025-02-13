@@ -12,7 +12,7 @@ import {
 } from '../types/staking/v1'
 import { Abi, PrivateKey } from '../types/types'
 
-export class Staking
+export class StakingV1
   extends BaseContract
   implements Functions, Views, AdminFunctions
 {

@@ -3,7 +3,7 @@ import { ethers } from 'ethers'
 import { Buyback } from '../buyback'
 import { ERC20CollateralPool } from '../pools/erc20-collateral-pool'
 import { Pools } from '../pools/pools'
-import { Staking } from '../staking/staking'
+import { StakingV1, StakingV2 } from '../staking'
 import { Role } from '../utilities/util'
 import { Vesting } from '../vesting'
 
@@ -13,7 +13,9 @@ export type ERC20CollateralPoolConstructorParams = ConstructorParameters<
 
 export type PoolsConstructorParams = ConstructorParameters<typeof Pools>
 
-export type StakingConstructorParams = ConstructorParameters<typeof Staking>
+export type StakingConstructorParams = ConstructorParameters<
+  typeof StakingV1 | typeof StakingV2
+>
 
 export type BuybackConstructorParams = ConstructorParameters<typeof Buyback>
 
