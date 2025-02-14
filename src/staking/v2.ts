@@ -44,8 +44,10 @@ export class StakingV2 extends BaseContract implements Views {
       throw new Error(commonErrorMessage.nonNegativeDate)
     }
 
-    if (!ethers.isAddress(address)) {
-      throw new Error(commonErrorMessage.wrongAddressFormat)
+    const userStakes = await this.getUserStakes(address)
+
+    if (userStakes.length <= Number(stakeIndex)) {
+      throw new Error(stakingErrorMessage.invalidStakeIndex)
     }
 
     return await this.contract.calculateStakeRewardByIndex(
@@ -75,8 +77,10 @@ export class StakingV2 extends BaseContract implements Views {
       throw new Error(stakingErrorMessage.nonNegativeIndexId)
     }
 
-    if (!ethers.isAddress(address)) {
-      throw new Error(commonErrorMessage.wrongAddressFormat)
+    const userStakes = await this.getUserStakes(address)
+
+    if (userStakes.length <= Number(stakeIndex)) {
+      throw new Error(stakingErrorMessage.invalidStakeIndex)
     }
 
     return await this.contract.getUserStake(address, stakeIndex)
@@ -97,6 +101,12 @@ export class StakingV2 extends BaseContract implements Views {
   async getPlanTokenRatios(planId: bigint): Promise<TokenRatio[]> {
     if (planId < 0) {
       throw new Error(stakingErrorMessage.nonNegativeIndexId)
+    }
+
+    const plans = await this.getPlans()
+
+    if (plans.length <= Number(planId)) {
+      throw new Error(stakingErrorMessage.invalidPlanId)
     }
 
     return await this.contract.getPlanTokenRatios(planId)
