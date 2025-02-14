@@ -3,8 +3,8 @@ import { ethers } from 'ethers'
 import { Stake as StakeV1, Functions as StakingV1Functions } from './v1'
 
 export type Plan = {
-  stakingToken: bigint
-  rewardToken: bigint
+  stakingToken: string
+  rewardToken: string
   totalStaked: bigint
   totalUnstaked: bigint
   maxStaked: bigint
@@ -52,12 +52,11 @@ export interface Views {
 
 export interface AdminFunctions {
   addPlan(
-    stakingToken: bigint,
-    rewardToken: bigint,
-    totalStaked: bigint,
-    totalUnstaked: bigint,
+    stakingToken: string,
+    rewardToken: string,
     maxStaked: bigint,
     minStakeAmount: bigint,
+    initialRatio: bigint,
     stakingEndTime: bigint,
     rewardEndTime: bigint,
     lockDuration: bigint,

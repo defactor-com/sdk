@@ -103,7 +103,15 @@ export const stakingErrorMessage = {
   stakingCantBeLessThanRewardsEnd:
     'Staking end time cannot be less than rewards end time',
   nonNegativeIndexId: 'Neither Index nor Id can be negative',
-  nonNegativeDates: 'Neither staking nor reward end date can be negative'
+  nonNegativeDates: 'Neither staking nor reward end date can be negative',
+  nonNegativeInitialRatio: 'The initial ratio cannot be negative',
+  maxTokenRatiosIsReached: 'Maximum token ratios per plan has been reached',
+  rewardsEndTimeReached: 'The rewards end time has passed',
+  planAlreadyExists: 'The plan already exists',
+  rewardEndTimeTooLow: 'The reward end time is too low',
+  nonNegativeMinStakeAmount: 'The min stake amount cannot be negative',
+  minStakeMustBeLessThanMaxStake:
+    'The min stake amount must be less than max stake amount'
 }
 
 export const buybackErrorMessage = {
