@@ -110,6 +110,9 @@ export const stakingErrorMessage = {
   planAlreadyExists: 'The plan already exists',
   rewardEndTimeTooLow: 'The reward end time is too low',
   nonNegativeMinStakeAmount: 'The min stake amount cannot be negative',
+  maxStakedReached: 'Max stake is reached',
+  restakedWithWrongToken:
+    'Cannot restake in a plan with different staking token',
   minStakeMustBeLessThanMaxStake:
     'The min stake amount must be less than max stake amount'
 }

@@ -8,6 +8,7 @@ import {
   AddPlanInput,
   AdminFunctions,
   EditPlanInput,
+  Functions,
   Plan,
   TokenRatio,
   Views
@@ -15,7 +16,10 @@ import {
 import { Abi, PrivateKey } from '../types/types'
 import { getUnixEpochTime } from '../utilities/util'
 
-export class StakingV2 extends BaseContract implements Views, AdminFunctions {
+export class StakingV2
+  extends BaseContract
+  implements Functions, Views, AdminFunctions
+{
   readonly PERCENTAGE_MULTIPLIER = BigInt(100)
   readonly MAX_TOKEN_RATIOS_PER_PLAN = BigInt(100)
   readonly RATIO_DECIMALS_DIVIDER = BigInt('1000000000000000000')
@@ -364,6 +368,138 @@ export class StakingV2 extends BaseContract implements Views, AdminFunctions {
       planId,
       ratio
     )
+
+    return this.signer ? await this.signer.sendTransaction(pop) : pop
+  }
+
+  async stake(
+    planId: bigint,
+    amount: bigint
+  ): Promise<ethers.ContractTransaction | ethers.TransactionResponse> {
+    if (planId < 0) {
+      throw new Error(stakingErrorMessage.nonNegativeIndexId)
+    }
+
+    await this._checkIsNotPaused()
+
+    const plan = await this._getPlan(planId)
+
+    if (amount < plan.minStakeAmount) {
+      throw new Error(stakingErrorMessage.stakeAmountTooLow)
+    }
+
+    if (getUnixEpochTime() > plan.stakingEndTime) {
+      throw new Error(stakingErrorMessage.stakingHasEnded)
+    }
+
+    if (plan.totalStaked + amount > plan.maxStaked) {
+      throw new Error(stakingErrorMessage.maxStakedReached)
+    }
+
+    const pop = await this.contract.stake.populateTransaction(planId, amount)
+
+    return this.signer ? await this.signer.sendTransaction(pop) : pop
+  }
+
+  async unstake(
+    stakeIndex: bigint
+  ): Promise<ethers.ContractTransaction | ethers.TransactionResponse> {
+    if (stakeIndex < 0) {
+      throw new Error(stakingErrorMessage.nonNegativeIndexId)
+    }
+
+    await this._checkIsNotPaused()
+
+    if (this.signer) {
+      const userStake = await this.getUserStake(this.signer.address, stakeIndex)
+      const plan = await this._getPlan(userStake.planId)
+
+      if (userStake.unstaked) {
+        throw new Error(stakingErrorMessage.stakeAlreadyUnstaked)
+      }
+
+      if (userStake.stakeTime + plan.lockDuration > getUnixEpochTime()) {
+        throw new Error(stakingErrorMessage.stakeIsLocked)
+      }
+    }
+
+    const pop = await this.contract.unstake.populateTransaction(stakeIndex)
+
+    return this.signer ? await this.signer.sendTransaction(pop) : pop
+  }
+
+  async restake(
+    planId: bigint,
+    stakeIndex: bigint
+  ): Promise<ethers.ContractTransaction | ethers.TransactionResponse> {
+    if (planId < 0 || stakeIndex < 0) {
+      throw new Error(stakingErrorMessage.nonNegativeIndexId)
+    }
+
+    await this._checkIsNotPaused()
+
+    const newPlan = await this._getPlan(planId)
+
+    if (getUnixEpochTime() > newPlan.stakingEndTime) {
+      throw new Error(stakingErrorMessage.stakingHasEnded)
+    }
+
+    if (this.signer) {
+      const userStake = await this.getUserStake(this.signer.address, stakeIndex)
+      const oldPlan =
+        planId !== userStake.planId
+          ? await this._getPlan(userStake.planId)
+          : newPlan
+
+      if (userStake.unstaked) {
+        throw new Error(stakingErrorMessage.stakeAlreadyUnstaked)
+      }
+
+      if (userStake.stakeTime + oldPlan.lockDuration > getUnixEpochTime()) {
+        throw new Error(stakingErrorMessage.stakeIsLocked)
+      }
+
+      if (oldPlan.stakingToken !== newPlan.stakingToken) {
+        throw new Error(stakingErrorMessage.restakedWithWrongToken)
+      }
+    }
+
+    const pop = await this.contract.restake.populateTransaction(
+      planId,
+      stakeIndex
+    )
+
+    return this.signer ? await this.signer.sendTransaction(pop) : pop
+  }
+
+  async claimRewards(
+    stakeIndex: bigint
+  ): Promise<ethers.ContractTransaction | ethers.TransactionResponse> {
+    if (stakeIndex < 0) {
+      throw new Error(stakingErrorMessage.nonNegativeIndexId)
+    }
+
+    await this._checkIsNotPaused()
+
+    if (this.signer) {
+      const userStake = await this.getUserStake(this.signer.address, stakeIndex)
+
+      if (userStake.unstaked) {
+        throw new Error(stakingErrorMessage.stakeAlreadyUnstaked)
+      }
+    }
+
+    const pop = await this.contract.claimRewards.populateTransaction(stakeIndex)
+
+    return this.signer ? await this.signer.sendTransaction(pop) : pop
+  }
+
+  async claimAllRewards(): Promise<
+    ethers.ContractTransaction | ethers.TransactionResponse
+  > {
+    await this._checkIsNotPaused()
+
+    const pop = await this.contract.claimAllRewards.populateTransaction()
 
     return this.signer ? await this.signer.sendTransaction(pop) : pop
   }

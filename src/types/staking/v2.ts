@@ -92,7 +92,7 @@ export interface AdminFunctions {
 }
 
 export interface Functions extends StakingV1Functions {
-  claimAllRewards(
-    stakeIndex: bigint
-  ): Promise<ethers.ContractTransaction | ethers.TransactionResponse>
+  claimAllRewards(): Promise<
+    ethers.ContractTransaction | ethers.TransactionResponse
+  >
 }
