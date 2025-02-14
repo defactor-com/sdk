@@ -4,7 +4,14 @@ import { miscStakingV2 } from '../artifacts'
 import { BaseContract } from '../base-classes'
 import { commonErrorMessage, stakingErrorMessage } from '../errors'
 import { Stake } from '../types/staking/v1'
-import { AdminFunctions, Plan, TokenRatio, Views } from '../types/staking/v2'
+import {
+  AddPlanInput,
+  AdminFunctions,
+  EditPlanInput,
+  Plan,
+  TokenRatio,
+  Views
+} from '../types/staking/v2'
 import { Abi, PrivateKey } from '../types/types'
 import { getUnixEpochTime } from '../utilities/util'
 
@@ -197,18 +204,20 @@ export class StakingV2 extends BaseContract implements Views, AdminFunctions {
     }
   }
 
-  async addPlan(
-    stakingToken: string,
-    rewardToken: string,
-    maxStaked: bigint,
-    minStakeAmount: bigint,
-    initialRatio: bigint,
-    stakingEndTime: bigint,
-    rewardEndTime: bigint,
-    lockDuration: bigint,
-    apy: bigint,
-    apyAfterUnlock: bigint
-  ): Promise<ethers.ContractTransaction | ethers.TransactionResponse> {
+  async addPlan({
+    stakingToken,
+    rewardToken,
+    maxStaked,
+    minStakeAmount,
+    initialRatio,
+    stakingEndTime,
+    rewardEndTime,
+    lockDuration,
+    apy,
+    apyAfterUnlock
+  }: AddPlanInput): Promise<
+    ethers.ContractTransaction | ethers.TransactionResponse
+  > {
     this._checkPlanData(
       maxStaked,
       minStakeAmount,
@@ -256,16 +265,18 @@ export class StakingV2 extends BaseContract implements Views, AdminFunctions {
     return this.signer ? await this.signer.sendTransaction(pop) : pop
   }
 
-  async editPlan(
-    planId: bigint,
-    maxStaked: bigint,
-    minStakeAmount: bigint,
-    stakingEndTime: bigint,
-    rewardEndTime: bigint,
-    lockDuration: bigint,
-    apy: bigint,
-    apyAfterUnlock: bigint
-  ): Promise<ethers.ContractTransaction | ethers.TransactionResponse> {
+  async editPlan({
+    planId,
+    maxStaked,
+    minStakeAmount,
+    stakingEndTime,
+    rewardEndTime,
+    lockDuration,
+    apy,
+    apyAfterUnlock
+  }: EditPlanInput): Promise<
+    ethers.ContractTransaction | ethers.TransactionResponse
+  > {
     this._checkPlanData(
       maxStaked,
       minStakeAmount,

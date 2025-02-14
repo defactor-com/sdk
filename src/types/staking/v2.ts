@@ -28,6 +28,30 @@ export type TokenAmount = {
   amount: bigint
 }
 
+export type AddPlanInput = {
+  stakingToken: string
+  rewardToken: string
+  maxStaked: bigint
+  minStakeAmount: bigint
+  initialRatio: bigint
+  stakingEndTime: bigint
+  rewardEndTime: bigint
+  lockDuration: bigint
+  apy: bigint
+  apyAfterUnlock: bigint
+}
+
+export type EditPlanInput = {
+  planId: bigint
+  maxStaked: bigint
+  minStakeAmount: bigint
+  stakingEndTime: bigint
+  rewardEndTime: bigint
+  lockDuration: bigint
+  apy: bigint
+  apyAfterUnlock: bigint
+}
+
 export interface Constants {
   PERCENTAGE_MULTIPLIER(): Promise<bigint>
   RATIO_DECIMALS_DIVIDER(): Promise<bigint>
@@ -52,26 +76,10 @@ export interface Views {
 
 export interface AdminFunctions {
   addPlan(
-    stakingToken: string,
-    rewardToken: string,
-    maxStaked: bigint,
-    minStakeAmount: bigint,
-    initialRatio: bigint,
-    stakingEndTime: bigint,
-    rewardEndTime: bigint,
-    lockDuration: bigint,
-    apy: bigint,
-    apyAfterUnlock: bigint
+    addPlanInput: AddPlanInput
   ): Promise<ethers.ContractTransaction | ethers.TransactionResponse>
   editPlan(
-    planId: bigint,
-    maxStaked: bigint,
-    minStakeAmount: bigint,
-    stakingEndTime: bigint,
-    rewardEndTime: bigint,
-    lockDuration: bigint,
-    apy: bigint,
-    apyAfterUnlock: bigint
+    editPlanInput: EditPlanInput
   ): Promise<ethers.ContractTransaction | ethers.TransactionResponse>
   withdraw(
     tokenAddress: string,
