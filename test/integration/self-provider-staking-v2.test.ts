@@ -429,16 +429,23 @@ describe('SelfProvider - Staking', () => {
           provider.contract.stake(BigInt(planId), amount)
         ).rejects.toThrow('ERC20: insufficient allowance')
       })
-      it.skip('success - Stake using latest plan Id', async () => {
+      it.skip('success - stake', async () => {
         const plans = await provider.contract.getPlans()
         const planId = BigInt(
           plans.findIndex(plan => isSameDummyPlan(plan, dummyUsdcPlan))!
         )
-        const amount = plans[Number(planId)].minStakeAmount
+        const plan = plans[Number(planId)]
+        const amount = plan.minStakeAmount
+        const stakingToken = plan.stakingToken
+        const tokenContract = new Erc20(
+          stakingToken,
+          provider.contract.apiUrl,
+          null
+        )
 
-        await approveTokenAmount(factrTokenContract, provider, amount)
+        await approveTokenAmount(tokenContract, provider, amount)
         await expect(
-          provider.contract.stake(planId, amount)
+          provider.contract.stake(BigInt(planId), amount)
         ).resolves.not.toThrow()
       })
     })
@@ -473,6 +480,13 @@ describe('SelfProvider - Staking', () => {
           provider.contract.unstake(BigInt(MAX_BIGINT))
         ).rejects.toThrow(stakingErrorMessage.invalidStakeIndex)
       })
+      it('failure - stake is already unstaked', async () => {
+        const stakeIndex = BigInt(0)
+
+        await expect(provider.contract.unstake(stakeIndex)).rejects.toThrow(
+          stakingErrorMessage.stakeAlreadyUnstaked
+        )
+      })
       it.skip('failure - Stake is locked', async () => {
         const stakeIndex = BigInt(0)
 
@@ -487,7 +501,7 @@ describe('SelfProvider - Staking', () => {
         timekeeper.reset()
       })
       it.skip('success - Unstake successfully', async () => {
-        const stakeIndex = BigInt(0)
+        const stakeIndex = BigInt(1)
 
         await expect(
           provider.contract.unstake(stakeIndex)
@@ -520,17 +534,29 @@ describe('SelfProvider - Staking', () => {
       it.skip('failure - new plan has a different staking token', async () => {
         const plans = await provider.contract.getPlans()
         const planId = BigInt(
-          plans.findIndex(plan => isSameDummyPlan(plan, dummyUsdcPlan))!
+          plans.findIndex(plan => isSameDummyPlan(plan, dummyFactrPlan))!
         )
+        const stakeIndex = BigInt(0)
 
         await expect(
-          provider.contract.restake(planId, BigInt(0))
+          provider.contract.restake(planId, stakeIndex)
         ).rejects.toThrow(stakingErrorMessage.restakedWithWrongToken)
+      })
+      it('failure - already unstaked the stake', async () => {
+        const plans = await provider.contract.getPlans()
+        const planId = BigInt(
+          plans.findIndex(plan => isSameDummyPlan(plan, dummyFactrPlan))!
+        )
+        const stakeIndex = BigInt(0)
+
+        await expect(
+          provider.contract.restake(planId, stakeIndex)
+        ).rejects.toThrow(stakingErrorMessage.stakeAlreadyUnstaked)
       })
       it.skip('success - add restake to a plan successfully', async () => {
         const plans = await provider.contract.getPlans()
         const planId = BigInt(
-          plans.findIndex(plan => isSameDummyPlan(plan, dummyFactrPlan))!
+          plans.findIndex(plan => isSameDummyPlan(plan, dummyUsdcPlan))!
         )
         const stakeIndex = BigInt(0)
 
@@ -540,7 +566,7 @@ describe('SelfProvider - Staking', () => {
       })
     })
     describe('claimRewards()', () => {
-      it.skip('failure - stake is already unstaked', async () => {
+      it('failure - stake is already unstaked', async () => {
         const stakeIndex = BigInt(0)
 
         await expect(
