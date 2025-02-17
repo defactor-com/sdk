@@ -12,8 +12,10 @@ import {
   MAX_BIGINT,
   ONE_DAY_SEC,
   TESTING_PRIVATE_KEY,
+  USD_TOKEN_ADDRESS,
   getUnixEpochTime,
-  loadEnv
+  loadEnv,
+  waitUntilConfirmationCompleted
 } from '../test-util'
 
 jest.setTimeout(300000)
@@ -23,6 +25,25 @@ describe('SelfProvider - Staking', () => {
   let notAdminProvider: SelfProvider<StakingV2>
   let signerAddress: string
   let factrTokenContract: Erc20
+
+  const isSameDummyPlan = (
+    plan: Plan,
+    dummyPlan: Omit<Plan, 'totalStaked' | 'totalUnstaked'> & {
+      initialRatio: bigint
+    }
+  ) => {
+    return (
+      plan.rewardEndTime === dummyPlan.rewardEndTime &&
+      plan.stakingEndTime === dummyPlan.stakingEndTime &&
+      plan.stakingToken === dummyPlan.stakingToken &&
+      plan.rewardToken === dummyPlan.rewardToken &&
+      plan.maxStaked === dummyPlan.maxStaked &&
+      plan.minStakeAmount === dummyPlan.minStakeAmount &&
+      plan.apy === dummyPlan.apy &&
+      plan.apyAfterUnlock === dummyPlan.apyAfterUnlock &&
+      plan.lockDuration === dummyPlan.lockDuration
+    )
+  }
 
   const dummyPlan: Omit<Plan, 'totalStaked' | 'totalUnstaked'> & {
     initialRatio: bigint
@@ -48,6 +69,24 @@ describe('SelfProvider - Staking', () => {
     lockDuration: dummyPlan.lockDuration,
     apy: dummyPlan.apy,
     apyAfterUnlock: dummyPlan.apyAfterUnlock
+  }
+
+  const dummyFactrPlan = {
+    ...dummyPlan,
+    lockDuration: BigInt(0),
+    rewardEndTime: BigInt(1769817600),
+    stakingEndTime: BigInt(1767139200)
+  }
+
+  const dummyUsdcPlan = {
+    ...dummyPlan,
+    lockDuration: BigInt(0),
+    rewardEndTime: BigInt(1769817600),
+    stakingEndTime: BigInt(1767139200),
+    maxStaked: BigInt(1000 * 1e6),
+    minStakeAmount: BigInt(10 * 1e6),
+    rewardToken: FACTR_TOKEN_ADDRESS,
+    stakingToken: USD_TOKEN_ADDRESS
   }
 
   beforeAll(async () => {
@@ -203,6 +242,14 @@ describe('SelfProvider - Staking', () => {
         await expect(
           provider.contract.addPlan(dummyPlan)
         ).resolves.not.toThrow()
+
+        await expect(
+          provider.contract.addPlan(dummyFactrPlan)
+        ).resolves.not.toThrow()
+
+        await expect(
+          provider.contract.addPlan(dummyUsdcPlan)
+        ).resolves.not.toThrow()
       })
     })
     describe('changeTokenRatioForPlan()', () => {
@@ -303,7 +350,86 @@ describe('SelfProvider - Staking', () => {
     })
   })
 
-  describe('Functions', () => {})
+  describe('Functions', () => {
+    describe('stake()', () => {
+      it.skip('failure - Contract is paused', async () => {
+        const tx = await provider.contract.pause()
+        const planId = BigInt(0)
+        const amount = dummyPlan.minStakeAmount
+
+        await waitUntilConfirmationCompleted(
+          provider.contract.jsonRpcProvider,
+          tx
+        )
+
+        await expect(provider.contract.stake(planId, amount)).rejects.toThrow(
+          commonErrorMessage.contractIsPaused
+        )
+
+        const tx2 = await provider.contract.unpause()
+
+        await waitUntilConfirmationCompleted(
+          provider.contract.jsonRpcProvider,
+          tx2
+        )
+      })
+      it('failure - the plan id is invalid', async () => {
+        const amount = BigInt(1e18)
+
+        await expect(
+          provider.contract.stake(BigInt(-1), amount)
+        ).rejects.toThrow(stakingErrorMessage.nonNegativeIndexId)
+
+        await expect(
+          provider.contract.stake(BigInt(MAX_BIGINT), amount)
+        ).rejects.toThrow(stakingErrorMessage.invalidPlanId)
+      })
+      it('failure - amount is less than the minimum', async () => {
+        const planId = BigInt(0)
+        const plans = await provider.contract.getPlans()
+        const plan = plans[Number(planId)]
+        const amount = plan.minStakeAmount - BigInt(1e18)
+
+        await expect(provider.contract.stake(planId, amount)).rejects.toThrow(
+          stakingErrorMessage.stakeAmountTooLow
+        )
+      })
+      it('failure - amount exceeds the maximum stake amount', async () => {
+        const plans = await provider.contract.getPlans()
+        const planId = plans.findIndex(plan =>
+          isSameDummyPlan(plan, dummyFactrPlan)
+        )!
+        const plan = plans[planId]
+        const amount = plan.maxStaked + BigInt(1e18)
+
+        await expect(
+          provider.contract.stake(BigInt(planId), amount)
+        ).rejects.toThrow(stakingErrorMessage.maxStakedReached)
+      })
+      it('failure - staking has ended', async () => {
+        const planId = BigInt(0)
+        const plans = await provider.contract.getPlans()
+        const plan = plans[Number(planId)]
+        const amount = plan.minStakeAmount + BigInt(1e18)
+
+        await expect(provider.contract.stake(planId, amount)).rejects.toThrow(
+          stakingErrorMessage.stakingHasEnded
+        )
+      })
+      it('failure - Amount has not been pre-approved', async () => {
+        const plans = await provider.contract.getPlans()
+        const planId = plans.findIndex(plan =>
+          isSameDummyPlan(plan, dummyFactrPlan)
+        )!
+        const plan = plans[planId]
+        const amount = plan.minStakeAmount
+
+        await expect(
+          provider.contract.stake(BigInt(planId), amount)
+        ).rejects.toThrow('ERC20: insufficient allowance')
+      })
+    })
+  })
 
   describe('Views', () => {
     describe('balanceOf()', () => {
