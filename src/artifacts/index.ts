@@ -4,8 +4,9 @@ import miscErc20 from './ERC20.json'
 import miscErc20CollateralPool from './ERC20CollateralPool.json'
 import miscErc20CollateralPoolToplend from './ERC20CollateralPoolToplend.json'
 import miscPools from './Pools.json'
-import miscStaking from './Staking.json'
 import miscStakingExpiration from './StakingExpiration.json'
+import miscStakingV1 from './StakingV1.json'
+import miscStakingV2 from './StakingV2.json'
 import miscVesting from './Vesting.json'
 
 export {
@@ -13,8 +14,9 @@ export {
   miscPools,
   miscAdminPools,
   miscErc20,
-  miscStaking,
+  miscStakingV1,
   miscStakingExpiration,
+  miscStakingV2,
   miscErc20CollateralPoolToplend,
   miscBuyback,
   miscVesting

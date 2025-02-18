@@ -7,7 +7,8 @@ export const commonErrorMessage = {
     `The ${valueName} value cannot be greater than ${maxValue}`,
   invalidToken: 'Invalid token address',
   invalidBytesLike: 'The string value is not a valid BytesLike representation',
-  nonNegativeValue: 'Value cannot be negative'
+  nonNegativeValue: 'Value cannot be negative',
+  nonNegativeDate: 'The timestamp cannot be negative'
 }
 
 export const poolCommonErrorMessage = {
@@ -102,7 +103,18 @@ export const stakingErrorMessage = {
   stakingCantBeLessThanRewardsEnd:
     'Staking end time cannot be less than rewards end time',
   nonNegativeIndexId: 'Neither Index nor Id can be negative',
-  nonNegativeDates: 'Neither staking nor reward end date can be negative'
+  nonNegativeDates: 'Neither staking nor reward end date can be negative',
+  nonNegativeInitialRatio: 'The initial ratio cannot be negative',
+  maxTokenRatiosIsReached: 'Maximum token ratios per plan has been reached',
+  rewardsEndTimeReached: 'The rewards end time has passed',
+  planAlreadyExists: 'The plan already exists',
+  rewardEndTimeTooLow: 'The reward end time is too low',
+  nonNegativeMinStakeAmount: 'The min stake amount cannot be negative',
+  maxStakedReached: 'Max stake is reached',
+  restakedWithWrongToken:
+    'Cannot restake in a plan with different staking token',
+  minStakeMustBeLessThanMaxStake:
+    'The min stake amount must be less than max stake amount'
 }
 
 export const buybackErrorMessage = {

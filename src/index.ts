@@ -8,7 +8,7 @@ import {
 } from './pools'
 import * as AssistedProvider from './provider/assisted.provider'
 import * as SelfProvider from './provider/self.provider'
-import { Staking, StakingExpiration } from './staking'
+import { StakingExpiration, StakingV1, StakingV2 } from './staking'
 import { Erc20 } from './utilities/erc20'
 import * as generics from './utilities/generics'
 import * as util from './utilities/util'
@@ -18,7 +18,8 @@ export * as TypesBuyback from './types/buyback'
 export * as TypesErc20CollateralPool from './types/erc20-collateral-token'
 export * as TypesErc20CollateralPoolToplend from './types/erc20-collateral-pool-toplend'
 export * as TypesPool from './types/pools'
-export * as TypesStaking from './types/staking'
+export * as TypesStakingV1 from './types/staking/v1'
+export * as TypesStakingV2 from './types/staking/v2'
 export * as TypesVesting from './types/vesting'
 export * as Types from './types/types'
 export * from './base-classes/core-contract'
@@ -34,7 +35,8 @@ export {
   SelfProvider,
   Utilities,
   ERC20CollateralPool,
-  Staking,
+  StakingV1,
+  StakingV2,
   StakingExpiration,
   Erc20,
   Pools,

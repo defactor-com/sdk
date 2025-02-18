@@ -4,7 +4,7 @@ import timekeeper from 'timekeeper'
 import { stakingErrorMessage } from '../../src/errors'
 import { SelfProvider } from '../../src/provider'
 import { StakingExpiration } from '../../src/staking'
-import { Plan } from '../../src/types/staking'
+import { Plan } from '../../src/types/staking/v1'
 import {
   ADMIN_TESTING_PRIVATE_KEY,
   AMOY_STAKING_CONTRACT_ADDRESS,

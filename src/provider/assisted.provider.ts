@@ -1,21 +1,15 @@
 import { miscErc20CollateralPool } from '../artifacts'
-import { BaseProvider } from '../base-classes'
-import { Buyback } from '../buyback/buyback'
-import { ERC20CollateralPool } from '../pools/erc20-collateral-pool'
-import { Pools as PoolsClass } from '../pools/pools'
-import { Staking } from '../staking/staking'
+import { BaseProvider, CoreContract } from '../base-classes'
 import {
   Abi,
   BuybackConstructorParams,
   ERC20CollateralPoolConstructorParams,
   PoolsConstructorParams,
+  StakingConstructorParams,
   VestingConstructorParams
 } from '../types/types'
-import { Vesting } from '../vesting'
 
-export class AssistedProvider<
-  T extends PoolsClass | ERC20CollateralPool | Staking | Buyback | Vesting
-> extends BaseProvider<T> {
+export class AssistedProvider<T extends CoreContract> extends BaseProvider<T> {
   readonly abi: Abi
 
   constructor(
@@ -23,6 +17,7 @@ export class AssistedProvider<
       ...args:
         | PoolsConstructorParams
         | ERC20CollateralPoolConstructorParams
+        | StakingConstructorParams
         | BuybackConstructorParams
         | VestingConstructorParams
     ) => T,

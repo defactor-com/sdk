@@ -2,11 +2,14 @@ import { ContractTransaction, TransactionResponse } from 'ethers'
 
 import { miscStakingExpiration } from '../artifacts'
 import { stakingErrorMessage } from '../errors'
-import { ExpirationFunctions } from '../types/staking'
+import { ExpirationFunctions } from '../types/staking/v1'
 import { Abi, PrivateKey } from '../types/types'
-import { Staking } from './staking'
+import { StakingV1 } from './v1'
 
-export class StakingExpiration extends Staking implements ExpirationFunctions {
+export class StakingExpiration
+  extends StakingV1
+  implements ExpirationFunctions
+{
   constructor(
     address: string,
     apiUrl: string,
