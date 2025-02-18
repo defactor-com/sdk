@@ -7,6 +7,7 @@ import { Stake } from '../types/staking/v1'
 import {
   AddPlanInput,
   AdminFunctions,
+  Constants,
   EditPlanInput,
   Functions,
   Plan,
@@ -18,9 +19,9 @@ import { getUnixEpochTime } from '../utilities/util'
 
 export class StakingV2
   extends BaseContract
-  implements Functions, Views, AdminFunctions
+  implements Constants, Functions, Views, AdminFunctions
 {
-  readonly PERCENTAGE_MULTIPLIER = BigInt(100)
+  readonly BPS_DIVIDER = BigInt(10_000)
   readonly MAX_TOKEN_RATIOS_PER_PLAN = BigInt(100)
   readonly RATIO_DECIMALS_DIVIDER = BigInt('1000000000000000000')
   constructor(

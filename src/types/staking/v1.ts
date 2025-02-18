@@ -15,8 +15,8 @@ export type Stake = {
 }
 
 export interface Constants {
-  PERCENTAGE_MULTIPLIER(): Promise<bigint>
-  MIN_STAKE_AMOUNT(): Promise<bigint>
+  PERCENTAGE_MULTIPLIER: bigint
+  MIN_STAKE_AMOUNT: bigint
 }
 
 export interface Views {

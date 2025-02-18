@@ -2,19 +2,26 @@ import { ethers } from 'ethers'
 
 import { Stake as StakeV1, Functions as StakingV1Functions } from './v1'
 
-export type Plan = {
-  stakingToken: string
-  rewardToken: string
+type DefaultPlanValues = {
   totalStaked: bigint
   totalUnstaked: bigint
-  maxStaked: bigint
-  minStakeAmount: bigint
-  stakingEndTime: bigint
-  rewardEndTime: bigint
-  lockDuration: bigint
-  apy: bigint
-  apyAfterUnlock: bigint
 }
+
+type PlanTokens = {
+  stakingToken: string
+  rewardToken: string
+}
+
+export type Plan = DefaultPlanValues &
+  PlanTokens & {
+    maxStaked: bigint
+    minStakeAmount: bigint
+    stakingEndTime: bigint
+    rewardEndTime: bigint
+    lockDuration: bigint
+    apy: bigint
+    apyAfterUnlock: bigint
+  }
 
 export type Stake = StakeV1
 
@@ -28,33 +35,19 @@ export type TokenAmount = {
   amount: bigint
 }
 
-export type AddPlanInput = {
-  stakingToken: string
-  rewardToken: string
-  maxStaked: bigint
-  minStakeAmount: bigint
+export type AddPlanInput = Omit<Plan, keyof DefaultPlanValues> & {
   initialRatio: bigint
-  stakingEndTime: bigint
-  rewardEndTime: bigint
-  lockDuration: bigint
-  apy: bigint
-  apyAfterUnlock: bigint
 }
 
-export type EditPlanInput = {
-  planId: bigint
-  maxStaked: bigint
-  minStakeAmount: bigint
-  stakingEndTime: bigint
-  rewardEndTime: bigint
-  lockDuration: bigint
-  apy: bigint
-  apyAfterUnlock: bigint
-}
+export type EditPlanInput = Omit<
+  Plan,
+  keyof DefaultPlanValues | keyof PlanTokens
+> & { planId: bigint }
 
 export interface Constants {
-  PERCENTAGE_MULTIPLIER(): Promise<bigint>
-  RATIO_DECIMALS_DIVIDER(): Promise<bigint>
+  BPS_DIVIDER: bigint
+  RATIO_DECIMALS_DIVIDER: bigint
+  MAX_TOKEN_RATIOS_PER_PLAN: bigint
 }
 
 export interface Views {

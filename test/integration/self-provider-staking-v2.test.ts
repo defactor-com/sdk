@@ -4,7 +4,7 @@ import { Erc20 } from '../../src'
 import { commonErrorMessage, stakingErrorMessage } from '../../src/errors'
 import { SelfProvider } from '../../src/provider'
 import { StakingV2 } from '../../src/staking'
-import { Plan } from '../../src/types/staking/v2'
+import { AddPlanInput, Plan } from '../../src/types/staking/v2'
 import {
   ADMIN_TESTING_PRIVATE_KEY,
   AMOY_STAKING_CONTRACT_ADDRESS,
@@ -29,7 +29,7 @@ describe('SelfProvider - Staking', () => {
 
   const isSameDummyPlan = (
     plan: Plan,
-    dummyPlan: Omit<Plan, 'totalStaked' | 'totalUnstaked'> & {
+    dummyPlan: AddPlanInput & {
       initialRatio: bigint
     }
   ) => {
@@ -46,7 +46,7 @@ describe('SelfProvider - Staking', () => {
     )
   }
 
-  const dummyPlan: Omit<Plan, 'totalStaked' | 'totalUnstaked'> & {
+  const dummyPlan: AddPlanInput & {
     initialRatio: bigint
   } = {
     apy: BigInt(10),
@@ -129,12 +129,16 @@ describe('SelfProvider - Staking', () => {
   })
 
   describe('Constant Variables', () => {
-    it('success - percentage multiplier', () => {
-      expect(provider.contract.PERCENTAGE_MULTIPLIER).toBe(BigInt('100'))
+    it('success - bps divider', () => {
+      expect(provider.contract.BPS_DIVIDER).toBe(BigInt('10000'))
     })
 
     it('success - get ratio decimals divider', () => {
       expect(provider.contract.RATIO_DECIMALS_DIVIDER).toBe(BigInt(1e18))
+    })
+
+    it('success - max ratio changes', () => {
+      expect(provider.contract.MAX_TOKEN_RATIOS_PER_PLAN).toBe(BigInt('100'))
     })
   })
 

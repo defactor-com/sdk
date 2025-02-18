@@ -5,6 +5,7 @@ import { BaseContract } from '../base-classes'
 import { commonErrorMessage, stakingErrorMessage } from '../errors'
 import {
   AdminFunctions,
+  Constants,
   Functions,
   Plan,
   Stake,
@@ -14,7 +15,7 @@ import { Abi, PrivateKey } from '../types/types'
 
 export class StakingV1
   extends BaseContract
-  implements Functions, Views, AdminFunctions
+  implements Constants, Functions, Views, AdminFunctions
 {
   readonly PERCENTAGE_MULTIPLIER = BigInt(100)
   readonly MIN_STAKE_AMOUNT = BigInt('1000000000000000000000')
