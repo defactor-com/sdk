@@ -388,6 +388,37 @@
         "inputs": [
           {
             "indexed": false,
+            "internalType": "uint256",
+            "name": "planId",
+            "type": "uint256"
+          },
+          {
+            "components": [
+              {
+                "internalType": "uint48",
+                "name": "timestamp",
+                "type": "uint48"
+              },
+              {
+                "internalType": "uint256",
+                "name": "ratio",
+                "type": "uint256"
+              }
+            ],
+            "indexed": false,
+            "internalType": "struct IStaking.TokenRatio",
+            "name": "tokenRatio",
+            "type": "tuple"
+          }
+        ],
+        "name": "TokenRatioChanged",
+        "type": "event"
+      },
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": false,
             "internalType": "address",
             "name": "account",
             "type": "address"
