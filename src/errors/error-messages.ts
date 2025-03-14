@@ -127,7 +127,7 @@ export const buybackErrorMessage = {
   nonExistCustomBuybackId: (buybackId: bigint) =>
     `Custom buyback id ${buybackId.toString()} does not exist`,
   buybackConstraint: 'USDC Balance should be at least 1000',
-  collectionBpsConstraint: 'Sum of BPSs should equal 100%',
+  distributionBpsConstraint: 'Sum of BPSs should equal 100%',
   unlockPeriodNotFinished: 'Unlock period not finished',
   alreadyWithdrawn: 'Unlock already withdrawn',
   addressIsNotRecoverer: 'Sender address is not recoverer address'

@@ -111,7 +111,7 @@ export class Buyback
 
     const buyback: BuybackStruct = await this.contract.buybacks(buybackId)
 
-    if (!buyback.timeLocked) {
+    if (!buyback.timeLocked || !buyback.buyAmount) {
       return null
     }
 
@@ -152,8 +152,7 @@ export class Buyback
       spendAmount: customBuyback.spendAmount,
       timeLocked: customBuyback.timeLocked,
       withdrawn: customBuyback.withdrawn,
-      distributionArray: customBuyback.distributionArray,
-      collectionArray: customBuyback.collectionArray
+      distributionArray: customBuyback.distributionArray
     }
   }
 
@@ -190,6 +189,7 @@ export class Buyback
   }
 
   async calculateOptimalAmount(
+    path: string,
     pool1: string,
     pool2: string,
     usdcAmount: bigint
@@ -202,7 +202,12 @@ export class Buyback
       throw new Error(commonErrorMessage.wrongAddressFormat)
     }
 
-    return await this.contract.calculateOptimalAmount(pool1, pool2, usdcAmount)
+    return await this.contract.calculateOptimalAmount(
+      path,
+      pool1,
+      pool2,
+      usdcAmount
+    )
   }
 
   async estimateAmountOut(
@@ -247,7 +252,9 @@ export class Buyback
     )
   }
 
-  async buyback(): Promise<ContractTransaction | TransactionResponse> {
+  async buyback(
+    providedOptimalAmount: bigint
+  ): Promise<ContractTransaction | TransactionResponse> {
     const usdcContract = await this._getUsdcContract()
     const decimals = await usdcContract.decimals()
     const usdcBalance = await usdcContract.balanceOf(this.address)
@@ -256,7 +263,9 @@ export class Buyback
       throw new Error(buybackErrorMessage.buybackConstraint)
     }
 
-    const pop = await this.contract.buyback.populateTransaction()
+    const pop = await this.contract.buyback.populateTransaction(
+      providedOptimalAmount
+    )
 
     return this.signer ? await this.signer.sendTransaction(pop) : pop
   }
@@ -281,7 +290,6 @@ export class Buyback
 
   async customBuyback(
     usdcAmount: bigint,
-    collectionArray: Array<BuybackAmounts>,
     distributionArray: Array<BuybackAmounts>
   ): Promise<ContractTransaction | TransactionResponse> {
     if (usdcAmount <= 0) {
@@ -301,28 +309,26 @@ export class Buyback
       throw new Error(buybackErrorMessage.buybackConstraint)
     }
 
-    for (const buybackAmount of collectionArray.concat(distributionArray)) {
+    let distributionBpsSum = BigInt(0)
+
+    for (const buybackAmount of distributionArray) {
       if (!ethers.isAddress(buybackAmount.account)) {
         throw new Error(commonErrorMessage.wrongAddressFormat)
       }
 
-      if (buybackAmount.bps <= 0) {
+      if (buybackAmount.bps <= BigInt(0)) {
         throw new Error(buybackErrorMessage.nonNegativeOrZeroBps)
       }
+
+      distributionBpsSum += buybackAmount.bps
     }
 
-    const collectionBpsSum = collectionArray.reduce(
-      (total, current) => total + current.bps,
-      BigInt(0)
-    )
-
-    if (collectionBpsSum !== this.TEN_THOUSAND) {
-      throw new Error(buybackErrorMessage.collectionBpsConstraint)
+    if (distributionBpsSum !== this.TEN_THOUSAND) {
+      throw new Error(buybackErrorMessage.distributionBpsConstraint)
     }
 
     const pop = await this.contract.customBuyback.populateTransaction(
       usdcAmount,
-      collectionArray,
       distributionArray
     )
 

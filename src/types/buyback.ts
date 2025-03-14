@@ -14,17 +14,17 @@ export type BuybackAmounts = {
 
 export type CustomBuybackStruct = BuybackStruct & {
   distributionArray: Array<BuybackAmounts>
-  collectionArray: Array<BuybackAmounts>
 }
 
 export interface Functions {
-  buyback(): Promise<ethers.ContractTransaction | ethers.TransactionResponse>
+  buyback(
+    providedOptimalAmount: bigint
+  ): Promise<ethers.ContractTransaction | ethers.TransactionResponse>
   buybackWithdraw(
     id: bigint
   ): Promise<ethers.ContractTransaction | ethers.TransactionResponse>
   customBuyback(
     usdcAmount: bigint,
-    collectionArray: Array<BuybackAmounts>,
     distributionArray: Array<BuybackAmounts>
   ): Promise<ethers.ContractTransaction | ethers.TransactionResponse>
   customBuybackWithdraw(
@@ -39,6 +39,7 @@ export interface Views {
   fetchActiveLocks(fromId: bigint): Promise<Array<BuybackStruct>>
   fetchActiveCustomLocks(fromId: bigint): Promise<Array<CustomBuybackStruct>>
   calculateOptimalAmount(
+    path: string,
     pool1: string,
     pool2: string,
     usdcAmount: bigint
