@@ -51,6 +51,11 @@ export interface Views {
     secondsAgo: bigint,
     pool: string
   ): Promise<bigint>
+  getOptimalTwapAmountThreshold(
+    amountIn: bigint,
+    pool1: string,
+    pool2: string
+  ): Promise<bigint>
 }
 
 export interface Constants {

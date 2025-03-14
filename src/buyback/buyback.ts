@@ -252,6 +252,26 @@ export class Buyback
     )
   }
 
+  async getOptimalTwapAmountThreshold(
+    amountIn: bigint,
+    pool1: string,
+    pool2: string
+  ): Promise<bigint> {
+    if (!ethers.isAddress(pool1) || !ethers.isAddress(pool2)) {
+      throw new Error(commonErrorMessage.wrongAddressFormat)
+    }
+
+    if (amountIn <= 0) {
+      throw new Error(buybackErrorMessage.nonNegativeAmountOrZero)
+    }
+
+    return await this.contract.getOptimalTwapAmountThreshold(
+      amountIn,
+      pool1,
+      pool2
+    )
+  }
+
   async buyback(
     providedOptimalAmount: bigint
   ): Promise<ContractTransaction | TransactionResponse> {
