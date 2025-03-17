@@ -63,8 +63,13 @@ describe('SelfProvider - Buyback', () => {
 
   describe('Functions', () => {
     describe('buyback()', () => {
+      it('failure - negative amount', async () => {
+        await expect(provider.contract.buyback(BigInt(-1))).rejects.toThrow(
+          buybackErrorMessage.nonNegativeAmountOrZero
+        )
+      })
       it.skip('failure - usdc balance is less than 1000', async () => {
-        const optimalAmount = BigInt(0)
+        const optimalAmount = BigInt(1000 * 1e6)
 
         await expect(provider.contract.buyback(optimalAmount)).rejects.toThrow(
           buybackErrorMessage.buybackConstraint
@@ -73,7 +78,7 @@ describe('SelfProvider - Buyback', () => {
       it.skip('success - usdc balance is more than 1000', async () => {
         expect(!provider.contract.signer).toBe(false)
 
-        const optimalAmount = BigInt(0)
+        const optimalAmount = BigInt(1000 * 1e16)
         const usdc = await provider.contract.getUSDC()
         const erc20 = new Erc20(usdc, provider.contract.apiUrl, null)
         const decimals = await erc20.decimals()

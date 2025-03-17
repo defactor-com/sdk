@@ -275,6 +275,10 @@ export class Buyback
   async buyback(
     providedOptimalAmount: bigint
   ): Promise<ContractTransaction | TransactionResponse> {
+    if (providedOptimalAmount <= 0) {
+      throw new Error(buybackErrorMessage.nonNegativeAmountOrZero)
+    }
+
     const usdcContract = await this._getUsdcContract()
     const decimals = await usdcContract.decimals()
     const usdcBalance = await usdcContract.balanceOf(this.address)
