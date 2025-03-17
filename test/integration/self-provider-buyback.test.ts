@@ -529,6 +529,33 @@ describe('SelfProvider - Buyback', () => {
         )
       })
     })
+    describe('getOptimalTwapAmountThreshold()', () => {
+      it('failure - the pools are not a valid address', async () => {
+        await expect(
+          provider.contract.getOptimalTwapAmountThreshold(
+            BigInt(0),
+            '0xInvalid',
+            '0xInvalid'
+          )
+        ).rejects.toThrow(commonErrorMessage.wrongAddressFormat)
+        await expect(
+          provider.contract.getOptimalTwapAmountThreshold(
+            BigInt(0),
+            signerAddress,
+            '0xInvalid'
+          )
+        ).rejects.toThrow(commonErrorMessage.wrongAddressFormat)
+      })
+      it('failure - the amountIn is zero', async () => {
+        await expect(
+          provider.contract.getOptimalTwapAmountThreshold(
+            BigInt(0),
+            signerAddress,
+            signerAddress
+          )
+        ).rejects.toThrow(buybackErrorMessage.nonNegativeAmountOrZero)
+      })
+    })
     describe('recoverERC20()', () => {
       it('failure - the token is not a valid address', async () => {
         await expect(
