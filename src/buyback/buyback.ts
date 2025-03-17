@@ -70,6 +70,10 @@ export class Buyback
     return await this.contract.uniswapRouter()
   }
 
+  async getUniswapQuoter(): Promise<string> {
+    return await this.contract.QUOTER()
+  }
+
   async getFACTR(): Promise<string> {
     return await this.contract.FACTR()
   }
@@ -192,9 +196,9 @@ export class Buyback
     path: string,
     pool1: string,
     pool2: string,
-    usdcAmount: bigint
+    maxAmount: bigint
   ): Promise<bigint> {
-    if (usdcAmount <= 0) {
+    if (maxAmount <= 0) {
       throw new Error(buybackErrorMessage.nonNegativeAmountOrZero)
     }
 
@@ -206,7 +210,7 @@ export class Buyback
       path,
       pool1,
       pool2,
-      usdcAmount
+      maxAmount
     )
   }
 

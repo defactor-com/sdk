@@ -42,7 +42,7 @@ export interface Views {
     path: string,
     pool1: string,
     pool2: string,
-    usdcAmount: bigint
+    maxAmount: bigint
   ): Promise<bigint>
   estimateAmountOut(
     tokenIn: string,
@@ -65,6 +65,7 @@ export interface Constants {
   getVault4(): Promise<string>
   getUniswapFactory(): Promise<string>
   getUniswapRouter(): Promise<string>
+  getUniswapQuoter(): Promise<string>
   getFACTR(): Promise<string>
   getUSDC(): Promise<string>
   getWETH(): Promise<string>
