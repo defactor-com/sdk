@@ -275,6 +275,11 @@ describe('SelfProvider - Buyback', () => {
 
       expect(ethers.isAddress(address)).toBe(true)
     })
+    it('success - get quoter address', async () => {
+      const address = await provider.contract.getUniswapQuoter()
+
+      expect(ethers.isAddress(address)).toBe(true)
+    })
     it('success - get factr', async () => {
       expect.assertions(3)
 
