@@ -342,6 +342,26 @@ describe('SelfProvider - Buyback', () => {
       expect(maxLiquiditySlippage).toBeGreaterThanOrEqual(BigInt(0))
       expect(maxLiquiditySlippage).toBeLessThanOrEqual(BigInt(10000))
     })
+    it('success - get pool 1 address', async () => {
+      const pool = await provider.contract.getPool1()
+
+      expect(ethers.isAddress(pool)).toBe(true)
+    })
+    it('success - get pool 2 address', async () => {
+      const pool = await provider.contract.getPool2()
+
+      expect(ethers.isAddress(pool)).toBe(true)
+    })
+    it('success - get pool 1 address again', async () => {
+      const pool = await provider.contract.getPool1()
+
+      expect(ethers.isAddress(pool)).toBe(true)
+    })
+    it('success - get path', async () => {
+      const path = await provider.contract.getPath()
+
+      expect(path.length).toBeGreaterThan(0)
+    })
     describe('getBuyback()', () => {
       it('failure - the buyback id is negative', async () => {
         await expect(provider.contract.getBuyback(BigInt(-1))).rejects.toThrow(
