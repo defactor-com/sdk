@@ -278,6 +278,10 @@ export class Buyback
     pool2: string,
     maxAmount: bigint
   ): Promise<bigint> {
+    if (!ethers.isBytesLike(path)) {
+      throw new Error(commonErrorMessage.invalidBytesLike)
+    }
+
     if (maxAmount <= 0) {
       throw new Error(buybackErrorMessage.nonNegativeAmountOrZero)
     }

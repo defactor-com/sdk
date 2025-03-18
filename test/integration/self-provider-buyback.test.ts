@@ -453,10 +453,24 @@ describe('SelfProvider - Buyback', () => {
       })
     })
     describe('calculateOptimalAmount()', () => {
-      it('failure - the pool1 is not a valid address', async () => {
+      it('failure - the path is not a byte like string', async () => {
+        const path = 'path'
+
         await expect(
           provider.contract.calculateOptimalAmount(
-            '',
+            path,
+            signerAddress,
+            signerAddress,
+            BigInt(1000)
+          )
+        ).rejects.toThrow(commonErrorMessage.invalidBytesLike)
+      })
+      it('failure - the pool1 is not a valid address', async () => {
+        const path = await provider.contract.getPath()
+
+        await expect(
+          provider.contract.calculateOptimalAmount(
+            path,
             '0xInvalid',
             signerAddress,
             BigInt(1000)
@@ -464,9 +478,11 @@ describe('SelfProvider - Buyback', () => {
         ).rejects.toThrow(commonErrorMessage.wrongAddressFormat)
       })
       it('failure - the pool2 is not a valid address', async () => {
+        const path = await provider.contract.getPath()
+
         await expect(
           provider.contract.calculateOptimalAmount(
-            '',
+            path,
             signerAddress,
             '0xInvalid',
             BigInt(1000)
@@ -474,9 +490,11 @@ describe('SelfProvider - Buyback', () => {
         ).rejects.toThrow(commonErrorMessage.wrongAddressFormat)
       })
       it('failure - the usdcAmount is zero', async () => {
+        const path = await provider.contract.getPath()
+
         await expect(
           provider.contract.calculateOptimalAmount(
-            '',
+            path,
             signerAddress,
             signerAddress,
             BigInt(0)
@@ -484,9 +502,11 @@ describe('SelfProvider - Buyback', () => {
         ).rejects.toThrow(buybackErrorMessage.nonNegativeAmountOrZero)
       })
       it('failure - the usdcAmount is negative', async () => {
+        const path = await provider.contract.getPath()
+
         await expect(
           provider.contract.calculateOptimalAmount(
-            '',
+            path,
             signerAddress,
             signerAddress,
             BigInt(-1)
