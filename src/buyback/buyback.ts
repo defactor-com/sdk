@@ -295,6 +295,10 @@ export class Buyback
   }
 
   async getOptimalAmountFromMaxAmount(maxAmount: bigint): Promise<bigint> {
+    if (maxAmount <= 0) {
+      throw new Error(buybackErrorMessage.nonNegativeAmountOrZero)
+    }
+
     let optimalAmount = maxAmount
     const pool1 = await this.getPool1()
     const pool2 = await this.getPool2()
@@ -386,7 +390,7 @@ export class Buyback
       throw new Error(buybackErrorMessage.nonNegativeAmountOrZero)
     }
 
-    return await this.contract.getOptimalTwapAmountThreshold(
+    return await this.contract.getOptimalTwapAmountThreshold.staticCall(
       amountIn,
       pool1,
       pool2
