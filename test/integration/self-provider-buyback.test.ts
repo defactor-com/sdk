@@ -371,6 +371,25 @@ describe('SelfProvider - Buyback', () => {
         expect(optimalAmount).toBeGreaterThan(0)
         expect(amount).toBeGreaterThanOrEqual(optimalAmount)
       })
+      it('success - calculate optimal amount from chain', async () => {
+        const amount = BigInt(1000 * 1e6)
+        const optimalAmount =
+          await provider.contract.getOptimalAmountFromMaxAmount(amount)
+        const path = await provider.contract.getPath()
+        const pool1 = await provider.contract.getPool1()
+        const pool2 = await provider.contract.getPool2()
+        const optimalAmountFromChain =
+          await provider.contract.calculateOptimalAmount(
+            path,
+            pool1,
+            pool2,
+            amount
+          )
+
+        expect(optimalAmount).toBeGreaterThan(0)
+        expect(amount).toBeGreaterThanOrEqual(optimalAmount)
+        expect(optimalAmount).toBe(optimalAmountFromChain)
+      })
     })
     describe('getBuyback()', () => {
       it('failure - the buyback id is negative', async () => {
