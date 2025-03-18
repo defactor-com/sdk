@@ -286,7 +286,7 @@ export class Buyback
       throw new Error(commonErrorMessage.wrongAddressFormat)
     }
 
-    return await this.contract.calculateOptimalAmount(
+    return await this.contract.calculateOptimalAmount.staticCall(
       path,
       pool1,
       pool2,
@@ -314,9 +314,9 @@ export class Buyback
     }
 
     let quoterAmount = BigInt(0)
-    let twapOptimalAmount = BigInt(0)
+    let twapOptimalAmount = optimalAmount
 
-    do {
+    while (quoterAmount < twapOptimalAmount) {
       const quoteExactInput =
         await this.quoterContract.quoteExactInput.staticCall(
           path,
@@ -329,8 +329,11 @@ export class Buyback
         pool1,
         pool2
       )
-      optimalAmount -= optimalAmount / BigInt(10)
-    } while (quoterAmount < twapOptimalAmount)
+
+      if (quoterAmount < twapOptimalAmount) {
+        optimalAmount -= optimalAmount / BigInt(10)
+      }
+    }
 
     return optimalAmount
   }
