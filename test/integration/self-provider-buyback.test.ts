@@ -362,6 +362,16 @@ describe('SelfProvider - Buyback', () => {
 
       expect(path.length).toBeGreaterThan(0)
     })
+    describe('getOptimalAmountFromMaxAmount', () => {
+      it('success - calculate optimal amount from max amount', async () => {
+        const amount = BigInt(1000 * 1e6)
+        const optimalAmount =
+          await provider.contract.getOptimalAmountFromMaxAmount(amount)
+
+        expect(optimalAmount).toBeGreaterThan(0)
+        expect(amount).toBeGreaterThanOrEqual(optimalAmount)
+      })
+    })
     describe('getBuyback()', () => {
       it('failure - the buyback id is negative', async () => {
         await expect(provider.contract.getBuyback(BigInt(-1))).rejects.toThrow(
