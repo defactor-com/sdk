@@ -1,4 +1,11 @@
-import { ContractTransaction, TransactionResponse, ethers } from 'ethers'
+import { abi as factoryAbi } from '@uniswap/v3-core/artifacts/contracts/UniswapV3Factory.sol/UniswapV3Factory.json'
+import { abi as quoterAbi } from '@uniswap/v3-periphery/artifacts/contracts/lens/QuoterV2.sol/QuoterV2.json'
+import {
+  Contract,
+  ContractTransaction,
+  TransactionResponse,
+  ethers
+} from 'ethers'
 
 import { miscBuyback } from '../artifacts'
 import { CoreContract } from '../base-classes'
@@ -26,6 +33,10 @@ export class Buyback
   private USDC: Erc20 | undefined
   protected readonly ONE_DAY_SEC = BigInt(86400)
   protected readonly ONE_YEAR_SEC = this.ONE_DAY_SEC * BigInt(365)
+  protected quoterContract: Contract | undefined
+  protected pool1: string | undefined
+  protected pool2: string | undefined
+  protected path: string | undefined
 
   constructor(
     address: string,
@@ -104,6 +115,75 @@ export class Buyback
 
   async getRecovererAddress(): Promise<string> {
     return await this.contract.RECOVERER()
+  }
+
+  private async _getPool(
+    token0: string,
+    token1: string,
+    fee: string
+  ): Promise<string> {
+    const factory = await this.contract.uniswapFactory()
+    const factoryContract = new Contract(
+      factory,
+      factoryAbi,
+      new ethers.JsonRpcProvider(this.apiUrl)
+    )
+    const pool = await factoryContract.getPool(token0, token1, fee)
+
+    return pool
+  }
+
+  async getPool1(): Promise<string> {
+    if (this.pool1) return this.pool1
+
+    const promises = [
+      this.contract.USDC(),
+      this.contract.WETH(),
+      this.contract.POOL_1_FEE()
+    ]
+    const [usdc, weth, fee] = await Promise.all(promises)
+    const pool = await this._getPool(usdc, weth, fee)
+
+    this.pool1 = pool
+
+    return pool
+  }
+
+  async getPool2(): Promise<string> {
+    if (this.pool2) return this.pool2
+
+    const promises = [
+      this.contract.WETH(),
+      this.contract.FACTR(),
+      this.contract.POOL_2_FEE()
+    ]
+    const [weth, factr, fee] = await Promise.all(promises)
+    const pool = await this._getPool(weth, factr, fee)
+
+    this.pool2 = pool
+
+    return pool
+  }
+
+  async getPath(): Promise<string> {
+    if (this.path) return this.path
+
+    const promises = [
+      this.contract.USDC(),
+      this.contract.POOL_1_FEE(),
+      this.contract.WETH(),
+      this.contract.POOL_2_FEE(),
+      this.contract.FACTR()
+    ]
+    const pathValues = await Promise.all(promises)
+    const path = ethers.solidityPacked(
+      ['address', 'uint24', 'address', 'uint24', 'address'],
+      pathValues
+    )
+
+    this.path = path
+
+    return path
   }
 
   protected async _getBuybackById(
@@ -212,6 +292,43 @@ export class Buyback
       pool2,
       maxAmount
     )
+  }
+
+  async getOptimalAmountFromMaxAmount(maxAmount: bigint): Promise<bigint> {
+    let optimalAmount = maxAmount
+    const pool1 = await this.getPool1()
+    const pool2 = await this.getPool2()
+    const path = await this.getPath()
+
+    if (!this.quoterContract) {
+      const quoterAddress = await this.getUniswapQuoter()
+      this.quoterContract = new Contract(
+        quoterAddress,
+        quoterAbi,
+        new ethers.JsonRpcProvider(this.apiUrl)
+      )
+    }
+
+    let quoterAmount = BigInt(0)
+    let twapOptimalAmount = BigInt(0)
+
+    do {
+      const quoteExactInput =
+        await this.quoterContract.quoteExactInput.staticCall(
+          path,
+          optimalAmount
+        )
+
+      quoterAmount = quoteExactInput[0]
+      twapOptimalAmount = await this.getOptimalTwapAmountThreshold(
+        optimalAmount,
+        pool1,
+        pool2
+      )
+      optimalAmount -= optimalAmount / BigInt(10)
+    } while (quoterAmount < twapOptimalAmount)
+
+    return optimalAmount
   }
 
   async estimateAmountOut(

@@ -56,6 +56,7 @@ export interface Views {
     pool1: string,
     pool2: string
   ): Promise<bigint>
+  getOptimalAmountFromMaxAmount(maxAmount: bigint): Promise<bigint>
 }
 
 export interface Constants {
@@ -74,4 +75,7 @@ export interface Constants {
   getBuyFrequency(): Promise<bigint>
   getMaxLiquiditySlippage(): Promise<bigint>
   getRecovererAddress(): Promise<string>
+  getPool1(): Promise<string>
+  getPool2(): Promise<string>
+  getPath(): Promise<string>
 }
