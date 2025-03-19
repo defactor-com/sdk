@@ -1,5 +1,18 @@
 # @defactor-com/defactor-sdk
 
+## 6.0.0
+
+### Major Changes
+
+- 4659ecb: Apply `Buyback` changes and add new `getOptimalTwapAmountThreshold` and `getOptimalAmountFromMaxAmount` functions
+
+  ### Breaking changes
+
+  #### Details
+
+  - `collectionArray` from `CustomBuybackStruct` was removed
+  - `buyback` function from `Buyback` class receives a `providedOptimalAmount` as parameter
+
 ## 5.0.0
 
 ### Major Changes
