@@ -14,17 +14,17 @@ export type BuybackAmounts = {
 
 export type CustomBuybackStruct = BuybackStruct & {
   distributionArray: Array<BuybackAmounts>
-  collectionArray: Array<BuybackAmounts>
 }
 
 export interface Functions {
-  buyback(): Promise<ethers.ContractTransaction | ethers.TransactionResponse>
+  buyback(
+    providedOptimalAmount: bigint
+  ): Promise<ethers.ContractTransaction | ethers.TransactionResponse>
   buybackWithdraw(
     id: bigint
   ): Promise<ethers.ContractTransaction | ethers.TransactionResponse>
   customBuyback(
     usdcAmount: bigint,
-    collectionArray: Array<BuybackAmounts>,
     distributionArray: Array<BuybackAmounts>
   ): Promise<ethers.ContractTransaction | ethers.TransactionResponse>
   customBuybackWithdraw(
@@ -39,9 +39,10 @@ export interface Views {
   fetchActiveLocks(fromId: bigint): Promise<Array<BuybackStruct>>
   fetchActiveCustomLocks(fromId: bigint): Promise<Array<CustomBuybackStruct>>
   calculateOptimalAmount(
+    path: string,
     pool1: string,
     pool2: string,
-    usdcAmount: bigint
+    maxAmount: bigint
   ): Promise<bigint>
   estimateAmountOut(
     tokenIn: string,
@@ -50,6 +51,12 @@ export interface Views {
     secondsAgo: bigint,
     pool: string
   ): Promise<bigint>
+  getOptimalTwapAmountThreshold(
+    amountIn: bigint,
+    pool1: string,
+    pool2: string
+  ): Promise<bigint>
+  getOptimalAmountFromMaxAmount(maxAmount: bigint): Promise<bigint>
 }
 
 export interface Constants {
@@ -59,6 +66,7 @@ export interface Constants {
   getVault4(): Promise<string>
   getUniswapFactory(): Promise<string>
   getUniswapRouter(): Promise<string>
+  getUniswapQuoter(): Promise<string>
   getFACTR(): Promise<string>
   getUSDC(): Promise<string>
   getWETH(): Promise<string>
@@ -67,4 +75,7 @@ export interface Constants {
   getBuyFrequency(): Promise<bigint>
   getMaxLiquiditySlippage(): Promise<bigint>
   getRecovererAddress(): Promise<string>
+  getPool1(): Promise<string>
+  getPool2(): Promise<string>
+  getPath(): Promise<string>
 }

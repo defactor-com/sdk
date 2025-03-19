@@ -4,6 +4,16 @@
   "sourceName": "contracts/buyback.sol",
   "abi": [
     {
+      "inputs": [],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "inputs": [],
+      "name": "T",
+      "type": "error"
+    },
+    {
       "anonymous": false,
       "inputs": [
         {
@@ -64,6 +74,19 @@
         }
       ],
       "name": "CustomWithdraw",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint8",
+          "name": "version",
+          "type": "uint8"
+        }
+      ],
+      "name": "Initialized",
       "type": "event"
     },
     {
@@ -172,6 +195,19 @@
     },
     {
       "inputs": [],
+      "name": "QUOTER",
+      "outputs": [
+        {
+          "internalType": "contract IQuoterV2",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
       "name": "RECOVERER",
       "outputs": [
         {
@@ -236,7 +272,13 @@
       "type": "function"
     },
     {
-      "inputs": [],
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "providedOptimalAmount",
+          "type": "uint256"
+        }
+      ],
       "name": "buyback",
       "outputs": [],
       "stateMutability": "nonpayable",
@@ -292,6 +334,11 @@
     {
       "inputs": [
         {
+          "internalType": "bytes",
+          "name": "path",
+          "type": "bytes"
+        },
+        {
           "internalType": "address",
           "name": "pool1",
           "type": "address"
@@ -303,7 +350,7 @@
         },
         {
           "internalType": "uint256",
-          "name": "usdcAmount",
+          "name": "maxAmount",
           "type": "uint256"
         }
       ],
@@ -311,11 +358,11 @@
       "outputs": [
         {
           "internalType": "uint256",
-          "name": "",
+          "name": "maxAcceptableAmount",
           "type": "uint256"
         }
       ],
-      "stateMutability": "view",
+      "stateMutability": "nonpayable",
       "type": "function"
     },
     {
@@ -324,23 +371,6 @@
           "internalType": "uint256",
           "name": "usdcAmount",
           "type": "uint256"
-        },
-        {
-          "components": [
-            {
-              "internalType": "address",
-              "name": "account",
-              "type": "address"
-            },
-            {
-              "internalType": "uint256",
-              "name": "bps",
-              "type": "uint256"
-            }
-          ],
-          "internalType": "struct IBuyback.BuybackAmounts[]",
-          "name": "collectionArray",
-          "type": "tuple[]"
         },
         {
           "components": [
@@ -496,23 +526,6 @@
               "type": "tuple[]"
             },
             {
-              "components": [
-                {
-                  "internalType": "address",
-                  "name": "account",
-                  "type": "address"
-                },
-                {
-                  "internalType": "uint256",
-                  "name": "bps",
-                  "type": "uint256"
-                }
-              ],
-              "internalType": "struct IBuyback.BuybackAmounts[]",
-              "name": "collectionArray",
-              "type": "tuple[]"
-            },
-            {
               "internalType": "bool",
               "name": "withdrawn",
               "type": "bool"
@@ -570,24 +583,78 @@
     {
       "inputs": [
         {
+          "internalType": "uint256",
+          "name": "amountIn",
+          "type": "uint256"
+        },
+        {
           "internalType": "address",
-          "name": "recoverer",
+          "name": "pool1",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "pool2",
+          "type": "address"
+        }
+      ],
+      "name": "getOptimalTwapAmountThreshold",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_recoverer",
           "type": "address"
         },
         {
           "internalType": "uint256",
-          "name": "buyFrequency",
+          "name": "_buyFrequency",
           "type": "uint256"
         },
         {
           "internalType": "address[]",
-          "name": "vaults",
+          "name": "_vaults",
           "type": "address[]"
         },
         {
           "internalType": "uint16",
-          "name": "maxLiquiditySlippage",
+          "name": "_maxLiquiditySlippage",
           "type": "uint16"
+        },
+        {
+          "internalType": "address",
+          "name": "_uniswapRouter",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_factr",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_usdc",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_weth",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_quoter",
+          "type": "address"
         }
       ],
       "name": "initialize",

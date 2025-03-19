@@ -1,4 +1,11 @@
-import { ContractTransaction, TransactionResponse, ethers } from 'ethers'
+import { abi as factoryAbi } from '@uniswap/v3-core/artifacts/contracts/UniswapV3Factory.sol/UniswapV3Factory.json'
+import { abi as quoterAbi } from '@uniswap/v3-periphery/artifacts/contracts/lens/QuoterV2.sol/QuoterV2.json'
+import {
+  Contract,
+  ContractTransaction,
+  TransactionResponse,
+  ethers
+} from 'ethers'
 
 import { miscBuyback } from '../artifacts'
 import { CoreContract } from '../base-classes'
@@ -26,6 +33,10 @@ export class Buyback
   private USDC: Erc20 | undefined
   protected readonly ONE_DAY_SEC = BigInt(86400)
   protected readonly ONE_YEAR_SEC = this.ONE_DAY_SEC * BigInt(365)
+  protected quoterContract: Contract | undefined
+  protected pool1: string | undefined
+  protected pool2: string | undefined
+  protected path: string | undefined
 
   constructor(
     address: string,
@@ -70,6 +81,10 @@ export class Buyback
     return await this.contract.uniswapRouter()
   }
 
+  async getUniswapQuoter(): Promise<string> {
+    return await this.contract.QUOTER()
+  }
+
   async getFACTR(): Promise<string> {
     return await this.contract.FACTR()
   }
@@ -102,6 +117,75 @@ export class Buyback
     return await this.contract.RECOVERER()
   }
 
+  private async _getPool(
+    token0: string,
+    token1: string,
+    fee: string
+  ): Promise<string> {
+    const factory = await this.contract.uniswapFactory()
+    const factoryContract = new Contract(
+      factory,
+      factoryAbi,
+      new ethers.JsonRpcProvider(this.apiUrl)
+    )
+    const pool = await factoryContract.getPool(token0, token1, fee)
+
+    return pool
+  }
+
+  async getPool1(): Promise<string> {
+    if (this.pool1) return this.pool1
+
+    const promises = [
+      this.contract.USDC(),
+      this.contract.WETH(),
+      this.contract.POOL_1_FEE()
+    ]
+    const [usdc, weth, fee] = await Promise.all(promises)
+    const pool = await this._getPool(usdc, weth, fee)
+
+    this.pool1 = pool
+
+    return pool
+  }
+
+  async getPool2(): Promise<string> {
+    if (this.pool2) return this.pool2
+
+    const promises = [
+      this.contract.WETH(),
+      this.contract.FACTR(),
+      this.contract.POOL_2_FEE()
+    ]
+    const [weth, factr, fee] = await Promise.all(promises)
+    const pool = await this._getPool(weth, factr, fee)
+
+    this.pool2 = pool
+
+    return pool
+  }
+
+  async getPath(): Promise<string> {
+    if (this.path) return this.path
+
+    const promises = [
+      this.contract.USDC(),
+      this.contract.POOL_1_FEE(),
+      this.contract.WETH(),
+      this.contract.POOL_2_FEE(),
+      this.contract.FACTR()
+    ]
+    const pathValues = await Promise.all(promises)
+    const path = ethers.solidityPacked(
+      ['address', 'uint24', 'address', 'uint24', 'address'],
+      pathValues
+    )
+
+    this.path = path
+
+    return path
+  }
+
   protected async _getBuybackById(
     buybackId: bigint
   ): Promise<BuybackStruct | null> {
@@ -111,7 +195,7 @@ export class Buyback
 
     const buyback: BuybackStruct = await this.contract.buybacks(buybackId)
 
-    if (!buyback.timeLocked) {
+    if (!buyback.timeLocked || !buyback.buyAmount) {
       return null
     }
 
@@ -152,8 +236,7 @@ export class Buyback
       spendAmount: customBuyback.spendAmount,
       timeLocked: customBuyback.timeLocked,
       withdrawn: customBuyback.withdrawn,
-      distributionArray: customBuyback.distributionArray,
-      collectionArray: customBuyback.collectionArray
+      distributionArray: customBuyback.distributionArray
     }
   }
 
@@ -190,11 +273,16 @@ export class Buyback
   }
 
   async calculateOptimalAmount(
+    path: string,
     pool1: string,
     pool2: string,
-    usdcAmount: bigint
+    maxAmount: bigint
   ): Promise<bigint> {
-    if (usdcAmount <= 0) {
+    if (!ethers.isBytesLike(path)) {
+      throw new Error(commonErrorMessage.invalidBytesLike)
+    }
+
+    if (maxAmount <= 0) {
       throw new Error(buybackErrorMessage.nonNegativeAmountOrZero)
     }
 
@@ -202,7 +290,56 @@ export class Buyback
       throw new Error(commonErrorMessage.wrongAddressFormat)
     }
 
-    return await this.contract.calculateOptimalAmount(pool1, pool2, usdcAmount)
+    return await this.contract.calculateOptimalAmount.staticCall(
+      path,
+      pool1,
+      pool2,
+      maxAmount
+    )
+  }
+
+  async getOptimalAmountFromMaxAmount(maxAmount: bigint): Promise<bigint> {
+    if (maxAmount <= 0) {
+      throw new Error(buybackErrorMessage.nonNegativeAmountOrZero)
+    }
+
+    let optimalAmount = maxAmount
+    const pool1 = await this.getPool1()
+    const pool2 = await this.getPool2()
+    const path = await this.getPath()
+
+    if (!this.quoterContract) {
+      const quoterAddress = await this.getUniswapQuoter()
+      this.quoterContract = new Contract(
+        quoterAddress,
+        quoterAbi,
+        new ethers.JsonRpcProvider(this.apiUrl)
+      )
+    }
+
+    let quoterAmount = BigInt(0)
+    let twapOptimalAmount = optimalAmount
+
+    while (quoterAmount < twapOptimalAmount) {
+      const quoteExactInput =
+        await this.quoterContract.quoteExactInput.staticCall(
+          path,
+          optimalAmount
+        )
+
+      quoterAmount = quoteExactInput[0]
+      twapOptimalAmount = await this.getOptimalTwapAmountThreshold(
+        optimalAmount,
+        pool1,
+        pool2
+      )
+
+      if (quoterAmount < twapOptimalAmount) {
+        optimalAmount -= optimalAmount / BigInt(10)
+      }
+    }
+
+    return optimalAmount
   }
 
   async estimateAmountOut(
@@ -247,7 +384,33 @@ export class Buyback
     )
   }
 
-  async buyback(): Promise<ContractTransaction | TransactionResponse> {
+  async getOptimalTwapAmountThreshold(
+    amountIn: bigint,
+    pool1: string,
+    pool2: string
+  ): Promise<bigint> {
+    if (!ethers.isAddress(pool1) || !ethers.isAddress(pool2)) {
+      throw new Error(commonErrorMessage.wrongAddressFormat)
+    }
+
+    if (amountIn <= 0) {
+      throw new Error(buybackErrorMessage.nonNegativeAmountOrZero)
+    }
+
+    return await this.contract.getOptimalTwapAmountThreshold.staticCall(
+      amountIn,
+      pool1,
+      pool2
+    )
+  }
+
+  async buyback(
+    providedOptimalAmount: bigint
+  ): Promise<ContractTransaction | TransactionResponse> {
+    if (providedOptimalAmount <= 0) {
+      throw new Error(buybackErrorMessage.nonNegativeAmountOrZero)
+    }
+
     const usdcContract = await this._getUsdcContract()
     const decimals = await usdcContract.decimals()
     const usdcBalance = await usdcContract.balanceOf(this.address)
@@ -256,7 +419,9 @@ export class Buyback
       throw new Error(buybackErrorMessage.buybackConstraint)
     }
 
-    const pop = await this.contract.buyback.populateTransaction()
+    const pop = await this.contract.buyback.populateTransaction(
+      providedOptimalAmount
+    )
 
     return this.signer ? await this.signer.sendTransaction(pop) : pop
   }
@@ -281,7 +446,6 @@ export class Buyback
 
   async customBuyback(
     usdcAmount: bigint,
-    collectionArray: Array<BuybackAmounts>,
     distributionArray: Array<BuybackAmounts>
   ): Promise<ContractTransaction | TransactionResponse> {
     if (usdcAmount <= 0) {
@@ -301,28 +465,26 @@ export class Buyback
       throw new Error(buybackErrorMessage.buybackConstraint)
     }
 
-    for (const buybackAmount of collectionArray.concat(distributionArray)) {
+    let distributionBpsSum = BigInt(0)
+
+    for (const buybackAmount of distributionArray) {
       if (!ethers.isAddress(buybackAmount.account)) {
         throw new Error(commonErrorMessage.wrongAddressFormat)
       }
 
-      if (buybackAmount.bps <= 0) {
+      if (buybackAmount.bps <= BigInt(0)) {
         throw new Error(buybackErrorMessage.nonNegativeOrZeroBps)
       }
+
+      distributionBpsSum += buybackAmount.bps
     }
 
-    const collectionBpsSum = collectionArray.reduce(
-      (total, current) => total + current.bps,
-      BigInt(0)
-    )
-
-    if (collectionBpsSum !== this.TEN_THOUSAND) {
-      throw new Error(buybackErrorMessage.collectionBpsConstraint)
+    if (distributionBpsSum !== this.TEN_THOUSAND) {
+      throw new Error(buybackErrorMessage.distributionBpsConstraint)
     }
 
     const pop = await this.contract.customBuyback.populateTransaction(
       usdcAmount,
-      collectionArray,
       distributionArray
     )
 

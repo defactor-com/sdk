@@ -63,14 +63,22 @@ describe('SelfProvider - Buyback', () => {
 
   describe('Functions', () => {
     describe('buyback()', () => {
+      it('failure - negative amount', async () => {
+        await expect(provider.contract.buyback(BigInt(-1))).rejects.toThrow(
+          buybackErrorMessage.nonNegativeAmountOrZero
+        )
+      })
       it.skip('failure - usdc balance is less than 1000', async () => {
-        await expect(provider.contract.buyback()).rejects.toThrow(
+        const optimalAmount = BigInt(1000 * 1e6)
+
+        await expect(provider.contract.buyback(optimalAmount)).rejects.toThrow(
           buybackErrorMessage.buybackConstraint
         )
       })
       it.skip('success - usdc balance is more than 1000', async () => {
         expect(!provider.contract.signer).toBe(false)
 
+        const optimalAmount = BigInt(1000 * 1e16)
         const usdc = await provider.contract.getUSDC()
         const erc20 = new Erc20(usdc, provider.contract.apiUrl, null)
         const decimals = await erc20.decimals()
@@ -87,7 +95,9 @@ describe('SelfProvider - Buyback', () => {
           tx
         )
 
-        await expect(provider.contract.buyback()).resolves.not.toThrow()
+        await expect(
+          provider.contract.buyback(optimalAmount)
+        ).resolves.not.toThrow()
       })
     })
     describe('buybackWithdraw()', () => {
@@ -122,74 +132,51 @@ describe('SelfProvider - Buyback', () => {
     describe('customBuyback()', () => {
       it('failure - usdcAmount is negative', async () => {
         await expect(
-          provider.contract.customBuyback(BigInt(-1), [], [])
+          provider.contract.customBuyback(BigInt(-1), [])
         ).rejects.toThrow(buybackErrorMessage.nonNegativeAmountOrZero)
       })
       it('failure - usdcAmount is zero', async () => {
         await expect(
-          provider.contract.customBuyback(BigInt(0), [], [])
+          provider.contract.customBuyback(BigInt(0), [])
         ).rejects.toThrow(buybackErrorMessage.nonNegativeAmountOrZero)
       })
       it('failure - usdcAmount is less than 1000', async () => {
         await expect(
-          provider.contract.customBuyback(BigInt(900_000000), [], [])
+          provider.contract.customBuyback(BigInt(900_000000), [])
         ).rejects.toThrow(buybackErrorMessage.buybackConstraint)
-      })
-      it('failure - collection array does not have valid addresses', async () => {
-        await expect(
-          provider.contract.customBuyback(
-            BigInt(1000_000000),
-            [{ account: '0xinvalid', bps: BigInt(0) }],
-            []
-          )
-        ).rejects.toThrow(commonErrorMessage.wrongAddressFormat)
       })
       it('failure - distribution array does not have valid addresses', async () => {
         await expect(
-          provider.contract.customBuyback(
-            BigInt(1000_000000),
-            [],
-            [{ account: '0xinvalid', bps: BigInt(0) }]
-          )
+          provider.contract.customBuyback(BigInt(1000_000000), [
+            { account: '0xinvalid', bps: BigInt(0) }
+          ])
         ).rejects.toThrow(commonErrorMessage.wrongAddressFormat)
       })
-      it('failure - collection array have zero bps', async () => {
+      it('failure - distribution array have zero bps', async () => {
         await expect(
-          provider.contract.customBuyback(
-            BigInt(1000_000000),
-            [
-              { account: signerAddress, bps: BigInt(1) },
-              { account: signerAddress, bps: BigInt(1) },
-              { account: signerAddress, bps: BigInt(0) }
-            ],
-            []
-          )
+          provider.contract.customBuyback(BigInt(1000_000000), [
+            { account: signerAddress, bps: BigInt(1) },
+            { account: signerAddress, bps: BigInt(1) },
+            { account: signerAddress, bps: BigInt(0) }
+          ])
         ).rejects.toThrow(buybackErrorMessage.nonNegativeOrZeroBps)
       })
-      it('failure - collection array have negative bps', async () => {
+      it('failure - distribution array have negative bps', async () => {
         await expect(
-          provider.contract.customBuyback(
-            BigInt(1000_000000),
-            [
-              { account: signerAddress, bps: BigInt(1) },
-              { account: signerAddress, bps: BigInt(1) },
-              { account: signerAddress, bps: BigInt(-1) }
-            ],
-            []
-          )
+          provider.contract.customBuyback(BigInt(1000_000000), [
+            { account: signerAddress, bps: BigInt(1) },
+            { account: signerAddress, bps: BigInt(1) },
+            { account: signerAddress, bps: BigInt(-1) }
+          ])
         ).rejects.toThrow(buybackErrorMessage.nonNegativeOrZeroBps)
       })
-      it('failure - collection array bps is not 100%', async () => {
+      it('failure - distribution array bps is not 100%', async () => {
         await expect(
-          provider.contract.customBuyback(
-            BigInt(1000_000000),
-            [
-              { account: signerAddress, bps: BigInt(80_00) },
-              { account: signerAddress, bps: BigInt(15_00) }
-            ],
-            []
-          )
-        ).rejects.toThrow(buybackErrorMessage.collectionBpsConstraint)
+          provider.contract.customBuyback(BigInt(1000_000000), [
+            { account: signerAddress, bps: BigInt(80_00) },
+            { account: signerAddress, bps: BigInt(15_00) }
+          ])
+        ).rejects.toThrow(buybackErrorMessage.distributionBpsConstraint)
       })
       it.skip('success - custom buyback', async () => {
         expect(!provider.contract.signer).toBe(false)
@@ -206,12 +193,6 @@ describe('SelfProvider - Buyback', () => {
           tx
         )
 
-        const collectionArray = [
-          {
-            account: provider.contract.signer!.address,
-            bps: BigInt(100_00)
-          }
-        ]
         const distributionArray = [
           {
             account: provider.contract.signer!.address,
@@ -220,11 +201,7 @@ describe('SelfProvider - Buyback', () => {
         ]
 
         await expect(
-          provider.contract.customBuyback(
-            amount,
-            collectionArray,
-            distributionArray
-          )
+          provider.contract.customBuyback(amount, distributionArray)
         ).resolves.not.toThrow()
       })
     })
@@ -298,6 +275,11 @@ describe('SelfProvider - Buyback', () => {
 
       expect(ethers.isAddress(address)).toBe(true)
     })
+    it('success - get quoter address', async () => {
+      const address = await provider.contract.getUniswapQuoter()
+
+      expect(ethers.isAddress(address)).toBe(true)
+    })
     it('success - get factr', async () => {
       expect.assertions(3)
 
@@ -359,6 +341,55 @@ describe('SelfProvider - Buyback', () => {
       expect(typeof maxLiquiditySlippage).toBe('bigint')
       expect(maxLiquiditySlippage).toBeGreaterThanOrEqual(BigInt(0))
       expect(maxLiquiditySlippage).toBeLessThanOrEqual(BigInt(10000))
+    })
+    it('success - get pool 1 address', async () => {
+      const pool = await provider.contract.getPool1()
+
+      expect(ethers.isAddress(pool)).toBe(true)
+    })
+    it('success - get pool 2 address', async () => {
+      const pool = await provider.contract.getPool2()
+
+      expect(ethers.isAddress(pool)).toBe(true)
+    })
+    it('success - get pool 1 address again', async () => {
+      const pool = await provider.contract.getPool1()
+
+      expect(ethers.isAddress(pool)).toBe(true)
+    })
+    it('success - get path', async () => {
+      const path = await provider.contract.getPath()
+
+      expect(path.length).toBeGreaterThan(0)
+    })
+    describe('getOptimalAmountFromMaxAmount', () => {
+      it('success - calculate optimal amount from max amount', async () => {
+        const amount = BigInt(1000 * 1e6)
+        const optimalAmount =
+          await provider.contract.getOptimalAmountFromMaxAmount(amount)
+
+        expect(optimalAmount).toBeGreaterThan(0)
+        expect(amount).toBeGreaterThanOrEqual(optimalAmount)
+      })
+      it('success - calculate optimal amount from chain', async () => {
+        const amount = BigInt(1000 * 1e6)
+        const optimalAmount =
+          await provider.contract.getOptimalAmountFromMaxAmount(amount)
+        const path = await provider.contract.getPath()
+        const pool1 = await provider.contract.getPool1()
+        const pool2 = await provider.contract.getPool2()
+        const optimalAmountFromChain =
+          await provider.contract.calculateOptimalAmount(
+            path,
+            pool1,
+            pool2,
+            amount
+          )
+
+        expect(optimalAmount).toBeGreaterThan(0)
+        expect(amount).toBeGreaterThanOrEqual(optimalAmount)
+        expect(optimalAmount).toBe(optimalAmountFromChain)
+      })
     })
     describe('getBuyback()', () => {
       it('failure - the buyback id is negative', async () => {
@@ -422,9 +453,24 @@ describe('SelfProvider - Buyback', () => {
       })
     })
     describe('calculateOptimalAmount()', () => {
-      it('failure - the pool1 is not a valid address', async () => {
+      it('failure - the path is not a byte like string', async () => {
+        const path = 'path'
+
         await expect(
           provider.contract.calculateOptimalAmount(
+            path,
+            signerAddress,
+            signerAddress,
+            BigInt(1000)
+          )
+        ).rejects.toThrow(commonErrorMessage.invalidBytesLike)
+      })
+      it('failure - the pool1 is not a valid address', async () => {
+        const path = await provider.contract.getPath()
+
+        await expect(
+          provider.contract.calculateOptimalAmount(
+            path,
             '0xInvalid',
             signerAddress,
             BigInt(1000)
@@ -432,8 +478,11 @@ describe('SelfProvider - Buyback', () => {
         ).rejects.toThrow(commonErrorMessage.wrongAddressFormat)
       })
       it('failure - the pool2 is not a valid address', async () => {
+        const path = await provider.contract.getPath()
+
         await expect(
           provider.contract.calculateOptimalAmount(
+            path,
             signerAddress,
             '0xInvalid',
             BigInt(1000)
@@ -441,8 +490,11 @@ describe('SelfProvider - Buyback', () => {
         ).rejects.toThrow(commonErrorMessage.wrongAddressFormat)
       })
       it('failure - the usdcAmount is zero', async () => {
+        const path = await provider.contract.getPath()
+
         await expect(
           provider.contract.calculateOptimalAmount(
+            path,
             signerAddress,
             signerAddress,
             BigInt(0)
@@ -450,8 +502,11 @@ describe('SelfProvider - Buyback', () => {
         ).rejects.toThrow(buybackErrorMessage.nonNegativeAmountOrZero)
       })
       it('failure - the usdcAmount is negative', async () => {
+        const path = await provider.contract.getPath()
+
         await expect(
           provider.contract.calculateOptimalAmount(
+            path,
             signerAddress,
             signerAddress,
             BigInt(-1)
@@ -551,6 +606,33 @@ describe('SelfProvider - Buyback', () => {
         ).rejects.toThrow(
           commonErrorMessage.nonGreaterThan('secondsAgo', '32 bits')
         )
+      })
+    })
+    describe('getOptimalTwapAmountThreshold()', () => {
+      it('failure - the pools are not a valid address', async () => {
+        await expect(
+          provider.contract.getOptimalTwapAmountThreshold(
+            BigInt(0),
+            '0xInvalid',
+            '0xInvalid'
+          )
+        ).rejects.toThrow(commonErrorMessage.wrongAddressFormat)
+        await expect(
+          provider.contract.getOptimalTwapAmountThreshold(
+            BigInt(0),
+            signerAddress,
+            '0xInvalid'
+          )
+        ).rejects.toThrow(commonErrorMessage.wrongAddressFormat)
+      })
+      it('failure - the amountIn is zero', async () => {
+        await expect(
+          provider.contract.getOptimalTwapAmountThreshold(
+            BigInt(0),
+            signerAddress,
+            signerAddress
+          )
+        ).rejects.toThrow(buybackErrorMessage.nonNegativeAmountOrZero)
       })
     })
     describe('recoverERC20()', () => {
