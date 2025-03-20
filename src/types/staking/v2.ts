@@ -23,7 +23,12 @@ export type Plan = DefaultPlanValues &
     apyAfterUnlock: bigint
   }
 
-export type Stake = StakeV1
+export type Stake = Omit<StakeV1, 'amount' | 'claimed'> & {
+  stakedAmount: bigint
+  claimedAmount: bigint
+  unstakeTime: bigint
+  claimed: boolean
+}
 
 export type TokenRatio = {
   timestamp: bigint
@@ -73,10 +78,6 @@ export interface AdminFunctions {
   ): Promise<ethers.ContractTransaction | ethers.TransactionResponse>
   editPlan(
     editPlanInput: EditPlanInput
-  ): Promise<ethers.ContractTransaction | ethers.TransactionResponse>
-  withdraw(
-    tokenAddress: string,
-    to: string
   ): Promise<ethers.ContractTransaction | ethers.TransactionResponse>
   changeTokenRatioForPlan(
     planId: bigint,

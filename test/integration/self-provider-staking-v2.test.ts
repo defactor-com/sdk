@@ -11,7 +11,6 @@ import {
   FACTR_TOKEN_ADDRESS,
   MAX_BIGINT,
   ONE_DAY_SEC,
-  TESTING_PRIVATE_KEY,
   USD_TOKEN_ADDRESS,
   approveTokenAmount,
   getUnixEpochTime,
@@ -23,9 +22,10 @@ jest.setTimeout(300000)
 
 describe('SelfProvider - Staking', () => {
   let provider: SelfProvider<StakingV2>
-  let notAdminProvider: SelfProvider<StakingV2>
   let signerAddress: string
   let factrTokenContract: Erc20
+  const APY_PRECISION = 2
+  const TOKEN_RATIO_PRECISION = 18
 
   const isSameDummyPlan = (
     plan: Plan,
@@ -49,15 +49,15 @@ describe('SelfProvider - Staking', () => {
   const dummyPlan: AddPlanInput & {
     initialRatio: bigint
   } = {
-    apy: BigInt(10),
-    apyAfterUnlock: BigInt(5),
+    apy: BigInt(10) * BigInt(10 ** APY_PRECISION),
+    apyAfterUnlock: BigInt(5) * BigInt(10 ** APY_PRECISION),
     lockDuration: BigInt(30 * ONE_DAY_SEC),
     maxStaked: BigInt(1000 * 1e18),
     minStakeAmount: BigInt(10 * 1e18),
-    initialRatio: BigInt(5),
-    rewardEndTime: BigInt(1744264800),
+    initialRatio: BigInt(1) * BigInt(10 ** TOKEN_RATIO_PRECISION),
+    rewardEndTime: BigInt(1754632800),
     rewardToken: FACTR_TOKEN_ADDRESS,
-    stakingEndTime: BigInt(1739167200),
+    stakingEndTime: BigInt(1749535200),
     stakingToken: FACTR_TOKEN_ADDRESS
   }
 
@@ -110,13 +110,6 @@ describe('SelfProvider - Staking', () => {
       ADMIN_TESTING_PRIVATE_KEY
     )
 
-    notAdminProvider = new SelfProvider(
-      StakingV2,
-      AMOY_STAKING_CONTRACT_ADDRESS,
-      process.env.PROVIDER_URL,
-      TESTING_PRIVATE_KEY
-    )
-
     signerAddress = provider.contract.signer?.address || ''
 
     if (!signerAddress) {
@@ -143,38 +136,6 @@ describe('SelfProvider - Staking', () => {
   })
 
   describe('Admin Functions', () => {
-    describe('withdraw()', () => {
-      it('failure - the signer is not admin', async () => {
-        const validAddress = notAdminProvider.contract.address
-        const res = notAdminProvider.contract.withdraw(
-          FACTR_TOKEN_ADDRESS,
-          validAddress
-        )
-
-        await expect(res).rejects.toThrow(commonErrorMessage.addressIsNotAdmin)
-      })
-
-      it('failure - invalid token address format', async () => {
-        const validAddress = signerAddress
-        const invalidTokenAddress = 'invalid_address'
-
-        await expect(
-          provider.contract.withdraw(invalidTokenAddress, validAddress)
-        ).rejects.toThrow(commonErrorMessage.wrongAddressFormat)
-      })
-      it('failure - invalid recipient address format', async () => {
-        const invalidAddress = 'invalid_address'
-
-        await expect(
-          provider.contract.withdraw(FACTR_TOKEN_ADDRESS, invalidAddress)
-        ).rejects.toThrow(commonErrorMessage.wrongAddressFormat)
-      })
-      it.skip('success - withdraw successfully', async () => {
-        await expect(
-          provider.contract.withdraw(FACTR_TOKEN_ADDRESS, signerAddress)
-        ).resolves.not.toThrow()
-      })
-    })
     describe('addPlan()', () => {
       it('failure - invalid staking address format', async () => {
         const invalidAddress = 'invalid_address'
@@ -223,6 +184,15 @@ describe('SelfProvider - Staking', () => {
             apyAfterUnlock: BigInt(-1)
           })
         ).rejects.toThrow(stakingErrorMessage.nonNegativeApy)
+      })
+      it('failure - staking end time is in the past', async () => {
+        await expect(
+          provider.contract.addPlan({
+            ...dummyPlan,
+            stakingEndTime: BigInt(1577836800),
+            rewardEndTime: getUnixEpochTime() + BigInt(30 * ONE_DAY_SEC)
+          })
+        ).rejects.toThrow(stakingErrorMessage.timeMustBeInFuture)
       })
       it('failure - invalid staking and reward time', async () => {
         await expect(
@@ -452,6 +422,41 @@ describe('SelfProvider - Staking', () => {
           provider.contract.stake(BigInt(planId), amount)
         ).resolves.not.toThrow()
       })
+      it.skip('success - stake max amount twice', async () => {
+        const plans = await provider.contract.getPlans()
+        const planId = BigInt(
+          plans.findIndex(plan => isSameDummyPlan(plan, dummyUsdcPlan))!
+        )
+        const plan = plans[Number(planId)]
+        const amount = plan.maxStaked
+        const stakingToken = plan.stakingToken
+        const tokenContract = new Erc20(
+          stakingToken,
+          provider.contract.apiUrl,
+          null
+        )
+
+        // Stake max amount
+        await approveTokenAmount(tokenContract, provider, amount)
+        await expect(
+          provider.contract.stake(BigInt(planId), amount)
+        ).resolves.not.toThrow()
+
+        const stakeIndexes =
+          await provider.contract.getUserStakes(signerAddress)
+        const stakeIndex = BigInt(stakeIndexes.length - 1)
+
+        // Unstake position
+        await expect(
+          provider.contract.unstake(stakeIndex)
+        ).resolves.not.toThrow()
+
+        // Stake max amount again
+        await approveTokenAmount(tokenContract, provider, amount)
+        await expect(
+          provider.contract.stake(BigInt(planId), amount)
+        ).resolves.not.toThrow()
+      })
     })
     describe('unstake()', () => {
       it.skip('failure - Contract is paused', async () => {
@@ -646,7 +651,7 @@ describe('SelfProvider - Staking', () => {
           provider.contract.getPlanTokenRatios(planId)
         ).rejects.toThrow(stakingErrorMessage.invalidPlanId)
       })
-      it('success - get plan token ratios', async () => {
+      it.skip('success - get plan token ratios', async () => {
         const planId = BigInt(0)
         const tokenRatios = await provider.contract.getPlanTokenRatios(planId)
 

@@ -3,7 +3,6 @@ import { ethers } from 'ethers'
 import { miscStakingV2 } from '../artifacts'
 import { BaseContract } from '../base-classes'
 import { commonErrorMessage, stakingErrorMessage } from '../errors'
-import { Stake } from '../types/staking/v1'
 import {
   AddPlanInput,
   AdminFunctions,
@@ -11,6 +10,7 @@ import {
   EditPlanInput,
   Functions,
   Plan,
+  Stake,
   TokenRatio,
   Views
 } from '../types/staking/v2'
@@ -241,6 +241,12 @@ export class StakingV2
       throw new Error(stakingErrorMessage.nonNegativeInitialRatio)
     }
 
+    const currentTimestamp = getUnixEpochTime()
+
+    if (stakingEndTime < currentTimestamp || rewardEndTime < currentTimestamp) {
+      throw new Error(stakingErrorMessage.timeMustBeInFuture)
+    }
+
     await this._checkIsAdmin()
     await this._checkIfPlanAlreadyExists(
       stakingToken,
@@ -322,28 +328,6 @@ export class StakingV2
     return this.signer ? await this.signer.sendTransaction(pop) : pop
   }
 
-  async withdraw(
-    tokenAddress: string,
-    to: string
-  ): Promise<ethers.ContractTransaction | ethers.TransactionResponse> {
-    await this._checkIsAdmin()
-
-    if (!ethers.isAddress(tokenAddress)) {
-      throw new Error(commonErrorMessage.wrongAddressFormat)
-    }
-
-    if (!ethers.isAddress(to)) {
-      throw new Error(commonErrorMessage.wrongAddressFormat)
-    }
-
-    const pop = await this.contract.withdraw.populateTransaction(
-      tokenAddress,
-      to
-    )
-
-    return this.signer ? await this.signer.sendTransaction(pop) : pop
-  }
-
   async changeTokenRatioForPlan(
     planId: bigint,
     ratio: bigint
@@ -393,7 +377,7 @@ export class StakingV2
       throw new Error(stakingErrorMessage.stakingHasEnded)
     }
 
-    if (plan.totalStaked + amount > plan.maxStaked) {
+    if (plan.totalStaked + amount - plan.totalUnstaked > plan.maxStaked) {
       throw new Error(stakingErrorMessage.maxStakedReached)
     }
 
@@ -463,6 +447,13 @@ export class StakingV2
       if (oldPlan.stakingToken !== newPlan.stakingToken) {
         throw new Error(stakingErrorMessage.restakedWithWrongToken)
       }
+
+      if (
+        newPlan.totalStaked + userStake.stakedAmount - newPlan.totalUnstaked >
+        newPlan.maxStaked
+      ) {
+        throw new Error(stakingErrorMessage.maxStakedReached)
+      }
     }
 
     const pop = await this.contract.restake.populateTransaction(
@@ -485,8 +476,8 @@ export class StakingV2
     if (this.signer) {
       const userStake = await this.getUserStake(this.signer.address, stakeIndex)
 
-      if (userStake.unstaked) {
-        throw new Error(stakingErrorMessage.stakeAlreadyUnstaked)
+      if (userStake.claimed) {
+        throw new Error(stakingErrorMessage.rewardAlreadyClaimed)
       }
     }
 
