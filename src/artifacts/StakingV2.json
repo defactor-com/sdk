@@ -25,12 +25,22 @@
       },
       {
         "inputs": [],
+        "name": "NotEnoughTokensToRepayReward",
+        "type": "error"
+      },
+      {
+        "inputs": [],
         "name": "PlanAlreadyExists",
         "type": "error"
       },
       {
         "inputs": [],
         "name": "RestakedWithWrongToken",
+        "type": "error"
+      },
+      {
+        "inputs": [],
+        "name": "RewardAlreadyClaimed",
         "type": "error"
       },
       {
@@ -61,6 +71,11 @@
       {
         "inputs": [],
         "name": "StakingHasEnded",
+        "type": "error"
+      },
+      {
+        "inputs": [],
+        "name": "TimestampInThePast",
         "type": "error"
       },
       {
@@ -465,13 +480,50 @@
         "type": "event"
       },
       {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": true,
+            "internalType": "address",
+            "name": "user",
+            "type": "address"
+          },
+          {
+            "indexed": false,
+            "internalType": "uint8",
+            "name": "planId",
+            "type": "uint8"
+          },
+          {
+            "indexed": false,
+            "internalType": "uint256",
+            "name": "stakeAmount",
+            "type": "uint256"
+          },
+          {
+            "indexed": false,
+            "internalType": "uint256",
+            "name": "unclaimdRewardAmount",
+            "type": "uint256"
+          },
+          {
+            "indexed": false,
+            "internalType": "uint256",
+            "name": "stakeIndex",
+            "type": "uint256"
+          }
+        ],
+        "name": "UnstakedWithoutRewards",
+        "type": "event"
+      },
+      {
         "inputs": [],
-        "name": "DEFAULT_ADMIN_ROLE",
+        "name": "BPS_DIVIDER",
         "outputs": [
           {
-            "internalType": "bytes32",
+            "internalType": "uint256",
             "name": "",
-            "type": "bytes32"
+            "type": "uint256"
           }
         ],
         "stateMutability": "view",
@@ -479,12 +531,12 @@
       },
       {
         "inputs": [],
-        "name": "PERCENTAGE_MULTIPLIER",
+        "name": "DEFAULT_ADMIN_ROLE",
         "outputs": [
           {
-            "internalType": "uint256",
+            "internalType": "bytes32",
             "name": "",
-            "type": "uint256"
+            "type": "bytes32"
           }
         ],
         "stateMutability": "view",
@@ -876,17 +928,22 @@
             "components": [
               {
                 "internalType": "uint256",
-                "name": "amount",
+                "name": "stakedAmount",
                 "type": "uint256"
               },
               {
                 "internalType": "uint256",
-                "name": "claimed",
+                "name": "claimedAmount",
                 "type": "uint256"
               },
               {
                 "internalType": "uint48",
                 "name": "stakeTime",
+                "type": "uint48"
+              },
+              {
+                "internalType": "uint48",
+                "name": "unstakeTime",
                 "type": "uint48"
               },
               {
@@ -897,6 +954,11 @@
               {
                 "internalType": "bool",
                 "name": "unstaked",
+                "type": "bool"
+              },
+              {
+                "internalType": "bool",
+                "name": "claimed",
                 "type": "bool"
               }
             ],
@@ -922,17 +984,22 @@
             "components": [
               {
                 "internalType": "uint256",
-                "name": "amount",
+                "name": "stakedAmount",
                 "type": "uint256"
               },
               {
                 "internalType": "uint256",
-                "name": "claimed",
+                "name": "claimedAmount",
                 "type": "uint256"
               },
               {
                 "internalType": "uint48",
                 "name": "stakeTime",
+                "type": "uint48"
+              },
+              {
+                "internalType": "uint48",
+                "name": "unstakeTime",
                 "type": "uint48"
               },
               {
@@ -943,6 +1010,11 @@
               {
                 "internalType": "bool",
                 "name": "unstaked",
+                "type": "bool"
+              },
+              {
+                "internalType": "bool",
+                "name": "claimed",
                 "type": "bool"
               }
             ],
@@ -1126,27 +1198,8 @@
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"
-      },
-      {
-        "inputs": [
-          {
-            "internalType": "contract IERC20Upgradeable",
-            "name": "token",
-            "type": "address"
-          },
-          {
-            "internalType": "address",
-            "name": "to",
-            "type": "address"
-          }
-        ],
-        "name": "withdraw",
-        "outputs": [],
-        "stateMutability": "nonpayable",
-        "type": "function"
-      }
-    ],
+    }
+  ],
     "linkReferences": {},
     "deployedLinkReferences": {}
-  }
-  
+}
