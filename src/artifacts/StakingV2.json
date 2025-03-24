@@ -503,7 +503,7 @@
           {
             "indexed": false,
             "internalType": "uint256",
-            "name": "unclaimdRewardAmount",
+            "name": "unclaimedRewardAmount",
             "type": "uint256"
           },
           {
