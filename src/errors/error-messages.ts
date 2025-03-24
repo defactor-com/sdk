@@ -46,6 +46,16 @@ export const erc20CollateralPoolErrorMessage = {
     'The min borrow amount must be less than max lent amount'
 }
 
+export const erc20CollateralPoolV2ErrorMessage = {
+  ...erc20CollateralPoolErrorMessage,
+  nonNegativeOrZeroCollateralTokenLTV:
+    'The collateral token ltv percentage cannot be negative or zero',
+  collateralTokenLTVTooHigh:
+    'The collateral token ltv percentage is greater than the maximum',
+  minLentMustBeLessThanMaxPoolCapacity:
+    'The min lent must be less that the max pool capacity'
+}
+
 export const counterPartyPoolErrorMessage = {
   addressIsNotOwner: 'Sender address is not the owner of the pool',
   poolOwnerCannotCommitToTheirOwnPool:

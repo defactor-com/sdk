@@ -27,7 +27,8 @@ export class ERC20CollateralPoolV1
 {
   readonly LIQUIDATION_PROTOCOL_FEE = BigInt(5)
   readonly LIQUIDATION_FEE = BigInt(10)
-  readonly ONE_YEAR = BigInt(365)
+  readonly DAY_SEC = BigInt(60 * 60 * 24)
+  readonly ONE_YEAR = BigInt(365) * this.DAY_SEC
   readonly HOUNDRED = BigInt(100)
 
   constructor(

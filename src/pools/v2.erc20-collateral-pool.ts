@@ -1,34 +1,32 @@
 import { ethers } from 'ethers'
 
-import { miscErc20CollateralPoolV1 } from '../artifacts'
+import { miscErc20CollateralPoolV2 } from '../artifacts'
 import { BaseContract } from '../base-classes'
 import {
   commonErrorMessage,
-  erc20CollateralPoolErrorMessage as ecpErrorMessage,
-  poolCommonErrorMessage
+  erc20CollateralPoolV2ErrorMessage as ecpErrorMessage
 } from '../errors'
 import {
-  Borrow,
-  Erc20CollateralTokenPoolDetail,
+  AdminFunctions,
+  Constants,
   Functions,
-  Lend,
-  Pool,
-  PoolInput,
-  PoolLiquidationInfo,
-  ERC20CollateralPoolViews as Views
-} from '../types/erc20-collateral-pool/v1'
-import { AdminFunctions } from '../types/pools'
-import { Abi, Pagination, PrivateKey } from '../types/types'
-import { NULL_ADDRESS, Role } from '../utilities/util'
+  InitPool,
+  Views
+} from '../types/erc20-collateral-pool/v2'
+import { Abi, PrivateKey } from '../types/types'
+import { getUnixEpochTime } from '../utilities/util'
 
 export class ERC20CollateralPoolV2
   extends BaseContract
-  implements Functions, Views, AdminFunctions
+  implements Constants, Functions, Views, AdminFunctions
 {
-  readonly LIQUIDATION_PROTOCOL_FEE = BigInt(5)
-  readonly LIQUIDATION_FEE = BigInt(10)
-  readonly ONE_YEAR = BigInt(365)
-  readonly HOUNDRED = BigInt(100)
+  readonly LIQUIDATION_PROTOCOL_FEE = BigInt(5_00)
+  readonly LIQUIDATION_FEE = BigInt(10_00)
+  readonly LIQUIDATION_MARGIN_FACTOR = BigInt(20_00)
+  readonly DAY_SEC = BigInt(60 * 60 * 24)
+  readonly ONE_YEAR = BigInt(365) * this.DAY_SEC
+  readonly BPS_DIVIDER = BigInt(100_00)
+  readonly MAX_LTV_PERCENTAGE = BigInt(65_00)
 
   constructor(
     address: string,
@@ -36,7 +34,7 @@ export class ERC20CollateralPoolV2
     privateKey: PrivateKey | null,
     abi?: Abi
   ) {
-    super(address, apiUrl, privateKey, abi || miscErc20CollateralPoolV1.abi)
+    super(address, apiUrl, privateKey, abi || miscErc20CollateralPoolV2.abi)
   }
 
   async USDC_FEES_COLLECTED(): Promise<bigint> {
@@ -47,582 +45,79 @@ export class ERC20CollateralPoolV2
     return await this.contract.USDC()
   }
 
-  protected existPool(pool: Pool): boolean {
-    // logic taken from the smart contract validation
-    return pool.collateralDetails.collateralToken !== NULL_ADDRESS
+  async getUsdcPriceOracle(): Promise<string> {
+    return await this.contract.usdcPriceOracle()
   }
 
-  protected async _existBorrow(
-    poolId: bigint,
-    borrowId: bigint,
-    borrowerAddress: string
-  ): Promise<boolean> {
-    const totalBorrows = await this.getTotalBorrows(poolId, borrowerAddress)
-
-    return borrowId < totalBorrows
-  }
-
-  protected async _getPoolById(poolId: bigint): Promise<Pool | null> {
-    const pool = await this.contract.pools(poolId)
-
-    if (!this.existPool(pool)) {
-      return null
-    }
-
-    return pool
-  }
-
-  protected async _getBorrow(
-    poolId: bigint,
-    borrowerAddress: string,
-    borrowId: bigint
-  ): Promise<Borrow> {
-    return await this.contract.borrows(poolId, borrowerAddress, borrowId)
-  }
-
-  protected _isPoolCompleted(pool: Pool) {
-    return (
-      pool.liquidatedCollateral > BigInt(0) ||
-      pool.collateralTokenAmount == BigInt(0) ||
-      pool.liquidated
-    )
+  async getUsdcSequencerOracle(): Promise<string> {
+    return await this.contract.usdcSequencerOracle()
   }
 
   async getTotalPools(): Promise<bigint> {
     return await this.contract.poolsLength()
   }
 
-  protected async _getTotalLending(
-    poolId: bigint,
-    address: string
-  ): Promise<bigint> {
-    return await this.contract.lendingsLength(poolId, address)
-  }
-
-  protected async _getLoan(
-    poolId: bigint,
-    address: string,
-    lendingId: bigint
-  ): Promise<Lend> {
-    return await this.contract.lendings(poolId, address, lendingId)
-  }
-
-  async getTotalBorrows(
-    poolId: bigint,
-    borrowerAddress: string
-  ): Promise<bigint> {
-    await this.getPool(poolId)
-
-    if (!ethers.isAddress(borrowerAddress)) {
-      throw new Error(commonErrorMessage.wrongAddressFormat)
-    }
-
-    return await this.contract.borrowsLength(poolId, borrowerAddress)
-  }
-
-  async getPool(poolId: bigint): Promise<Pool> {
-    const pool = await this._getPoolById(poolId)
-
-    if (!pool) {
-      throw new Error(poolCommonErrorMessage.noExistPoolId(poolId))
-    }
-
-    return pool
-  }
-
-  async getPools(offset: bigint, limit: bigint): Promise<Pagination<Pool>> {
-    if (offset < 0) {
-      throw new Error(ecpErrorMessage.noNegativeOffset)
-    }
-
-    if (limit <= 0) {
-      throw new Error(ecpErrorMessage.noNegativeLimitOrZero)
-    }
-
-    // TODO: consider taking this parameter (1000) from a configuration file or some configurable approach
-    if (limit > 1000) {
-      throw new Error(ecpErrorMessage.maxLimitAllowed)
-    }
-
-    const totalPools = await this.getTotalPools()
-
-    if (totalPools <= offset) {
-      return { data: new Array<Pool>(), more: false }
-    }
-
-    const poolPromises = new Array<Promise<Pool>>()
-
-    for (let i = offset; i < offset + limit && i < totalPools; i++) {
-      poolPromises.push(this.getPool(i))
-    }
-
-    return {
-      data: await Promise.all(poolPromises),
-      more: offset + limit < totalPools
-    }
-  }
-
-  async getTotalLending(poolId: bigint, address: string): Promise<bigint> {
-    if (!ethers.isAddress(address)) {
-      throw new Error(commonErrorMessage.wrongAddressFormat)
-    }
-
-    await this.getPool(poolId)
-
-    return await this._getTotalLending(poolId, address)
-  }
-
-  async getLoan(
-    poolId: bigint,
-    address: string,
-    lendingId: bigint
-  ): Promise<Lend> {
-    if (!ethers.isAddress(address)) {
-      throw new Error(commonErrorMessage.wrongAddressFormat)
-    }
-
-    const totalLending = await this._getTotalLending(poolId, address)
-
-    await this.getPool(poolId)
-
-    if (lendingId >= totalLending) {
-      throw new Error(ecpErrorMessage.noExistLendingId(lendingId))
-    }
-
-    return await this._getLoan(poolId, address, lendingId)
-  }
-
-  async listLoansByLender(
-    offset: bigint,
-    limit: bigint,
-    poolId: bigint,
-    lenderAddress: string
-  ): Promise<Pagination<Lend>> {
-    if (offset < 0) {
-      throw new Error(ecpErrorMessage.noNegativeOffset)
-    }
-
-    if (limit <= 0) {
-      throw new Error(ecpErrorMessage.noNegativeLimitOrZero)
-    }
-
-    // TODO: consider taking this parameter (1000) from a configuration file or some configurable approach
-    if (limit > 1000) {
-      throw new Error(ecpErrorMessage.maxLimitAllowed)
-    }
-
-    if (!ethers.isAddress(lenderAddress)) {
-      throw new Error(commonErrorMessage.wrongAddressFormat)
-    }
-
-    await this.getPool(poolId)
-
-    const loanPromises = new Array<Promise<Lend>>()
-    const totalLending = await this._getTotalLending(poolId, lenderAddress)
-
-    for (let i = offset; i < offset + limit && i < totalLending; i++) {
-      loanPromises.push(this._getLoan(poolId, lenderAddress, i))
-    }
-
-    return {
-      data: await Promise.all(loanPromises),
-      more: offset + limit < totalLending
-    }
-  }
-
-  getPoolDetails(
-    poolId: bigint,
-    walletAddress: string
-  ): Promise<Erc20CollateralTokenPoolDetail> {
-    throw new Error(
-      `Method not implemented. ${poolId.toString()}, ${walletAddress}`
-    )
+  async getUnpausedTime(): Promise<bigint> {
+    return await this.contract.unPausedTimestamp()
   }
 
   async addPool(
-    pool: PoolInput
+    pool: InitPool
   ): Promise<ethers.ContractTransaction | ethers.TransactionResponse> {
-    if (!ethers.isAddress(pool.collateralDetails.collateralToken)) {
-      throw new Error(ecpErrorMessage.wrongAddressFormatCustom())
+    await this._checkIsAdmin()
+
+    if (
+      !ethers.isAddress(pool.collateralToken) ||
+      !ethers.isAddress(pool.collateralTokenPriceOracle) ||
+      !ethers.isAddress(pool.collateralTokenSequencerOracle) ||
+      pool.collateralToken === ethers.ZeroAddress
+    ) {
+      throw new Error(commonErrorMessage.wrongAddressFormat)
     }
 
-    if (!ethers.isAddress(pool.collateralDetails.collateralTokenChainlink)) {
-      throw new Error(ecpErrorMessage.wrongAddressFormatCustom('chainlink'))
-    }
-
-    if (pool.endTime <= Date.now() / 1000) {
+    if (pool.endTime < getUnixEpochTime()) {
       throw new Error(ecpErrorMessage.timeMustBeInFuture)
     }
 
+    if (pool.maxPoolCapacity < pool.minLended) {
+      throw new Error(ecpErrorMessage.minLentMustBeLessThanMaxPoolCapacity)
+    }
+
+    if (pool.minBorrow <= 0 || pool.minLended <= 0) {
+      throw new Error(ecpErrorMessage.amountTooLow)
+    }
+
+    if (pool.collateralTokenLTVPercentage > this.MAX_LTV_PERCENTAGE) {
+      throw new Error(ecpErrorMessage.collateralTokenLTVTooHigh)
+    }
+
+    if (pool.collateralTokenLTVPercentage <= 0) {
+      throw new Error(ecpErrorMessage.nonNegativeOrZeroCollateralTokenLTV)
+    }
+
     if (
-      BigInt(pool.collateralDetails.maxLended || 0) <= 0 ||
-      BigInt(pool.collateralDetails.minLended || 0) <= 0 ||
-      BigInt(pool.collateralDetails.minBorrow || 0) <= 0
+      pool.endTime < 0 ||
+      pool.collateralTokenFactor < 0 ||
+      pool.interest < 0 ||
+      pool.maxPoolCapacity < 0
     ) {
-      throw new Error(poolCommonErrorMessage.noNegativeAmountOrZero)
-    }
-
-    if (pool.collateralDetails.maxLended < pool.collateralDetails.minLended) {
-      throw new Error(ecpErrorMessage.minLentMustBeLessThanMaxLent)
-    }
-
-    if (pool.collateralDetails.minBorrow > pool.collateralDetails.maxLended) {
-      throw new Error(ecpErrorMessage.minBorrowMustBeLessThanMaxLent)
-    }
-
-    if (this.signer) {
-      const isAdmin = await this.contract.hasRole(Role.ADMIN, this.signer)
-
-      if (!isAdmin) {
-        throw new Error(commonErrorMessage.addressIsNotAdmin)
-      }
+      throw new Error(commonErrorMessage.nonNegativeValue)
     }
 
     const formattedPool = {
-      maxLended: pool.collateralDetails.maxLended,
-      minLended: pool.collateralDetails.minLended,
-      minBorrow: pool.collateralDetails.minBorrow,
+      collateralToken: pool.collateralToken,
+      collateralTokenPriceOracle: pool.collateralTokenPriceOracle,
+      collateralTokenSequencerOracle: pool.collateralTokenSequencerOracle,
+      maxPoolCapacity: pool.maxPoolCapacity,
+      minLended: pool.minLended,
+      minBorrow: pool.minBorrow,
       endTime: pool.endTime,
-      interest: pool.interest,
-      collateralToken: pool.collateralDetails.collateralToken,
-      collateralTokenChainlink: pool.collateralDetails.collateralTokenChainlink,
-      collateralTokenFactor: pool.collateralDetails.collateralTokenFactor,
-      collateralTokenPercentage:
-        pool.collateralDetails.collateralTokenPercentage
+      collateralTokenFactor: pool.collateralTokenFactor,
+      collateralTokenLTVPercentage: pool.collateralTokenLTVPercentage,
+      interest: pool.interest
     }
 
     const pop = await this.contract.addPool.populateTransaction(formattedPool)
-
-    return this.signer ? await this.signer.sendTransaction(pop) : pop
-  }
-
-  async lend(
-    poolId: bigint,
-    amount: bigint
-  ): Promise<ethers.ContractTransaction | ethers.TransactionResponse> {
-    await this._checkIsNotPaused()
-
-    const pool = await this.getPool(poolId)
-
-    if (pool.endTime <= Date.now() / 1000) {
-      throw new Error(ecpErrorMessage.poolIsClosed)
-    }
-
-    if (amount <= 0) {
-      throw new Error(poolCommonErrorMessage.noNegativeAmountOrZero)
-    }
-
-    if (amount < pool.collateralDetails.minLended) {
-      throw new Error(ecpErrorMessage.amountTooLow)
-    }
-
-    if (pool.lended - pool.repaid + amount > pool.collateralDetails.maxLended) {
-      throw new Error(ecpErrorMessage.maxLentIsReached)
-    }
-
-    const pop = await this.contract.lend.populateTransaction(poolId, amount)
-
-    return this.signer ? await this.signer.sendTransaction(pop) : pop
-  }
-
-  async borrow(
-    poolId: bigint,
-    amount: bigint
-  ): Promise<ethers.ContractTransaction | ethers.TransactionResponse> {
-    await this._checkIsNotPaused()
-
-    const pool = await this.getPool(poolId)
-
-    if (amount <= 0) {
-      throw new Error(poolCommonErrorMessage.noNegativeAmountOrZero)
-    }
-
-    if (amount < pool.collateralDetails.minBorrow) {
-      throw new Error(ecpErrorMessage.amountTooLow)
-    }
-
-    if (pool.endTime <= Date.now() / 1000) {
-      throw new Error(ecpErrorMessage.endTimeReached)
-    }
-
-    if (pool.lended + pool.repaid + pool.rewards - pool.borrowed < amount) {
-      throw new Error(ecpErrorMessage.amountOverpassPoolBalance)
-    }
-
-    const pop = await this.contract.borrow.populateTransaction(poolId, amount)
-
-    return this.signer ? await this.signer.sendTransaction(pop) : pop
-  }
-
-  async getBorrow(
-    poolId: bigint,
-    borrowerAddress: string,
-    borrowId: bigint
-  ): Promise<Borrow> {
-    const existBorrow = await this._existBorrow(
-      poolId,
-      borrowId,
-      borrowerAddress
-    )
-
-    if (!existBorrow) {
-      throw new Error(ecpErrorMessage.noExistBorrowId(borrowId))
-    }
-
-    return await this.contract.borrows(poolId, borrowerAddress, borrowId)
-  }
-
-  async calculateCollateralTokenAmount(
-    poolId: bigint,
-    amount: bigint
-  ): Promise<bigint> {
-    await this.getPool(poolId)
-
-    if (amount <= 0) {
-      throw new Error(poolCommonErrorMessage.noNegativeAmountOrZero)
-    }
-
-    return await this.contract.calculateCollateralTokenAmount(poolId, amount)
-  }
-
-  async getBorrowsByBorrower(
-    poolId: bigint,
-    borrowerAddress: string,
-    offset: bigint,
-    limit: bigint
-  ): Promise<Pagination<Borrow>> {
-    if (offset < 0) {
-      throw new Error(ecpErrorMessage.noNegativeOffset)
-    }
-
-    if (limit <= 0) {
-      throw new Error(ecpErrorMessage.noNegativeLimitOrZero)
-    }
-
-    // TODO: consider taking this parameter (1000) from a configuration file or some configurable approach
-    if (limit > 1000) {
-      throw new Error(ecpErrorMessage.maxLimitAllowed)
-    }
-
-    if (!ethers.isAddress(borrowerAddress)) {
-      throw new Error(commonErrorMessage.wrongAddressFormat)
-    }
-
-    await this.getPool(poolId)
-
-    const borrowPromises = new Array<Promise<Borrow>>()
-    const totalBorrows = await this.getTotalBorrows(poolId, borrowerAddress)
-
-    for (let i = offset; i < offset + limit && i < totalBorrows; i++) {
-      borrowPromises.push(this._getBorrow(poolId, borrowerAddress, i))
-    }
-
-    return {
-      data: await Promise.all(borrowPromises),
-      more: offset + limit < totalBorrows
-    }
-  }
-
-  async calculateRepayInterest(
-    poolId: bigint,
-    borrowerAddress: string,
-    borrowId: bigint
-  ): Promise<bigint> {
-    await this.getPool(poolId)
-
-    if (!ethers.isAddress(borrowerAddress)) {
-      throw new Error(commonErrorMessage.wrongAddressFormat)
-    }
-
-    const existBorrow = await this._existBorrow(
-      poolId,
-      borrowId,
-      borrowerAddress
-    )
-
-    if (!existBorrow) {
-      throw new Error(ecpErrorMessage.noExistBorrowId(borrowId))
-    }
-
-    return await this.contract.calculateRepayInterest(
-      poolId,
-      borrowId,
-      borrowerAddress
-    )
-  }
-
-  async repay(
-    poolId: bigint,
-    borrowerAddress: string,
-    borrowId: bigint
-  ): Promise<ethers.ContractTransaction | ethers.TransactionResponse> {
-    await this._checkIsNotPaused()
-    await this.getPool(poolId)
-
-    if (!ethers.isAddress(borrowerAddress)) {
-      throw new Error(commonErrorMessage.wrongAddressFormat)
-    }
-
-    const borrow = await this.getBorrow(poolId, borrowerAddress, borrowId)
-
-    if (borrow.repayTime > 0) {
-      throw new Error(ecpErrorMessage.borrowAlreadyRepaid)
-    }
-
-    const pop = await this.contract.repay.populateTransaction(poolId, borrowId)
-
-    return this.signer ? await this.signer.sendTransaction(pop) : pop
-  }
-
-  async claimRewards(
-    poolId: bigint,
-    address: string,
-    lendingId: bigint
-  ): Promise<ethers.ContractTransaction | ethers.TransactionResponse> {
-    await this._checkIsNotPaused()
-
-    const pool = await this.getPool(poolId)
-
-    if (pool.endTime > Date.now() / 1000) {
-      throw new Error(ecpErrorMessage.poolIsNotClosed)
-    }
-
-    if (!this._isPoolCompleted(pool)) {
-      throw new Error(ecpErrorMessage.poolIsNotCompleted)
-    }
-
-    const loan = await this.getLoan(poolId, address, lendingId)
-
-    if (loan.claimed) {
-      throw new Error(ecpErrorMessage.loanAlreadyClaimed)
-    }
-
-    const pop = await this.contract.claimRewards.populateTransaction(
-      poolId,
-      lendingId
-    )
-
-    return this.signer ? await this.signer.sendTransaction(pop) : pop
-  }
-
-  claimMultiple(poolId: bigint): Promise<void> {
-    throw new Error(`Method not implemented. ${poolId.toString()}`)
-  }
-
-  claimUnliquidatedCollateral(poolId: bigint, borrowId: bigint): Promise<void> {
-    throw new Error(
-      `Method not implemented. ${poolId.toString()} ${borrowId.toString()}`
-    )
-  }
-
-  async getLiquidationInfo(pool: Pool): Promise<PoolLiquidationInfo> {
-    if (pool.endTime > Date.now() / 1000) {
-      throw new Error(ecpErrorMessage.poolIsNotClosed)
-    }
-
-    if (
-      pool.liquidatedCollateral > BigInt(0) ||
-      pool.collateralTokenAmount == BigInt(0) ||
-      pool.liquidated
-    ) {
-      throw new Error(ecpErrorMessage.poolCannotBeLiquidated)
-    }
-
-    const remainingInterest = pool.lended * pool.rewardPerToken - pool.rewards
-    const liquidatableAmount = pool.borrowed - pool.repaid + remainingInterest
-
-    const liquidatableAmountWithProtocolFee =
-      (liquidatableAmount * (this.LIQUIDATION_PROTOCOL_FEE + this.HOUNDRED)) /
-      this.HOUNDRED
-
-    const liquidatableAmountWithLiquidationFee =
-      (liquidatableAmount *
-        (this.LIQUIDATION_FEE +
-          this.LIQUIDATION_PROTOCOL_FEE +
-          this.HOUNDRED)) /
-      this.HOUNDRED
-
-    return {
-      remainingInterest,
-      liquidatableAmountWithProtocolFee,
-      liquidatableAmountWithLiquidationFee
-    }
-  }
-
-  async liquidatePool(
-    poolId: bigint
-  ): Promise<ethers.ContractTransaction | ethers.TransactionResponse> {
-    await this._checkIsNotPaused()
-    await this._checkIsAdmin()
-
-    const pool = await this.getPool(poolId)
-
-    if (pool.endTime > Date.now() / 1000) {
-      throw new Error(ecpErrorMessage.poolIsNotClosed)
-    }
-
-    if (this._isPoolCompleted(pool)) {
-      throw new Error(ecpErrorMessage.poolCannotBeLiquidated)
-    }
-
-    const pop = await this.contract.liquidatePool.populateTransaction(poolId)
-
-    return this.signer ? await this.signer.sendTransaction(pop) : pop
-  }
-
-  async getLiquidatableAmountWithProtocolFee(
-    poolId: bigint,
-    address: string,
-    borrowId: bigint
-  ) {
-    if (!ethers.isAddress(address)) {
-      throw new Error(commonErrorMessage.wrongAddressFormat)
-    }
-
-    await this.getPool(poolId)
-
-    const existBorrow = await this._existBorrow(poolId, borrowId, address)
-
-    if (!existBorrow) {
-      throw new Error(ecpErrorMessage.noExistBorrowId(borrowId))
-    }
-
-    return await this.contract.getLiquidatableAmountWithProtocolFee(
-      poolId,
-      address,
-      borrowId
-    )
-  }
-
-  async liquidateUserPosition(
-    poolId: bigint,
-    address: string,
-    borrowId: bigint
-  ) {
-    await this._checkIsNotPaused()
-    await this._checkIsAdmin()
-
-    if (!ethers.isAddress(address)) {
-      throw new Error(commonErrorMessage.wrongAddressFormat)
-    }
-
-    const pool = await this.getPool(poolId)
-
-    if (pool.endTime > Date.now() / 1000) {
-      throw new Error(ecpErrorMessage.poolIsNotClosed)
-    }
-
-    const borrow = await this.getBorrow(poolId, address, borrowId)
-
-    if (borrow.repayTime > 0) {
-      throw new Error(ecpErrorMessage.borrowAlreadyRepaid)
-    }
-
-    const pop = await this.contract.liquidateUserPosition.populateTransaction(
-      poolId,
-      address,
-      borrowId
-    )
 
     return this.signer ? await this.signer.sendTransaction(pop) : pop
   }
