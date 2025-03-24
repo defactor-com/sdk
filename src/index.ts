@@ -2,8 +2,9 @@ import * as Artifacts from './artifacts'
 import { Buyback } from './buyback'
 import {
   AdminPools,
-  ERC20CollateralPool,
   ERC20CollateralPoolToplend,
+  ERC20CollateralPoolV1,
+  ERC20CollateralPoolV2,
   Pools
 } from './pools'
 import * as AssistedProvider from './provider/assisted.provider'
@@ -34,7 +35,8 @@ export {
   Buyback,
   SelfProvider,
   Utilities,
-  ERC20CollateralPool,
+  ERC20CollateralPoolV1,
+  ERC20CollateralPoolV2,
   StakingV1,
   StakingV2,
   StakingExpiration,
@@ -51,7 +53,8 @@ export const DefactorSDK = {
   Buyback,
   SelfProvider,
   Utilities,
-  ERC20CollateralPool,
+  ERC20CollateralPoolV1,
+  ERC20CollateralPoolV2,
   Erc20,
   AdminPools,
   Pools,

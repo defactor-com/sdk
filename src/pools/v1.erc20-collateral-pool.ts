@@ -21,7 +21,7 @@ import { AdminFunctions } from '../types/pools'
 import { Abi, Pagination, PrivateKey } from '../types/types'
 import { NULL_ADDRESS, Role } from '../utilities/util'
 
-export class ERC20CollateralPool
+export class ERC20CollateralPoolV1
   extends BaseContract
   implements Functions, Views, AdminFunctions
 {

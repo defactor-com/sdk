@@ -2,7 +2,7 @@ import {
   erc20CollateralPoolErrorMessage as ecpErrorMessage,
   poolCommonErrorMessage
 } from '../../src/errors'
-import { ERC20CollateralPool } from '../../src/pools'
+import { ERC20CollateralPoolV1 } from '../../src/pools'
 import { SelfProvider } from '../../src/provider'
 import { Erc20 } from '../../src/utilities/erc20'
 import { sleep } from '../../src/utilities/util'
@@ -18,7 +18,7 @@ jest.setTimeout(50000)
 
 describe('SelfProvider - ERC20CollateralPool', () => {
   let providerUrl: string
-  let provider: SelfProvider<ERC20CollateralPool>
+  let provider: SelfProvider<ERC20CollateralPoolV1>
   let erc20Contract: Erc20
 
   beforeAll(async () => {
@@ -38,7 +38,7 @@ describe('SelfProvider - ERC20CollateralPool', () => {
 
   beforeEach(() => {
     provider = new SelfProvider(
-      ERC20CollateralPool,
+      ERC20CollateralPoolV1,
       ERC20_COLLATERAL_POOL_ETH_ADDRESS,
       providerUrl,
       TESTING_PRIVATE_KEY

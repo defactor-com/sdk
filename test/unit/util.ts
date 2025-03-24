@@ -1,4 +1,4 @@
-import { ERC20CollateralPool } from '../../src/pools'
+import { ERC20CollateralPoolV1 } from '../../src/pools'
 import { SelfProvider } from '../../src/provider'
 import { Borrow, Lend, Pool } from '../../src/types/erc20-collateral-pool/v1'
 import {
@@ -17,7 +17,7 @@ jest.setTimeout(50000)
 
 describe('Utils', () => {
   let providerUrl: string
-  let provider: SelfProvider<ERC20CollateralPool>
+  let provider: SelfProvider<ERC20CollateralPoolV1>
   let unformattedPool: Pool
   let unformattedBorrow: Borrow
   let unformattedLend: Lend
@@ -31,7 +31,7 @@ describe('Utils', () => {
 
     providerUrl = process.env.PROVIDER_URL
     provider = new SelfProvider(
-      ERC20CollateralPool,
+      ERC20CollateralPoolV1,
       ERC20_COLLATERAL_POOL_ETH_ADDRESS,
       providerUrl,
       TESTING_PRIVATE_KEY

@@ -1,14 +1,13 @@
 import { ethers } from 'ethers'
 
 import { Buyback } from '../buyback'
-import { Pools } from '../pools/pools'
-import { ERC20CollateralPool } from '../pools/v1.erc20-collateral-pool'
+import { ERC20CollateralPoolV1, ERC20CollateralPoolV2, Pools } from '../pools'
 import { StakingV1, StakingV2 } from '../staking'
 import { Role } from '../utilities/util'
 import { Vesting } from '../vesting'
 
 export type ERC20CollateralPoolConstructorParams = ConstructorParameters<
-  typeof ERC20CollateralPool
+  typeof ERC20CollateralPoolV1 | typeof ERC20CollateralPoolV2
 >
 
 export type PoolsConstructorParams = ConstructorParameters<typeof Pools>

@@ -1,7 +1,6 @@
 import { ethers } from 'ethers'
 
 import { miscErc20CollateralPoolToplend } from '../artifacts'
-import { BaseContract } from '../base-classes'
 import {
   commonErrorMessage,
   erc20CollateralPoolErrorMessage as ecpErrorMessage,
@@ -20,9 +19,10 @@ import {
 import { AdminFunctions } from '../types/pools'
 import { Abi, Pagination, PrivateKey } from '../types/types'
 import { NULL_ADDRESS, Role } from '../utilities/util'
+import { ERC20CollateralPoolV1 } from './v1.erc20-collateral-pool'
 
 export class ERC20CollateralPoolToplend
-  extends BaseContract
+  extends ERC20CollateralPoolV1
   implements Functions, ERC20CollateralPoolViews, AdminFunctions
 {
   readonly LIQUIDATION_PROTOCOL_FEE = BigInt(5)
