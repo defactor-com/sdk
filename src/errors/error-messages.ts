@@ -48,6 +48,7 @@ export const erc20CollateralPoolErrorMessage = {
 
 export const erc20CollateralPoolV2ErrorMessage = {
   ...erc20CollateralPoolErrorMessage,
+  nonNegativeOrZero: 'Amount cannot be negative or zero',
   nonNegativeOrZeroCollateralTokenLTV:
     'The collateral token ltv percentage cannot be negative or zero',
   collateralTokenLTVTooHigh:
@@ -57,7 +58,8 @@ export const erc20CollateralPoolV2ErrorMessage = {
   editAnnouncementAlreadyDone:
     'There is already an active announcement for this pool',
   poolAnnouncementIsLocked: 'Pool announcement is locked',
-  collateralTokenDoesNotExist: 'The token address is not a collateral token'
+  collateralTokenDoesNotExist: 'The token address is not a collateral token',
+  maxPoolCapacityIsReached: 'Maximum pool capacity has been reached'
 }
 
 export const counterPartyPoolErrorMessage = {

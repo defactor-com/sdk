@@ -73,6 +73,11 @@ export type Liquidation = {
   usdcAmount: bigint
 }
 
+export type AvailableAmounts = {
+  availableUSDC: bigint
+  availableCollateralTokens: bigint
+}
+
 export interface Constants {
   LIQUIDATION_PROTOCOL_FEE: bigint
   LIQUIDATION_FEE: bigint
@@ -89,10 +94,34 @@ export interface Views {
   getUsdcPriceOracle(): Promise<string>
   getUsdcSequencerOracle(): Promise<string>
   getTotalPools(): Promise<bigint>
+  getTotalBorrowsByUser(poolId: bigint, address: string): Promise<bigint>
+  getTotalLoansByUser(poolId: bigint, address: string): Promise<bigint>
   getUnpausedTime(): Promise<bigint>
   getAnnouncedPoolEdit(poolId: bigint): Promise<PoolEditAnnouncement>
   getPool(poolId: bigint): Promise<Pool>
   getCollateralTokens(): Promise<Array<string>>
+  getLiquidatableAmountWithProtocolFee(
+    poolId: bigint,
+    user: string,
+    borrowId: bigint
+  ): Promise<bigint>
+  calculateRepayInterest(
+    poolId: bigint,
+    borrowId: bigint,
+    user: string
+  ): Promise<bigint>
+  calculateCollateralTokenAmount(
+    poolId: bigint,
+    usdcAmount: bigint
+  ): Promise<bigint>
+  getCollateralTokenProtocolFee(collateralToken: string): Promise<bigint>
+  getAvailableAmountsInPool(poolId: bigint): Promise<AvailableAmounts>
+  isPositionLiquidatable(
+    poolId: bigint,
+    user: string,
+    borrowId: bigint
+  ): Promise<boolean>
+  calculateReward(poolId: bigint, lendId: bigint, user: string): Promise<bigint>
 }
 
 export interface AdminFunctions {
@@ -115,4 +144,23 @@ export interface AdminFunctions {
   ): Promise<ethers.ContractTransaction | ethers.TransactionResponse>
 }
 
-export interface Functions {}
+export interface Functions {
+  lend(
+    poolId: bigint,
+    usdcAmount: bigint
+  ): Promise<ethers.ContractTransaction | ethers.TransactionResponse>
+  borrow(
+    poolId: bigint,
+    usdcAmount: bigint,
+    collateralTokenAmount: bigint
+  ): Promise<ethers.ContractTransaction | ethers.TransactionResponse>
+  repay(
+    poolId: bigint,
+    borrowId: bigint,
+    repayAmount: bigint
+  ): Promise<ethers.ContractTransaction | ethers.TransactionResponse>
+  claim(
+    poolId: bigint,
+    claims: Array<Claim>
+  ): Promise<ethers.ContractTransaction | ethers.TransactionResponse>
+}

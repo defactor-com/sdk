@@ -9,6 +9,8 @@ import {
 } from '../errors'
 import {
   AdminFunctions,
+  AvailableAmounts,
+  Claim,
   Constants,
   EditPool,
   Functions,
@@ -91,6 +93,57 @@ export class ERC20CollateralPoolV2
     return await this.contract.pools(poolId)
   }
 
+  async getTotalLoansByUser(poolId: bigint, address: string): Promise<bigint> {
+    await this._checkPoolId(poolId)
+
+    if (!ethers.isAddress(address)) {
+      throw new Error(commonErrorMessage.wrongAddressFormat)
+    }
+
+    return await this.contract.lendingsLength(poolId, address)
+  }
+
+  private async _checkLoanId(poolId: bigint, loanId: bigint, address: string) {
+    if (loanId < 0) {
+      throw new Error(commonErrorMessage.nonNegativeValue)
+    }
+
+    const total = await this.getTotalLoansByUser(poolId, address)
+
+    if (loanId >= total) {
+      throw new Error(ecpErrorMessage.noExistLendingId(poolId))
+    }
+  }
+
+  async getTotalBorrowsByUser(
+    poolId: bigint,
+    address: string
+  ): Promise<bigint> {
+    await this._checkPoolId(poolId)
+
+    if (!ethers.isAddress(address)) {
+      throw new Error(commonErrorMessage.wrongAddressFormat)
+    }
+
+    return await this.contract.borrowsLength(poolId, address)
+  }
+
+  private async _checkBorrowId(
+    poolId: bigint,
+    borrowId: bigint,
+    address: string
+  ) {
+    if (borrowId < 0) {
+      throw new Error(commonErrorMessage.nonNegativeValue)
+    }
+
+    const total = await this.getTotalBorrowsByUser(poolId, address)
+
+    if (borrowId >= total) {
+      throw new Error(ecpErrorMessage.noExistBorrowId(poolId))
+    }
+  }
+
   private _validatePoolInput(pool: InitPool | EditPool) {
     if (
       'collateralToken' in pool &&
@@ -135,6 +188,108 @@ export class ERC20CollateralPoolV2
     ) {
       throw new Error(commonErrorMessage.nonNegativeValue)
     }
+  }
+
+  async getLiquidatableAmountWithProtocolFee(
+    poolId: bigint,
+    user: string,
+    borrowId: bigint
+  ): Promise<bigint> {
+    if (!ethers.isAddress(user)) {
+      throw new Error(commonErrorMessage.wrongAddressFormat)
+    }
+
+    await this._checkBorrowId(poolId, borrowId, user)
+
+    return await this.contract.getLiquidatableAmountWithProtocolFee.staticCall(
+      poolId,
+      user,
+      borrowId
+    )
+  }
+
+  async calculateRepayInterest(
+    poolId: bigint,
+    borrowId: bigint,
+    user: string
+  ): Promise<bigint> {
+    if (!ethers.isAddress(user)) {
+      throw new Error(commonErrorMessage.wrongAddressFormat)
+    }
+
+    await this._checkBorrowId(poolId, borrowId, user)
+
+    return await this.contract.calculateRepayInterest.staticCall(
+      poolId,
+      borrowId,
+      user
+    )
+  }
+
+  async calculateCollateralTokenAmount(
+    poolId: bigint,
+    usdcAmount: bigint
+  ): Promise<bigint> {
+    if (usdcAmount <= 0) {
+      throw new Error(ecpErrorMessage.nonNegativeOrZero)
+    }
+
+    await this._checkPoolId(poolId)
+
+    return await this.contract.calculateCollateralTokenAmount.staticCall(
+      poolId,
+      usdcAmount
+    )
+  }
+
+  async getCollateralTokenProtocolFee(
+    collateralToken: string
+  ): Promise<bigint> {
+    if (!ethers.isAddress(collateralToken)) {
+      throw new Error(commonErrorMessage.wrongAddressFormat)
+    }
+
+    return await this.contract.getCollateralTokenProtocolFee.staticCall(
+      collateralToken
+    )
+  }
+
+  async getAvailableAmountsInPool(poolId: bigint): Promise<AvailableAmounts> {
+    await this._checkPoolId(poolId)
+
+    return await this.contract.getAvailableAmountsInPool.staticCall(poolId)
+  }
+
+  async isPositionLiquidatable(
+    poolId: bigint,
+    user: string,
+    borrowId: bigint
+  ): Promise<boolean> {
+    await this._checkBorrowId(poolId, borrowId, user)
+
+    if (!ethers.isAddress(user)) {
+      throw new Error(commonErrorMessage.wrongAddressFormat)
+    }
+
+    return await this.contract.isPositionLiquidatable.staticCall(
+      poolId,
+      user,
+      borrowId
+    )
+  }
+
+  async calculateReward(
+    poolId: bigint,
+    lendId: bigint,
+    user: string
+  ): Promise<bigint> {
+    await this._checkLoanId(poolId, lendId, user)
+
+    if (!ethers.isAddress(user)) {
+      throw new Error(commonErrorMessage.wrongAddressFormat)
+    }
+
+    return await this.contract.calculateReward.staticCall(poolId, lendId, user)
   }
 
   async addPool(
@@ -257,6 +412,118 @@ export class ERC20CollateralPoolV2
       token,
       recipient
     )
+
+    return this.signer ? await this.signer.sendTransaction(pop) : pop
+  }
+
+  async lend(
+    poolId: bigint,
+    usdcAmount: bigint
+  ): Promise<ethers.ContractTransaction | ethers.TransactionResponse> {
+    await this._checkIsNotPaused()
+
+    const pool = await this.getPool(poolId)
+
+    if (pool.endTime <= getUnixEpochTime()) {
+      throw new Error(ecpErrorMessage.poolIsClosed)
+    }
+
+    if (usdcAmount <= 0) {
+      throw new Error(poolCommonErrorMessage.noNegativeAmountOrZero)
+    }
+
+    if (usdcAmount < pool.collateralDetails.minLended) {
+      throw new Error(ecpErrorMessage.amountTooLow)
+    }
+
+    if (
+      pool.amounts.lended +
+        usdcAmount +
+        pool.amounts.repaid -
+        pool.amounts.borrowed >
+      pool.collateralDetails.maxPoolCapacity
+    ) {
+      throw new Error(ecpErrorMessage.maxPoolCapacityIsReached)
+    }
+
+    const pop = await this.contract.lend.populateTransaction(poolId, usdcAmount)
+
+    return this.signer ? await this.signer.sendTransaction(pop) : pop
+  }
+
+  async borrow(
+    poolId: bigint,
+    usdcAmount: bigint,
+    collateralTokenAmount: bigint
+  ): Promise<ethers.ContractTransaction | ethers.TransactionResponse> {
+    await this._checkIsNotPaused()
+
+    const pool = await this.getPool(poolId)
+
+    if (usdcAmount <= 0) {
+      throw new Error(poolCommonErrorMessage.noNegativeAmountOrZero)
+    }
+
+    if (usdcAmount < pool.collateralDetails.minBorrow) {
+      throw new Error(ecpErrorMessage.amountTooLow)
+    }
+
+    if (pool.endTime <= getUnixEpochTime()) {
+      throw new Error(ecpErrorMessage.endTimeReached)
+    }
+
+    const pop = await this.contract.borrow.populateTransaction(
+      poolId,
+      usdcAmount,
+      collateralTokenAmount
+    )
+
+    return this.signer ? await this.signer.sendTransaction(pop) : pop
+  }
+
+  async repay(
+    poolId: bigint,
+    borrowId: bigint,
+    repayAmount: bigint
+  ): Promise<ethers.ContractTransaction | ethers.TransactionResponse> {
+    await this._checkIsNotPaused()
+    await this._checkPoolId(poolId)
+
+    if (this.signer) {
+      await this._checkBorrowId(poolId, borrowId, this.signer.address)
+    }
+
+    const pop = await this.contract.repay.populateTransaction(
+      poolId,
+      borrowId,
+      repayAmount
+    )
+
+    return this.signer ? await this.signer.sendTransaction(pop) : pop
+  }
+
+  async claim(
+    poolId: bigint,
+    claims: Array<Claim>
+  ): Promise<ethers.ContractTransaction | ethers.TransactionResponse> {
+    await this._checkIsNotPaused()
+    await this._checkPoolId(poolId)
+
+    const totalLoans = this.signer
+      ? await this.getTotalLoansByUser(poolId, this.signer.address)
+      : BigInt(0)
+
+    for (const claim of claims) {
+      if (claim.usdcAmount <= 0 || claim.lendId < 0) {
+        throw new Error(ecpErrorMessage.nonNegativeOrZero)
+      }
+
+      if (this.signer && totalLoans <= claim.lendId) {
+        throw new Error(ecpErrorMessage.noExistLendingId(claim.lendId))
+      }
+    }
+
+    const pop = await this.contract.claim.populateTransaction(poolId, claims)
 
     return this.signer ? await this.signer.sendTransaction(pop) : pop
   }
