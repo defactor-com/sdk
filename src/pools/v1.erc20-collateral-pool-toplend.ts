@@ -1,6 +1,6 @@
 import { ethers } from 'ethers'
 
-import { miscErc20CollateralPool } from '../artifacts'
+import { miscErc20CollateralPoolToplend } from '../artifacts'
 import { BaseContract } from '../base-classes'
 import {
   commonErrorMessage,
@@ -9,26 +9,27 @@ import {
 } from '../errors'
 import {
   Borrow,
+  ERC20CollateralPoolViews,
   Erc20CollateralTokenPoolDetail,
   Functions,
   Lend,
   Pool,
   PoolInput,
-  PoolLiquidationInfo,
-  ERC20CollateralPoolViews as Views
-} from '../types/erc20-collateral-token'
+  PoolLiquidationInfo
+} from '../types/erc20-collateral-pool/v1.toplend'
 import { AdminFunctions } from '../types/pools'
 import { Abi, Pagination, PrivateKey } from '../types/types'
 import { NULL_ADDRESS, Role } from '../utilities/util'
 
-export class ERC20CollateralPool
+export class ERC20CollateralPoolToplend
   extends BaseContract
-  implements Functions, Views, AdminFunctions
+  implements Functions, ERC20CollateralPoolViews, AdminFunctions
 {
   readonly LIQUIDATION_PROTOCOL_FEE = BigInt(5)
-  readonly LIQUIDATION_FEE = BigInt(10)
-  readonly ONE_YEAR = BigInt(365)
+  readonly DAY_SEC = BigInt(60 * 60 * 24)
+  readonly ONE_YEAR = BigInt(365) * this.DAY_SEC
   readonly HOUNDRED = BigInt(100)
+  readonly LIQUIDATION_FEE = BigInt(5)
 
   constructor(
     address: string,
@@ -36,7 +37,12 @@ export class ERC20CollateralPool
     privateKey: PrivateKey | null,
     abi?: Abi
   ) {
-    super(address, apiUrl, privateKey, abi || miscErc20CollateralPool.abi)
+    super(
+      address,
+      apiUrl,
+      privateKey,
+      abi || miscErc20CollateralPoolToplend.abi
+    )
   }
 
   async USDC_FEES_COLLECTED(): Promise<bigint> {
@@ -254,20 +260,8 @@ export class ERC20CollateralPool
       throw new Error(ecpErrorMessage.timeMustBeInFuture)
     }
 
-    if (
-      BigInt(pool.collateralDetails.maxLended || 0) <= 0 ||
-      BigInt(pool.collateralDetails.minLended || 0) <= 0 ||
-      BigInt(pool.collateralDetails.minBorrow || 0) <= 0
-    ) {
+    if (pool.collateralDetails.maxLended <= 0) {
       throw new Error(poolCommonErrorMessage.noNegativeAmountOrZero)
-    }
-
-    if (pool.collateralDetails.maxLended < pool.collateralDetails.minLended) {
-      throw new Error(ecpErrorMessage.minLentMustBeLessThanMaxLent)
-    }
-
-    if (pool.collateralDetails.minBorrow > pool.collateralDetails.maxLended) {
-      throw new Error(ecpErrorMessage.minBorrowMustBeLessThanMaxLent)
     }
 
     if (this.signer) {
@@ -280,8 +274,6 @@ export class ERC20CollateralPool
 
     const formattedPool = {
       maxLended: pool.collateralDetails.maxLended,
-      minLended: pool.collateralDetails.minLended,
-      minBorrow: pool.collateralDetails.minBorrow,
       endTime: pool.endTime,
       interest: pool.interest,
       collateralToken: pool.collateralDetails.collateralToken,
@@ -316,7 +308,10 @@ export class ERC20CollateralPool
       throw new Error(ecpErrorMessage.amountTooLow)
     }
 
-    if (pool.lended - pool.repaid + amount > pool.collateralDetails.maxLended) {
+    if (
+      pool.lended - pool.repaid + amount >
+      BigInt(pool.collateralDetails.maxLended)
+    ) {
       throw new Error(ecpErrorMessage.maxLentIsReached)
     }
 
@@ -566,63 +561,6 @@ export class ERC20CollateralPool
     }
 
     const pop = await this.contract.liquidatePool.populateTransaction(poolId)
-
-    return this.signer ? await this.signer.sendTransaction(pop) : pop
-  }
-
-  async getLiquidatableAmountWithProtocolFee(
-    poolId: bigint,
-    address: string,
-    borrowId: bigint
-  ) {
-    if (!ethers.isAddress(address)) {
-      throw new Error(commonErrorMessage.wrongAddressFormat)
-    }
-
-    await this.getPool(poolId)
-
-    const existBorrow = await this._existBorrow(poolId, borrowId, address)
-
-    if (!existBorrow) {
-      throw new Error(ecpErrorMessage.noExistBorrowId(borrowId))
-    }
-
-    return await this.contract.getLiquidatableAmountWithProtocolFee(
-      poolId,
-      address,
-      borrowId
-    )
-  }
-
-  async liquidateUserPosition(
-    poolId: bigint,
-    address: string,
-    borrowId: bigint
-  ) {
-    await this._checkIsNotPaused()
-    await this._checkIsAdmin()
-
-    if (!ethers.isAddress(address)) {
-      throw new Error(commonErrorMessage.wrongAddressFormat)
-    }
-
-    const pool = await this.getPool(poolId)
-
-    if (pool.endTime > Date.now() / 1000) {
-      throw new Error(ecpErrorMessage.poolIsNotClosed)
-    }
-
-    const borrow = await this.getBorrow(poolId, address, borrowId)
-
-    if (borrow.repayTime > 0) {
-      throw new Error(ecpErrorMessage.borrowAlreadyRepaid)
-    }
-
-    const pop = await this.contract.liquidateUserPosition.populateTransaction(
-      poolId,
-      address,
-      borrowId
-    )
 
     return this.signer ? await this.signer.sendTransaction(pop) : pop
   }

@@ -1,7 +1,7 @@
 import { ethers } from 'ethers'
 
 import { ERC20CollateralPool } from '../pools'
-import { Erc20CollateralTokenPoolDetail } from './erc20-collateral-token'
+import { Erc20CollateralTokenPoolDetail } from './erc20-collateral-pool/v1'
 import { Pagination } from './types'
 
 export const PoolStatusOption = {

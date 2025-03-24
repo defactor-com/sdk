@@ -5,7 +5,7 @@ import {
 } from '../../src/errors'
 import { ERC20CollateralPool } from '../../src/pools'
 import { SelfProvider } from '../../src/provider'
-import { Lend, Pool } from '../../src/types/erc20-collateral-token'
+import { Lend, Pool } from '../../src/types/erc20-collateral-pool/v1'
 import { Erc20 } from '../../src/utilities/erc20'
 import { sleep } from '../../src/utilities/util'
 import {

@@ -1,8 +1,8 @@
 import { ethers } from 'ethers'
 
 import { Buyback } from '../buyback'
-import { ERC20CollateralPool } from '../pools/erc20-collateral-pool'
 import { Pools } from '../pools/pools'
+import { ERC20CollateralPool } from '../pools/v1.erc20-collateral-pool'
 import { StakingV1, StakingV2 } from '../staking'
 import { Role } from '../utilities/util'
 import { Vesting } from '../vesting'

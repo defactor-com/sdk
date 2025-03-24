@@ -1,6 +1,6 @@
 import { ethers } from 'ethers'
 
-import { Pagination } from './types'
+import { Pagination } from '../types'
 
 export type Erc20CollateralTokenPoolDetail = Borrow | Lend
 
