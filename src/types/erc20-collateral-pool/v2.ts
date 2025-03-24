@@ -90,11 +90,28 @@ export interface Views {
   getUsdcSequencerOracle(): Promise<string>
   getTotalPools(): Promise<bigint>
   getUnpausedTime(): Promise<bigint>
+  getAnnouncedPoolEdit(poolId: bigint): Promise<PoolEditAnnouncement>
+  getPool(poolId: bigint): Promise<Pool>
+  getCollateralTokens(): Promise<Array<string>>
 }
 
 export interface AdminFunctions {
   addPool(
     pool: InitPool
+  ): Promise<ethers.ContractTransaction | ethers.TransactionResponse>
+  announceEditPool(
+    poolId: bigint,
+    pool: EditPool
+  ): Promise<ethers.ContractTransaction | ethers.TransactionResponse>
+  commitEditPool(
+    poolId: bigint
+  ): Promise<ethers.ContractTransaction | ethers.TransactionResponse>
+  cancelEditPool(
+    poolId: bigint
+  ): Promise<ethers.ContractTransaction | ethers.TransactionResponse>
+  withdrawProtocolRewards(
+    token: string,
+    recipient: string
   ): Promise<ethers.ContractTransaction | ethers.TransactionResponse>
 }
 

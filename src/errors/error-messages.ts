@@ -53,7 +53,11 @@ export const erc20CollateralPoolV2ErrorMessage = {
   collateralTokenLTVTooHigh:
     'The collateral token ltv percentage is greater than the maximum',
   minLentMustBeLessThanMaxPoolCapacity:
-    'The min lent must be less that the max pool capacity'
+    'The min lent must be less that the max pool capacity',
+  editAnnouncementAlreadyDone:
+    'There is already an active announcement for this pool',
+  poolAnnouncementIsLocked: 'Pool announcement is locked',
+  collateralTokenDoesNotExist: 'The token address is not a collateral token'
 }
 
 export const counterPartyPoolErrorMessage = {
