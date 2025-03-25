@@ -587,6 +587,8 @@ export class ERC20CollateralPoolV2
     token: string,
     recipient: string
   ): Promise<ethers.ContractTransaction | ethers.TransactionResponse> {
+    await this._checkIsAdmin()
+
     if (
       !ethers.isAddress(token) ||
       !ethers.isAddress(recipient) ||
