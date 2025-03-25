@@ -10,16 +10,19 @@ import {
 import {
   AdminFunctions,
   AvailableAmounts,
+  Borrow,
   Claim,
   Constants,
   EditPool,
   Functions,
   InitPool,
+  Lend,
+  Liquidation,
   Pool,
   PoolEditAnnouncement,
   Views
 } from '../types/erc20-collateral-pool/v2'
-import { Abi, PrivateKey } from '../types/types'
+import { Abi, Pagination, PrivateKey } from '../types/types'
 import { getUnixEpochTime } from '../utilities/util'
 
 export class ERC20CollateralPoolV2
@@ -75,6 +78,37 @@ export class ERC20CollateralPoolV2
     return await this.contract.getCollateralTokens()
   }
 
+  private async _getList<T>(
+    offset: bigint,
+    limit: bigint,
+    total: bigint,
+    getFunction: (id: bigint) => Promise<T>
+  ) {
+    if (offset < 0) {
+      throw new Error(ecpErrorMessage.noNegativeOffset)
+    }
+
+    if (limit <= 0) {
+      throw new Error(ecpErrorMessage.noNegativeLimitOrZero)
+    }
+
+    // TODO: consider taking this parameter (1000) from a configuration file or some configurable approach
+    if (Math.min(Number(limit), Math.max(Number(total - offset), 0)) > 1000) {
+      throw new Error(ecpErrorMessage.maxLimitAllowed)
+    }
+
+    const promises = []
+
+    for (let i = offset; i < offset + limit && i < total; i++) {
+      promises.push(getFunction(i))
+    }
+
+    return {
+      data: await Promise.all(promises),
+      more: offset + limit < total
+    }
+  }
+
   private async _checkPoolId(poolId: bigint) {
     if (poolId < 0) {
       throw new Error(commonErrorMessage.nonNegativeValue)
@@ -91,6 +125,18 @@ export class ERC20CollateralPoolV2
     await this._checkPoolId(poolId)
 
     return await this.contract.pools(poolId)
+  }
+
+  async getPools(offset: bigint, limit: bigint): Promise<Pagination<Pool>> {
+    const totalPools = await this.getTotalPools()
+    const pools = await this._getList<Pool>(
+      offset,
+      limit,
+      totalPools,
+      this.contract.pools as (id: bigint) => Promise<Pool>
+    )
+
+    return pools
   }
 
   async getTotalLoansByUser(poolId: bigint, address: string): Promise<bigint> {
@@ -113,6 +159,34 @@ export class ERC20CollateralPoolV2
     if (loanId >= total) {
       throw new Error(ecpErrorMessage.noExistLendingId(poolId))
     }
+  }
+
+  async getLoan(
+    poolId: bigint,
+    address: string,
+    lendingId: bigint
+  ): Promise<Lend> {
+    await this._checkLoanId(poolId, lendingId, address)
+
+    return await this.contract.lendings(poolId, address, lendingId)
+  }
+
+  async getLoansByLender(
+    poolId: bigint,
+    address: string,
+    offset: bigint,
+    limit: bigint
+  ): Promise<Pagination<Lend>> {
+    const totalLoansByUser = await this.getTotalLoansByUser(poolId, address)
+    const getLoan = (id: bigint) => this.contract.lendings(poolId, address, id)
+    const lendings = await this._getList<Lend>(
+      offset,
+      limit,
+      totalLoansByUser,
+      getLoan
+    )
+
+    return lendings
   }
 
   async getTotalBorrowsByUser(
@@ -142,6 +216,34 @@ export class ERC20CollateralPoolV2
     if (borrowId >= total) {
       throw new Error(ecpErrorMessage.noExistBorrowId(poolId))
     }
+  }
+
+  async getBorrow(
+    poolId: bigint,
+    address: string,
+    borrowId: bigint
+  ): Promise<Borrow> {
+    await this._checkBorrowId(poolId, borrowId, address)
+
+    return await this.contract.borrows(poolId, address, borrowId)
+  }
+
+  async getBorrowsByBorrower(
+    poolId: bigint,
+    address: string,
+    offset: bigint,
+    limit: bigint
+  ): Promise<Pagination<Borrow>> {
+    const totalBorrowsByUser = await this.getTotalBorrowsByUser(poolId, address)
+    const getBorrow = (id: bigint) => this.contract.borrows(poolId, address, id)
+    const borrows = await this._getList<Borrow>(
+      offset,
+      limit,
+      totalBorrowsByUser,
+      getBorrow
+    )
+
+    return borrows
   }
 
   private _validatePoolInput(pool: InitPool | EditPool) {
@@ -524,6 +626,43 @@ export class ERC20CollateralPoolV2
     }
 
     const pop = await this.contract.claim.populateTransaction(poolId, claims)
+
+    return this.signer ? await this.signer.sendTransaction(pop) : pop
+  }
+
+  async liquidate(
+    poolId: bigint,
+    liquidations: Array<Liquidation>
+  ): Promise<ethers.ContractTransaction | ethers.TransactionResponse> {
+    await this._checkIsNotPaused()
+    await this._checkPoolId(poolId)
+
+    const totalBorrowsByUser = {} as Record<string, bigint>
+
+    for (const liquidation of liquidations) {
+      if (liquidation.usdcAmount <= 0 || liquidation.borrowId < 0) {
+        throw new Error(ecpErrorMessage.nonNegativeOrZero)
+      }
+
+      if (!ethers.isAddress(liquidation.user)) {
+        throw new Error(commonErrorMessage.wrongAddressFormat)
+      }
+
+      const totalBorrows =
+        totalBorrowsByUser[liquidation.user] ||
+        (await this.getTotalBorrowsByUser(poolId, liquidation.user))
+
+      if (totalBorrows <= liquidation.borrowId) {
+        throw new Error(ecpErrorMessage.noExistBorrowId(liquidation.borrowId))
+      }
+
+      totalBorrowsByUser[liquidation.user] = totalBorrows
+    }
+
+    const pop = await this.contract.liquidate.populateTransaction(
+      poolId,
+      liquidations
+    )
 
     return this.signer ? await this.signer.sendTransaction(pop) : pop
   }

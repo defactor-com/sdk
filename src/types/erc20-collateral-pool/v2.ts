@@ -1,5 +1,7 @@
 import { ethers } from 'ethers'
 
+import { Pagination } from '../types'
+
 export type PoolAmounts = {
   lended: bigint
   claimed: bigint
@@ -99,6 +101,21 @@ export interface Views {
   getUnpausedTime(): Promise<bigint>
   getAnnouncedPoolEdit(poolId: bigint): Promise<PoolEditAnnouncement>
   getPool(poolId: bigint): Promise<Pool>
+  getPools(offset: bigint, limit: bigint): Promise<Pagination<Pool>>
+  getLoan(poolId: bigint, address: string, lendingId: bigint): Promise<Lend>
+  getLoansByLender(
+    poolId: bigint,
+    address: string,
+    offset: bigint,
+    limit: bigint
+  ): Promise<Pagination<Lend>>
+  getBorrow(poolId: bigint, address: string, borrowId: bigint): Promise<Borrow>
+  getBorrowsByBorrower(
+    poolId: bigint,
+    address: string,
+    offset: bigint,
+    limit: bigint
+  ): Promise<Pagination<Borrow>>
   getCollateralTokens(): Promise<Array<string>>
   getLiquidatableAmountWithProtocolFee(
     poolId: bigint,
@@ -162,5 +179,9 @@ export interface Functions {
   claim(
     poolId: bigint,
     claims: Array<Claim>
+  ): Promise<ethers.ContractTransaction | ethers.TransactionResponse>
+  liquidate(
+    poolId: bigint,
+    liquidations: Array<Liquidation>
   ): Promise<ethers.ContractTransaction | ethers.TransactionResponse>
 }
