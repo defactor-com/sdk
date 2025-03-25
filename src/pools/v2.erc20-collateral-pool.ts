@@ -155,6 +155,8 @@ export class ERC20CollateralPoolV2
   }
 
   private async _checkLoanId(poolId: bigint, loanId: bigint, address: string) {
+    await this._checkPoolId(poolId)
+
     if (loanId < BigInt(0)) {
       throw new Error(commonErrorMessage.nonNegativeValue)
     }
@@ -212,6 +214,8 @@ export class ERC20CollateralPoolV2
     borrowId: bigint,
     address: string
   ) {
+    await this._checkPoolId(poolId)
+
     if (borrowId < BigInt(0)) {
       throw new Error(commonErrorMessage.nonNegativeValue)
     }
@@ -426,7 +430,11 @@ export class ERC20CollateralPoolV2
     user: string,
     borrowId: bigint
   ): Promise<boolean> {
-    await this._checkBorrowId(poolId, borrowId, user)
+    const borrow = await this.getBorrow(poolId, user, borrowId)
+
+    if (borrow.usdcAmount <= 0) {
+      throw new Error(poolCommonErrorMessage.noNegativeAmountOrZero)
+    }
 
     if (!ethers.isAddress(user)) {
       throw new Error(commonErrorMessage.wrongAddressFormat)
@@ -583,14 +591,14 @@ export class ERC20CollateralPoolV2
   ): Promise<ethers.ContractTransaction | ethers.TransactionResponse> {
     await this._checkIsNotPaused()
 
+    if (usdcAmount <= BigInt(0)) {
+      throw new Error(poolCommonErrorMessage.noNegativeAmountOrZero)
+    }
+
     const pool = await this.getPool(poolId)
 
     if (pool.endTime <= getUnixEpochTime()) {
       throw new Error(ecpErrorMessage.poolIsClosed)
-    }
-
-    if (usdcAmount <= BigInt(0)) {
-      throw new Error(poolCommonErrorMessage.noNegativeAmountOrZero)
     }
 
     if (usdcAmount < pool.collateralDetails.minLended) {
@@ -619,11 +627,11 @@ export class ERC20CollateralPoolV2
   ): Promise<ethers.ContractTransaction | ethers.TransactionResponse> {
     await this._checkIsNotPaused()
 
-    const pool = await this.getPool(poolId)
-
     if (usdcAmount <= BigInt(0)) {
       throw new Error(poolCommonErrorMessage.noNegativeAmountOrZero)
     }
+
+    const pool = await this.getPool(poolId)
 
     if (usdcAmount < pool.collateralDetails.minBorrow) {
       throw new Error(ecpErrorMessage.amountTooLow)
@@ -648,10 +656,15 @@ export class ERC20CollateralPoolV2
     repayAmount: bigint
   ): Promise<ethers.ContractTransaction | ethers.TransactionResponse> {
     await this._checkIsNotPaused()
-    await this._checkPoolId(poolId)
+
+    if (repayAmount <= 0) {
+      throw new Error(poolCommonErrorMessage.noNegativeAmountOrZero)
+    }
 
     if (this.signer) {
       await this._checkBorrowId(poolId, borrowId, this.signer.address)
+    } else {
+      await this._checkPoolId(poolId)
     }
 
     const pop = await this.contract.repay.populateTransaction(
@@ -681,6 +694,13 @@ export class ERC20CollateralPoolV2
     liquidations: Array<Liquidation>
   ): Promise<ethers.ContractTransaction | ethers.TransactionResponse> {
     await this._checkIsNotPaused()
+
+    const unPausedTimestamp = await this.getUnpausedTime()
+
+    if (unPausedTimestamp + this.DAY_SEC > getUnixEpochTime()) {
+      throw new Error(ecpErrorMessage.pauseGracePeriodNotPassed)
+    }
+
     await this._checkPoolId(poolId)
     await this._checkLiquidations(poolId, liquidations)
 
@@ -699,7 +719,6 @@ export class ERC20CollateralPoolV2
     maxCollateralTokenLTVPercentage: bigint
   ): Promise<ethers.ContractTransaction | ethers.TransactionResponse> {
     await this._checkIsNotPaused()
-    await this._checkPoolId(poolId)
 
     if (this.signer) {
       const borrow = await this.getBorrow(poolId, this.signer.address, borrowId)
@@ -707,6 +726,8 @@ export class ERC20CollateralPoolV2
       if (borrow.collateralTokenAmount == BigInt(0)) {
         throw new Error(ecpErrorMessage.borrowAlreadyLiquidated)
       }
+    } else {
+      await this._checkPoolId(poolId)
     }
 
     const pop = await this.contract.changeCollateralAmount.populateTransaction(

@@ -62,7 +62,8 @@ export const erc20CollateralPoolV2ErrorMessage = {
   maxPoolCapacityIsReached: 'Maximum pool capacity has been reached',
   borrowAlreadyLiquidated: 'Borrow already liquidated',
   noClaimsProvided: 'No claims provided',
-  noLiquidationsProvided: 'No liquidations provided'
+  noLiquidationsProvided: 'No liquidations provided',
+  pauseGracePeriodNotPassed: 'The pause grace period has not passed'
 }
 
 export const counterPartyPoolErrorMessage = {
