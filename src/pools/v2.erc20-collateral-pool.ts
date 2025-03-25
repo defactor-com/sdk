@@ -46,38 +46,6 @@ export class ERC20CollateralPoolV2
     super(address, apiUrl, privateKey, abi || miscErc20CollateralPoolV2.abi)
   }
 
-  async USDC_FEES_COLLECTED(): Promise<bigint> {
-    return await this.contract.usdcFeesCollected()
-  }
-
-  async getUsdc(): Promise<string> {
-    return await this.contract.USDC()
-  }
-
-  async getUsdcPriceOracle(): Promise<string> {
-    return await this.contract.usdcPriceOracle()
-  }
-
-  async getUsdcSequencerOracle(): Promise<string> {
-    return await this.contract.usdcSequencerOracle()
-  }
-
-  async getTotalPools(): Promise<bigint> {
-    return await this.contract.poolsLength()
-  }
-
-  async getUnpausedTime(): Promise<bigint> {
-    return await this.contract.unPausedTimestamp()
-  }
-
-  async getAnnouncedPoolEdit(poolId: bigint): Promise<PoolEditAnnouncement> {
-    return await this.contract.announcedPoolEdit(poolId)
-  }
-
-  async getCollateralTokens(): Promise<Array<string>> {
-    return await this.contract.getCollateralTokens()
-  }
-
   private async _getList<T>(
     offset: bigint,
     limit: bigint,
@@ -124,6 +92,40 @@ export class ERC20CollateralPoolV2
     if (poolId >= totalPools) {
       throw new Error(poolCommonErrorMessage.noExistPoolId(poolId))
     }
+  }
+
+  async USDC_FEES_COLLECTED(): Promise<bigint> {
+    return await this.contract.usdcFeesCollected()
+  }
+
+  async getUsdc(): Promise<string> {
+    return await this.contract.USDC()
+  }
+
+  async getUsdcPriceOracle(): Promise<string> {
+    return await this.contract.usdcPriceOracle()
+  }
+
+  async getUsdcSequencerOracle(): Promise<string> {
+    return await this.contract.usdcSequencerOracle()
+  }
+
+  async getTotalPools(): Promise<bigint> {
+    return await this.contract.poolsLength()
+  }
+
+  async getUnpausedTime(): Promise<bigint> {
+    return await this.contract.unPausedTimestamp()
+  }
+
+  async getAnnouncedPoolEdit(poolId: bigint): Promise<PoolEditAnnouncement> {
+    await this._checkPoolId(poolId)
+
+    return await this.contract.announcedPoolEdit(poolId)
+  }
+
+  async getCollateralTokens(): Promise<Array<string>> {
+    return await this.contract.getCollateralTokens()
   }
 
   async getPool(poolId: bigint): Promise<Pool> {
@@ -301,23 +303,48 @@ export class ERC20CollateralPoolV2
     }
   }
 
-  private async _checkClaims(poolId: bigint, claims: Array<Claim>) {
+  private async _checkClaims(
+    poolId: bigint,
+    claims: Array<Claim>,
+    isClaimingCollateral: boolean
+  ) {
     if (!claims.length) {
       throw new Error(ecpErrorMessage.noClaimsProvided)
     }
 
-    const totalLoans = this.signer
-      ? await this.getTotalLoansByUser(poolId, this.signer.address)
-      : BigInt(0)
+    let totalUsdcClaimedWithRewards = BigInt(0)
 
     for (const claim of claims) {
       if (claim.usdcAmount <= BigInt(0) || claim.lendId < BigInt(0)) {
         throw new Error(ecpErrorMessage.nonNegativeOrZero)
       }
 
-      if (this.signer && totalLoans <= claim.lendId) {
-        throw new Error(ecpErrorMessage.noExistLendingId(claim.lendId))
+      if (!this.signer?.address) continue
+
+      const loan = await this.getLoan(poolId, this.signer.address, claim.lendId)
+
+      if (claim.usdcAmount > loan.usdcAmount) {
+        throw new Error(ecpErrorMessage.amountTooBig)
       }
+
+      const usdcInterestRewards = await this.calculateReward(
+        poolId,
+        claim.lendId,
+        this.signer.address
+      )
+
+      totalUsdcClaimedWithRewards += claim.usdcAmount + usdcInterestRewards
+    }
+
+    if (!this.signer?.address) return
+
+    const availableAmount = await this.getAvailableAmountsInPool(poolId)
+
+    if (
+      !isClaimingCollateral &&
+      availableAmount.availableUSDC < totalUsdcClaimedWithRewards
+    ) {
+      throw new Error(ecpErrorMessage.notEnoughUSDCInPool)
     }
   }
 
@@ -328,8 +355,6 @@ export class ERC20CollateralPoolV2
     if (!liquidations.length) {
       throw new Error(ecpErrorMessage.noLiquidationsProvided)
     }
-
-    const totalBorrowsByUser = {} as Record<string, bigint>
 
     for (const liquidation of liquidations) {
       if (
@@ -343,15 +368,15 @@ export class ERC20CollateralPoolV2
         throw new Error(commonErrorMessage.wrongAddressFormat)
       }
 
-      const totalBorrows =
-        totalBorrowsByUser[liquidation.user] ||
-        (await this.getTotalBorrowsByUser(poolId, liquidation.user))
+      const borrow = await this.getBorrow(
+        poolId,
+        liquidation.user,
+        liquidation.borrowId
+      )
 
-      if (totalBorrows <= liquidation.borrowId) {
-        throw new Error(ecpErrorMessage.noExistBorrowId(liquidation.borrowId))
+      if (liquidation.usdcAmount > borrow.usdcAmount) {
+        throw new Error(ecpErrorMessage.amountTooBig)
       }
-
-      totalBorrowsByUser[liquidation.user] = totalBorrows
     }
   }
 
@@ -430,14 +455,14 @@ export class ERC20CollateralPoolV2
     user: string,
     borrowId: bigint
   ): Promise<boolean> {
+    if (!ethers.isAddress(user)) {
+      throw new Error(commonErrorMessage.wrongAddressFormat)
+    }
+
     const borrow = await this.getBorrow(poolId, user, borrowId)
 
     if (borrow.usdcAmount <= 0) {
       throw new Error(poolCommonErrorMessage.noNegativeAmountOrZero)
-    }
-
-    if (!ethers.isAddress(user)) {
-      throw new Error(commonErrorMessage.wrongAddressFormat)
     }
 
     return await this.contract.isPositionLiquidatable.staticCall(
@@ -641,6 +666,12 @@ export class ERC20CollateralPoolV2
       throw new Error(ecpErrorMessage.endTimeReached)
     }
 
+    const availableAmount = await this.getAvailableAmountsInPool(poolId)
+
+    if (availableAmount.availableUSDC < usdcAmount) {
+      throw new Error(ecpErrorMessage.notEnoughUSDCInPool)
+    }
+
     const pop = await this.contract.borrow.populateTransaction(
       poolId,
       usdcAmount,
@@ -681,8 +712,7 @@ export class ERC20CollateralPoolV2
     claims: Array<Claim>
   ): Promise<ethers.ContractTransaction | ethers.TransactionResponse> {
     await this._checkIsNotPaused()
-    await this._checkPoolId(poolId)
-    await this._checkClaims(poolId, claims)
+    await this._checkClaims(poolId, claims, false)
 
     const pop = await this.contract.claim.populateTransaction(poolId, claims)
 
@@ -701,7 +731,6 @@ export class ERC20CollateralPoolV2
       throw new Error(ecpErrorMessage.pauseGracePeriodNotPassed)
     }
 
-    await this._checkPoolId(poolId)
     await this._checkLiquidations(poolId, liquidations)
 
     const pop = await this.contract.liquidate.populateTransaction(
@@ -746,8 +775,7 @@ export class ERC20CollateralPoolV2
     liquidations: Array<Liquidation>
   ): Promise<ethers.ContractTransaction | ethers.TransactionResponse> {
     await this._checkIsNotPaused()
-    await this._checkPoolId(poolId)
-    await this._checkClaims(poolId, claims)
+    await this._checkClaims(poolId, claims, true)
     await this._checkLiquidations(poolId, liquidations)
 
     const pop = await this.contract.claimCollateral.populateTransaction(

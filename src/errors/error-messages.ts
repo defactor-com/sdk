@@ -63,7 +63,9 @@ export const erc20CollateralPoolV2ErrorMessage = {
   borrowAlreadyLiquidated: 'Borrow already liquidated',
   noClaimsProvided: 'No claims provided',
   noLiquidationsProvided: 'No liquidations provided',
-  pauseGracePeriodNotPassed: 'The pause grace period has not passed'
+  pauseGracePeriodNotPassed: 'The pause grace period has not passed',
+  notEnoughUSDCInPool: 'There are not enough USDC in the pool.',
+  amountTooBig: 'The amount is greater than to the maximum'
 }
 
 export const counterPartyPoolErrorMessage = {
