@@ -59,7 +59,10 @@ export const erc20CollateralPoolV2ErrorMessage = {
     'There is already an active announcement for this pool',
   poolAnnouncementIsLocked: 'Pool announcement is locked',
   collateralTokenDoesNotExist: 'The token address is not a collateral token',
-  maxPoolCapacityIsReached: 'Maximum pool capacity has been reached'
+  maxPoolCapacityIsReached: 'Maximum pool capacity has been reached',
+  borrowAlreadyLiquidated: 'Borrow already liquidated',
+  noClaimsProvided: 'No claims provided',
+  noLiquidationsProvided: 'No liquidations provided'
 }
 
 export const counterPartyPoolErrorMessage = {

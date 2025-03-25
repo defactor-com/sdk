@@ -184,4 +184,15 @@ export interface Functions {
     poolId: bigint,
     liquidations: Array<Liquidation>
   ): Promise<ethers.ContractTransaction | ethers.TransactionResponse>
+  changeCollateralAmount(
+    poolId: bigint,
+    borrowId: bigint,
+    newCollateralTokenAmount: bigint,
+    maxCollateralTokenLTVPercentage: bigint
+  ): Promise<ethers.ContractTransaction | ethers.TransactionResponse>
+  claimCollateral(
+    poolId: bigint,
+    claims: Array<Claim>,
+    liquidations: Array<Liquidation>
+  ): Promise<ethers.ContractTransaction | ethers.TransactionResponse>
 }
