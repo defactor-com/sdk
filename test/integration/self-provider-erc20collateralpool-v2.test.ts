@@ -545,6 +545,26 @@ describe('SelfProvider - Staking', () => {
         expect(totalLoans).toBeGreaterThanOrEqual(0)
       })
     })
+    describe('getLoan()', () => {
+      it('failure - the pool does not exists', async () => {
+        const poolId = MAX_BIGINT
+        const lendId = BigInt(0)
+        const res = provider.contract.getLoan(poolId, signerAddress, lendId)
+
+        await expect(res).rejects.toThrow(
+          poolCommonErrorMessage.noExistPoolId(poolId)
+        )
+      })
+      it('failure - the borrow does not exists', async () => {
+        const poolId = BigInt(0)
+        const lendId = MAX_BIGINT
+        const res = provider.contract.getLoan(poolId, signerAddress, lendId)
+
+        await expect(res).rejects.toThrow(
+          ecpErrorMessage.noExistLendingId(lendId)
+        )
+      })
+    })
     describe('getLoansByLender()', () => {
       it('success - get all loans', async () => {
         const poolId = BigInt(0)
@@ -699,6 +719,233 @@ describe('SelfProvider - Staking', () => {
         expect(typeof availableCollateralTokens).toBe('bigint')
         expect(availableUSDC).toBeGreaterThanOrEqual(0)
         expect(availableCollateralTokens).toBeGreaterThanOrEqual(0)
+      })
+    })
+    describe('getBorrow()', () => {
+      it('failure - the pool does not exists', async () => {
+        const poolId = MAX_BIGINT
+        const borrowId = BigInt(0)
+        const res = provider.contract.getBorrow(poolId, signerAddress, borrowId)
+
+        await expect(res).rejects.toThrow(
+          poolCommonErrorMessage.noExistPoolId(poolId)
+        )
+      })
+      it('failure - the borrow does not exists', async () => {
+        const poolId = BigInt(0)
+        const borrowId = MAX_BIGINT
+        const res = provider.contract.getBorrow(poolId, signerAddress, borrowId)
+
+        await expect(res).rejects.toThrow(
+          ecpErrorMessage.noExistBorrowId(borrowId)
+        )
+      })
+    })
+    describe('getTotalBorrows()', () => {
+      it('failure - the pool does not exists', async () => {
+        const poolId = MAX_BIGINT
+        const res = provider.contract.getTotalBorrowsByUser(
+          poolId,
+          signerAddress
+        )
+
+        await expect(res).rejects.toThrow(
+          poolCommonErrorMessage.noExistPoolId(poolId)
+        )
+      })
+      it('failure - the user address is not valid', async () => {
+        const poolId = BigInt(0)
+        const user = '0xinvalid'
+        const res = provider.contract.getTotalBorrowsByUser(poolId, user)
+
+        await expect(res).rejects.toThrow(commonErrorMessage.wrongAddressFormat)
+      })
+      it('success - get total borrows', async () => {
+        const poolId = BigInt(0)
+        const totalBorrows = await provider.contract.getTotalBorrowsByUser(
+          poolId,
+          signerAddress
+        )
+
+        expect(typeof totalBorrows).toBe('bigint')
+        expect(totalBorrows).toBeGreaterThanOrEqual(0)
+      })
+    })
+    describe('getBorrowsByBorrower()', () => {
+      it('success - get all loans', async () => {
+        const poolId = BigInt(0)
+        const offset = BigInt(0)
+        const limit = BigInt(1000)
+        const res = await provider.contract.getBorrowsByBorrower(
+          poolId,
+          signerAddress,
+          offset,
+          limit
+        )
+
+        for (const borrow of res.data) {
+          expect(borrow.usdcAmount).toBeGreaterThan(0)
+          expect(borrow.collateralTokenAmount).toBeGreaterThan(0)
+          expect(borrow.borrowTime).toBeGreaterThan(0)
+        }
+
+        expect(res.more).toBe(false)
+      })
+    })
+    describe('isPositionLiquidatable()', () => {
+      it('failure - the pool does not exists', async () => {
+        const poolId = MAX_BIGINT
+        const borrowId = BigInt(0)
+        const res = provider.contract.isPositionLiquidatable(
+          poolId,
+          signerAddress,
+          borrowId
+        )
+
+        await expect(res).rejects.toThrow(
+          poolCommonErrorMessage.noExistPoolId(poolId)
+        )
+      })
+      it('failure - the borrow does not exists', async () => {
+        const poolId = BigInt(0)
+        const borrowId = MAX_BIGINT
+        const res = provider.contract.isPositionLiquidatable(
+          poolId,
+          signerAddress,
+          borrowId
+        )
+
+        await expect(res).rejects.toThrow(
+          ecpErrorMessage.noExistBorrowId(borrowId)
+        )
+      })
+      it('failure - the address is invalid', async () => {
+        const poolId = BigInt(0)
+        const borrowId = BigInt(0)
+        const address = '0xInvalid'
+        const res = provider.contract.isPositionLiquidatable(
+          poolId,
+          address,
+          borrowId
+        )
+
+        await expect(res).rejects.toThrow(commonErrorMessage.wrongAddressFormat)
+      })
+      it('success - is liquidatable', async () => {
+        const poolId = BigInt(0)
+        const borrowId = BigInt(0)
+        const isLiquidatable = await provider.contract.isPositionLiquidatable(
+          poolId,
+          signerAddress,
+          borrowId
+        )
+
+        expect(typeof isLiquidatable).toBe('boolean')
+      })
+    })
+    describe('calculateRepayInterest()', () => {
+      it('failure - the pool does not exists', async () => {
+        const poolId = MAX_BIGINT
+        const borrowId = BigInt(0)
+        const res = provider.contract.calculateRepayInterest(
+          poolId,
+          borrowId,
+          signerAddress
+        )
+
+        await expect(res).rejects.toThrow(
+          poolCommonErrorMessage.noExistPoolId(poolId)
+        )
+      })
+      it('failure - the borrow does not exists', async () => {
+        const poolId = BigInt(0)
+        const borrowId = MAX_BIGINT
+        const res = provider.contract.calculateRepayInterest(
+          poolId,
+          borrowId,
+          signerAddress
+        )
+
+        await expect(res).rejects.toThrow(
+          ecpErrorMessage.noExistBorrowId(borrowId)
+        )
+      })
+      it('failure - the address is invalid', async () => {
+        const poolId = BigInt(0)
+        const borrowId = BigInt(0)
+        const address = '0xInvalid'
+        const res = provider.contract.calculateRepayInterest(
+          poolId,
+          borrowId,
+          address
+        )
+
+        await expect(res).rejects.toThrow(commonErrorMessage.wrongAddressFormat)
+      })
+      it('success - calculate repay interest', async () => {
+        const poolId = BigInt(0)
+        const borrowId = BigInt(0)
+        const repayInterest = await provider.contract.calculateRepayInterest(
+          poolId,
+          borrowId,
+          signerAddress
+        )
+
+        expect(typeof repayInterest).toBe('bigint')
+        expect(repayInterest).toBeGreaterThan(0)
+      })
+    })
+    describe('getLiquidatableAmountWithProtocolFee()', () => {
+      it('failure - the pool does not exists', async () => {
+        const poolId = MAX_BIGINT
+        const borrowId = BigInt(0)
+        const res = provider.contract.getLiquidatableAmountWithProtocolFee(
+          poolId,
+          signerAddress,
+          borrowId
+        )
+
+        await expect(res).rejects.toThrow(
+          poolCommonErrorMessage.noExistPoolId(poolId)
+        )
+      })
+      it('failure - the borrow does not exists', async () => {
+        const poolId = BigInt(0)
+        const borrowId = MAX_BIGINT
+        const res = provider.contract.getLiquidatableAmountWithProtocolFee(
+          poolId,
+          signerAddress,
+          borrowId
+        )
+
+        await expect(res).rejects.toThrow(
+          ecpErrorMessage.noExistBorrowId(borrowId)
+        )
+      })
+      it('failure - the address is invalid', async () => {
+        const poolId = BigInt(0)
+        const borrowId = BigInt(0)
+        const address = '0xInvalid'
+        const res = provider.contract.getLiquidatableAmountWithProtocolFee(
+          poolId,
+          address,
+          borrowId
+        )
+
+        await expect(res).rejects.toThrow(commonErrorMessage.wrongAddressFormat)
+      })
+      it('success - calculate repay interest', async () => {
+        const poolId = BigInt(0)
+        const borrowId = BigInt(0)
+        const liquidatableAmountWithProtocolFee =
+          await provider.contract.getLiquidatableAmountWithProtocolFee(
+            poolId,
+            signerAddress,
+            borrowId
+          )
+
+        expect(typeof liquidatableAmountWithProtocolFee).toBe('bigint')
+        expect(liquidatableAmountWithProtocolFee).toBeGreaterThan(0)
       })
     })
   })
