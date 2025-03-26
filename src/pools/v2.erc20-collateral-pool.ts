@@ -166,7 +166,7 @@ export class ERC20CollateralPoolV2
     const total = await this.getTotalLoansByUser(poolId, address)
 
     if (loanId >= total) {
-      throw new Error(ecpErrorMessage.noExistLendingId(poolId))
+      throw new Error(ecpErrorMessage.noExistLendingId(loanId))
     }
   }
 
@@ -225,7 +225,7 @@ export class ERC20CollateralPoolV2
     const total = await this.getTotalBorrowsByUser(poolId, address)
 
     if (borrowId >= total) {
-      throw new Error(ecpErrorMessage.noExistBorrowId(poolId))
+      throw new Error(ecpErrorMessage.noExistBorrowId(borrowId))
     }
   }
 
@@ -437,6 +437,12 @@ export class ERC20CollateralPoolV2
   ): Promise<bigint> {
     if (!ethers.isAddress(collateralToken)) {
       throw new Error(commonErrorMessage.wrongAddressFormat)
+    }
+
+    const collateralTokens = await this.getCollateralTokens()
+
+    if (!collateralTokens.includes(collateralToken)) {
+      return BigInt(0)
     }
 
     return await this.contract.getCollateralTokenProtocolFee.staticCall(
