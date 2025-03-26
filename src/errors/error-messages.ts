@@ -48,9 +48,9 @@ export const erc20CollateralPoolErrorMessage = {
 
 export const erc20CollateralPoolV2ErrorMessage = {
   ...erc20CollateralPoolErrorMessage,
-  nonNegativeOrZero: 'Amount cannot be negative or zero',
+  nonNegativeOrZero: 'Amount cannot be negative or 0',
   nonNegativeOrZeroCollateralTokenLTV:
-    'The collateral token ltv percentage cannot be negative or zero',
+    'The collateral token ltv percentage cannot be negative or 0',
   collateralTokenLTVTooHigh:
     'The collateral token ltv percentage is greater than the maximum',
   minLentMustBeLessThanMaxPoolCapacity:
@@ -65,7 +65,8 @@ export const erc20CollateralPoolV2ErrorMessage = {
   noLiquidationsProvided: 'No liquidations provided',
   pauseGracePeriodNotPassed: 'The pause grace period has not passed',
   notEnoughUSDCInPool: 'There are not enough USDC in the pool.',
-  amountTooBig: 'The amount is greater than to the maximum'
+  amountTooBig: 'The amount is greater than to the maximum',
+  collateralAmountTooLow: 'The collateral amount is too low'
 }
 
 export const counterPartyPoolErrorMessage = {

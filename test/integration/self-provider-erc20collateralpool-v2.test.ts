@@ -30,6 +30,7 @@ describe('SelfProvider - Staking', () => {
   let notAdminProvider: SelfProvider<ERC20CollateralPoolV2>
   let signerAddress: string
   let usdcTokenContract: Erc20
+  let collateralTokenContract: Erc20
   const initialPool: InitPool = {
     collateralToken: FACTR_TOKEN_ADDRESS,
     collateralTokenFactor: BigInt(100_00),
@@ -66,6 +67,12 @@ describe('SelfProvider - Staking', () => {
 
     usdcTokenContract = new Erc20(
       USD_TOKEN_ADDRESS,
+      provider.contract.apiUrl,
+      null
+    )
+
+    collateralTokenContract = new Erc20(
+      FACTR_TOKEN_ADDRESS,
       provider.contract.apiUrl,
       null
     )
@@ -261,6 +268,19 @@ describe('SelfProvider - Staking', () => {
 
         await expect(res).rejects.toThrow('ERC20: insufficient allowance')
       })
+      it('failure - the end time has been reached', async () => {
+        const poolId = BigInt(0)
+        const pool = await provider.contract.getPool(poolId)
+        const amount = pool.collateralDetails.minLended
+
+        timekeeper.travel(new Date(Number(pool.endTime) * 1000 + ONE_DAY_SEC))
+
+        const res = provider.contract.lend(poolId, amount)
+
+        await expect(res).rejects.toThrow(ecpErrorMessage.endTimeReached)
+
+        timekeeper.reset()
+      })
       it.skip('success - lend min amount', async () => {
         const poolId = BigInt(0)
         const pool = await provider.contract.getPool(poolId)
@@ -270,6 +290,130 @@ describe('SelfProvider - Staking', () => {
 
         await expect(
           provider.contract.lend(poolId, amount)
+        ).resolves.not.toThrow()
+      })
+    })
+    describe('Borrow', () => {
+      it('failure - the pool id does not exists', async () => {
+        const poolId = MAX_BIGINT
+        const amount = BigInt(1000 * 10 ** 6)
+        const collateralTokenAmount = BigInt(1000 * 10 ** 18)
+        const res = provider.contract.borrow(
+          poolId,
+          amount,
+          collateralTokenAmount
+        )
+
+        await expect(res).rejects.toThrow(
+          poolCommonErrorMessage.noExistPoolId(poolId)
+        )
+      })
+      it('failure - the amount is negative', async () => {
+        const poolId = BigInt(0)
+        const amount = BigInt(-1)
+        const collateralTokenAmount = BigInt(1000 * 10 ** 18)
+        const res = provider.contract.borrow(
+          poolId,
+          amount,
+          collateralTokenAmount
+        )
+
+        await expect(res).rejects.toThrow(ecpErrorMessage.nonNegativeOrZero)
+      })
+      it('failure - the amount is less than the minimum', async () => {
+        const poolId = BigInt(0)
+        const pool = await provider.contract.getPool(poolId)
+        const amount = pool.collateralDetails.minBorrow / BigInt(4)
+        const collateralTokenAmount = BigInt(1000 * 10 ** 18)
+        const res = provider.contract.borrow(
+          poolId,
+          amount,
+          collateralTokenAmount
+        )
+
+        await expect(res).rejects.toThrow(ecpErrorMessage.amountTooLow)
+      })
+      it('failure - the amount is greater than the available usdc amount', async () => {
+        const poolId = BigInt(0)
+        const { availableUSDC } =
+          await provider.contract.getAvailableAmountsInPool(poolId)
+        const amount = availableUSDC * BigInt(2)
+        const collateralTokenAmount = BigInt(1000 * 10 ** 18)
+        const res = provider.contract.borrow(
+          poolId,
+          amount,
+          collateralTokenAmount
+        )
+
+        await expect(res).rejects.toThrow(ecpErrorMessage.notEnoughUSDCInPool)
+      })
+      it('failure - the collateral amount is less than the minimum', async () => {
+        const poolId = BigInt(0)
+        const pool = await provider.contract.getPool(poolId)
+        const amount = pool.collateralDetails.minBorrow
+        const minCollateralTokenAmount =
+          await provider.contract.calculateCollateralTokenAmount(poolId, amount)
+        const collateralTokenAmount = minCollateralTokenAmount / BigInt(2)
+        const res = provider.contract.borrow(
+          poolId,
+          amount,
+          collateralTokenAmount
+        )
+
+        await expect(res).rejects.toThrow(
+          ecpErrorMessage.collateralAmountTooLow
+        )
+      })
+      it('failure - the end time has been reached', async () => {
+        const poolId = BigInt(0)
+        const pool = await provider.contract.getPool(poolId)
+        const amount = pool.collateralDetails.minBorrow
+        const minCollateralTokenAmount =
+          await provider.contract.calculateCollateralTokenAmount(poolId, amount)
+        const collateralTokenAmount = minCollateralTokenAmount
+
+        timekeeper.travel(new Date(Number(pool.endTime) * 1000 + ONE_DAY_SEC))
+
+        const res = provider.contract.borrow(
+          poolId,
+          amount,
+          collateralTokenAmount
+        )
+
+        await expect(res).rejects.toThrow(ecpErrorMessage.endTimeReached)
+
+        timekeeper.reset()
+      })
+      it('failure - the amount was not approved', async () => {
+        const poolId = BigInt(0)
+        const pool = await provider.contract.getPool(poolId)
+        const amount = pool.collateralDetails.minBorrow
+        const minCollateralTokenAmount =
+          await provider.contract.calculateCollateralTokenAmount(poolId, amount)
+        const collateralTokenAmount = minCollateralTokenAmount
+        const res = provider.contract.borrow(
+          poolId,
+          amount,
+          collateralTokenAmount
+        )
+
+        await expect(res).rejects.toThrow('ERC20: insufficient allowance')
+      })
+      it.skip('success - borrow min amount', async () => {
+        const poolId = BigInt(0)
+        const pool = await provider.contract.getPool(poolId)
+        const amount = pool.collateralDetails.minBorrow
+        const collateralTokenAmount =
+          await provider.contract.calculateCollateralTokenAmount(poolId, amount)
+
+        await approveTokenAmount(
+          collateralTokenContract,
+          provider,
+          collateralTokenAmount
+        )
+
+        await expect(
+          provider.contract.borrow(poolId, amount, collateralTokenAmount)
         ).resolves.not.toThrow()
       })
     })
@@ -353,15 +497,25 @@ describe('SelfProvider - Staking', () => {
         const totalPools = await provider.contract.getTotalPools()
         const offset = BigInt(0)
         const limit = BigInt(Math.trunc(Number(totalPools) / 2))
-        const res = await provider.contract.getPools(offset, limit)
+        const firstPools = await provider.contract.getPools(offset, limit)
 
-        for (const pool of res.data) {
+        for (const pool of firstPools.data) {
           expect(ethers.isAddress(pool.collateralDetails.collateralToken))
           expect(pool.endTime).toBeGreaterThan(0)
         }
 
-        expect(res.more).toBe(true)
-        expect(res.data.length).toBe(Number(limit))
+        expect(firstPools.more).toBe(true)
+        expect(firstPools.data).toHaveLength(Number(limit))
+
+        const lastPools = await provider.contract.getPools(
+          offset + limit,
+          totalPools
+        )
+
+        expect(lastPools.more).toBe(false)
+        expect(lastPools.data).toHaveLength(
+          Number(totalPools) - firstPools.data.length
+        )
       })
     })
     describe('getTotalLoans()', () => {

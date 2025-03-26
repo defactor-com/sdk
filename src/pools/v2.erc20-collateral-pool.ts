@@ -660,7 +660,7 @@ export class ERC20CollateralPoolV2
   ): Promise<ethers.ContractTransaction | ethers.TransactionResponse> {
     await this._checkIsNotPaused()
 
-    if (usdcAmount <= BigInt(0)) {
+    if (usdcAmount <= BigInt(0) || collateralTokenAmount < BigInt(0)) {
       throw new Error(poolCommonErrorMessage.noNegativeAmountOrZero)
     }
 
@@ -678,6 +678,15 @@ export class ERC20CollateralPoolV2
 
     if (availableAmount.availableUSDC < usdcAmount) {
       throw new Error(ecpErrorMessage.notEnoughUSDCInPool)
+    }
+
+    const minCollateralTokenAmount = await this.calculateCollateralTokenAmount(
+      poolId,
+      usdcAmount
+    )
+
+    if (collateralTokenAmount < minCollateralTokenAmount) {
+      throw new Error(ecpErrorMessage.collateralAmountTooLow)
     }
 
     const pop = await this.contract.borrow.populateTransaction(
