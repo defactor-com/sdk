@@ -9,7 +9,11 @@ import {
 } from '../../src/errors'
 import { ERC20CollateralPoolV2 } from '../../src/pools'
 import { SelfProvider } from '../../src/provider'
-import { Claim, InitPool } from '../../src/types/erc20-collateral-pool/v2'
+import {
+  Claim,
+  InitPool,
+  Liquidation
+} from '../../src/types/erc20-collateral-pool/v2'
 import {
   ADMIN_TESTING_PRIVATE_KEY,
   ERC20_COLLATERAL_POOL_ETH_ADDRESS,
@@ -30,7 +34,9 @@ describe('SelfProvider - Staking', () => {
   let notAdminProvider: SelfProvider<ERC20CollateralPoolV2>
   let signerAddress: string
   let usdcTokenContract: Erc20
+  const usdcPrecision = 10 ** 6
   let collateralTokenContract: Erc20
+  const collateralPrecision = 10 ** 18
   const initialPool: InitPool = {
     collateralToken: FACTR_TOKEN_ADDRESS,
     collateralTokenFactor: BigInt(100_00),
@@ -39,9 +45,9 @@ describe('SelfProvider - Staking', () => {
     collateralTokenSequencerOracle: ethers.ZeroAddress,
     endTime: BigInt(1774472070),
     interest: BigInt(5_00),
-    maxPoolCapacity: BigInt(5000 * 10 ** 6),
-    minBorrow: BigInt(100 * 10 ** 6),
-    minLended: BigInt(100 * 10 ** 6)
+    maxPoolCapacity: BigInt(5000 * usdcPrecision),
+    minBorrow: BigInt(100 * usdcPrecision),
+    minLended: BigInt(100 * usdcPrecision)
   }
 
   beforeAll(async () => {
@@ -235,7 +241,7 @@ describe('SelfProvider - Staking', () => {
     describe('Lend()', () => {
       it('failure - the pool does not exists', async () => {
         const poolId = MAX_BIGINT
-        const amount = BigInt(1000 * 10 ** 6)
+        const amount = BigInt(1000 * usdcPrecision)
         const res = provider.contract.lend(poolId, amount)
 
         await expect(res).rejects.toThrow(
@@ -296,8 +302,8 @@ describe('SelfProvider - Staking', () => {
     describe('Borrow()', () => {
       it('failure - the pool id does not exists', async () => {
         const poolId = MAX_BIGINT
-        const amount = BigInt(1000 * 10 ** 6)
-        const collateralTokenAmount = BigInt(1000 * 10 ** 18)
+        const amount = BigInt(1000 * usdcPrecision)
+        const collateralTokenAmount = BigInt(1000 * collateralPrecision)
         const res = provider.contract.borrow(
           poolId,
           amount,
@@ -311,7 +317,7 @@ describe('SelfProvider - Staking', () => {
       it('failure - the amount is negative', async () => {
         const poolId = BigInt(0)
         const amount = BigInt(-1)
-        const collateralTokenAmount = BigInt(1000 * 10 ** 18)
+        const collateralTokenAmount = BigInt(1000 * collateralPrecision)
         const res = provider.contract.borrow(
           poolId,
           amount,
@@ -324,7 +330,7 @@ describe('SelfProvider - Staking', () => {
         const poolId = BigInt(0)
         const pool = await provider.contract.getPool(poolId)
         const amount = pool.collateralDetails.minBorrow / BigInt(4)
-        const collateralTokenAmount = BigInt(1000 * 10 ** 18)
+        const collateralTokenAmount = BigInt(1000 * collateralPrecision)
         const res = provider.contract.borrow(
           poolId,
           amount,
@@ -338,7 +344,7 @@ describe('SelfProvider - Staking', () => {
         const { availableUSDC } =
           await provider.contract.getAvailableAmountsInPool(poolId)
         const amount = availableUSDC * BigInt(2)
-        const collateralTokenAmount = BigInt(1000 * 10 ** 18)
+        const collateralTokenAmount = BigInt(1000 * collateralPrecision)
         const res = provider.contract.borrow(
           poolId,
           amount,
@@ -421,7 +427,7 @@ describe('SelfProvider - Staking', () => {
       it('failure - the pool does not exists', async () => {
         const poolId = MAX_BIGINT
         const borrowId = BigInt(0)
-        const amount = BigInt(100 * 10 ** 6)
+        const amount = BigInt(100 * usdcPrecision)
         const res = provider.contract.repay(poolId, borrowId, amount)
 
         await expect(res).rejects.toThrow(
@@ -431,7 +437,7 @@ describe('SelfProvider - Staking', () => {
       it('failure - the borrow does not exists', async () => {
         const poolId = BigInt(0)
         const borrowId = MAX_BIGINT
-        const amount = BigInt(100 * 10 ** 6)
+        const amount = BigInt(100 * usdcPrecision)
         const res = provider.contract.repay(poolId, borrowId, amount)
 
         await expect(res).rejects.toThrow(
@@ -488,7 +494,7 @@ describe('SelfProvider - Staking', () => {
           signerAddress
         )
         const repayAmount = borrow.usdcAmount
-        const extraAmount = BigInt(0.00001 * 10 ** 6)
+        const extraAmount = BigInt(0.00001 * usdcPrecision)
         const totalAmount = repayAmount + repayInterest + extraAmount
 
         await approveTokenAmount(usdcTokenContract, provider, totalAmount)
@@ -501,7 +507,7 @@ describe('SelfProvider - Staking', () => {
       it('failure - the pool does not exists', async () => {
         const poolId = MAX_BIGINT
         const claims = [
-          { lendId: BigInt(0), usdcAmount: BigInt(1 * 10 ** 6) }
+          { lendId: BigInt(0), usdcAmount: BigInt(1 * usdcPrecision) }
         ] as Array<Claim>
         const res = provider.contract.claim(poolId, claims)
 
@@ -528,7 +534,7 @@ describe('SelfProvider - Staking', () => {
       it('failure - the loan does not exists', async () => {
         const poolId = BigInt(0)
         const claims = [
-          { lendId: MAX_BIGINT, usdcAmount: BigInt(1 * 10 ** 6) }
+          { lendId: MAX_BIGINT, usdcAmount: BigInt(1 * usdcPrecision) }
         ] as Array<Claim>
         const res = provider.contract.claim(poolId, claims)
 
@@ -582,6 +588,239 @@ describe('SelfProvider - Staking', () => {
         const res = provider.contract.claim(poolId, claims)
 
         await expect(res).resolves.not.toThrow()
+      })
+    })
+    describe('ChangeCollateralAmount()', () => {
+      it('failure - the pool id does not exists', async () => {
+        const poolId = MAX_BIGINT
+        const borrowId = BigInt(1)
+        const res = provider.contract.changeCollateralAmount(
+          poolId,
+          borrowId,
+          BigInt(0),
+          BigInt(50_00)
+        )
+
+        await expect(res).rejects.toThrow(
+          poolCommonErrorMessage.noExistPoolId(poolId)
+        )
+      })
+      it('failure - the borrow id does not exists', async () => {
+        const poolId = BigInt(0)
+        const borrowId = MAX_BIGINT
+        const res = provider.contract.changeCollateralAmount(
+          poolId,
+          borrowId,
+          BigInt(0),
+          BigInt(50_00)
+        )
+
+        await expect(res).rejects.toThrow(
+          ecpErrorMessage.noExistBorrowId(borrowId)
+        )
+      })
+      it('failure - borrow already liquidated', async () => {
+        const poolId = BigInt(0)
+        const borrowId = BigInt(0)
+        const res = provider.contract.changeCollateralAmount(
+          poolId,
+          borrowId,
+          BigInt(0),
+          BigInt(50_00)
+        )
+
+        await expect(res).rejects.toThrow(
+          ecpErrorMessage.borrowAlreadyLiquidated
+        )
+      })
+      it('failure - collateral token amount is the same as the previous one', async () => {
+        const poolId = BigInt(0)
+        const borrowId = BigInt(1)
+        const borrow = await provider.contract.getBorrow(
+          poolId,
+          signerAddress,
+          borrowId
+        )
+        const newCollateralTokenAmount = borrow.collateralTokenAmount
+        const res = provider.contract.changeCollateralAmount(
+          poolId,
+          borrowId,
+          newCollateralTokenAmount,
+          BigInt(50_00)
+        )
+
+        await expect(res).rejects.toThrow(
+          ecpErrorMessage.collateralAmountNotChanged
+        )
+      })
+      it('failure - collateral token amount is less than the minimum', async () => {
+        const poolId = BigInt(0)
+        const borrowId = BigInt(1)
+        const borrow = await provider.contract.getBorrow(
+          poolId,
+          signerAddress,
+          borrowId
+        )
+        const minCollateralTokenAmount =
+          await provider.contract.calculateCollateralTokenAmount(
+            poolId,
+            borrow.usdcAmount
+          )
+        const newCollateralTokenAmount = minCollateralTokenAmount / BigInt(2)
+        const maxCollateralTokenLTVPercentage = BigInt(50_00)
+        const res = provider.contract.changeCollateralAmount(
+          poolId,
+          borrowId,
+          newCollateralTokenAmount,
+          maxCollateralTokenLTVPercentage
+        )
+
+        await expect(res).rejects.toThrow(
+          ecpErrorMessage.collateralAmountTooLow
+        )
+      })
+    })
+    describe('Liquidate()', () => {
+      it('failure - the pool does not exists', async () => {
+        const poolId = MAX_BIGINT
+        const liquidations = [
+          {
+            user: signerAddress,
+            usdcAmount: BigInt(1 * usdcPrecision),
+            borrowId: BigInt(0)
+          }
+        ] as Array<Liquidation>
+
+        const res = provider.contract.liquidate(poolId, liquidations)
+
+        await expect(res).rejects.toThrow(
+          poolCommonErrorMessage.noExistPoolId(poolId)
+        )
+      })
+      it('failure - no liquidations provided', async () => {
+        const poolId = BigInt(0)
+        const liquidations = [] as Array<Liquidation>
+
+        const res = provider.contract.liquidate(poolId, liquidations)
+
+        await expect(res).rejects.toThrow(
+          ecpErrorMessage.noLiquidationsProvided
+        )
+      })
+      it('failure - amount is zero', async () => {
+        const poolId = BigInt(0)
+        const liquidations = [
+          {
+            user: signerAddress,
+            borrowId: BigInt(0),
+            usdcAmount: BigInt(0)
+          }
+        ] as Array<Liquidation>
+
+        const res = provider.contract.liquidate(poolId, liquidations)
+
+        await expect(res).rejects.toThrow(ecpErrorMessage.nonNegativeOrZero)
+      })
+      it('failure - the address is invalid', async () => {
+        const poolId = BigInt(0)
+        const liquidations = [
+          {
+            user: '0xInvalid',
+            borrowId: BigInt(0),
+            usdcAmount: BigInt(1 * usdcPrecision)
+          }
+        ] as Array<Liquidation>
+
+        const res = provider.contract.liquidate(poolId, liquidations)
+
+        await expect(res).rejects.toThrow(commonErrorMessage.wrongAddressFormat)
+      })
+      it('failure - the liquidation amount is too high', async () => {
+        const poolId = BigInt(0)
+        const borrowId = BigInt(1)
+        const borrow = await provider.contract.getBorrow(
+          poolId,
+          signerAddress,
+          borrowId
+        )
+        const liquidations = [
+          {
+            user: signerAddress,
+            borrowId,
+            usdcAmount: borrow.usdcAmount * BigInt(2)
+          }
+        ] as Array<Liquidation>
+
+        const res = provider.contract.liquidate(poolId, liquidations)
+
+        await expect(res).rejects.toThrow(ecpErrorMessage.amountTooBig)
+      })
+    })
+    describe('ClaimCollateral', () => {
+      it('failure - the pool does not exists', async () => {
+        const poolId = MAX_BIGINT
+        const claims = [
+          {
+            usdcAmount: BigInt(1 * usdcPrecision),
+            lendId: BigInt(0)
+          }
+        ] as Array<Claim>
+        const liquidations = [
+          {
+            user: signerAddress,
+            usdcAmount: BigInt(1 * usdcPrecision),
+            borrowId: BigInt(0)
+          }
+        ] as Array<Liquidation>
+
+        const res = provider.contract.claimCollateral(
+          poolId,
+          claims,
+          liquidations
+        )
+
+        await expect(res).rejects.toThrow(
+          poolCommonErrorMessage.noExistPoolId(poolId)
+        )
+      })
+      it('failure - no claims provided', async () => {
+        const poolId = BigInt(0)
+        const claims = [] as Array<Claim>
+        const liquidations = [
+          {
+            user: signerAddress,
+            usdcAmount: BigInt(1 * usdcPrecision),
+            borrowId: BigInt(0)
+          }
+        ] as Array<Liquidation>
+
+        const res = provider.contract.claimCollateral(
+          poolId,
+          claims,
+          liquidations
+        )
+
+        await expect(res).rejects.toThrow(ecpErrorMessage.noClaimsProvided)
+      })
+      it('failure - no liquidation provided', async () => {
+        const poolId = BigInt(0)
+        const claims = [
+          {
+            usdcAmount: BigInt(1 * usdcPrecision),
+            lendId: BigInt(0)
+          }
+        ] as Array<Claim>
+        const liquidations = [] as Array<Liquidation>
+
+        const res = provider.contract.claimCollateral(
+          poolId,
+          claims,
+          liquidations
+        )
+
+        await expect(res).rejects.toThrow(
+          ecpErrorMessage.noLiquidationsProvided
+        )
       })
     })
   })
@@ -808,7 +1047,7 @@ describe('SelfProvider - Staking', () => {
     describe('calculateCollateralTokenAmount()', () => {
       it('failure - the pool does not exists', async () => {
         const poolId = MAX_BIGINT
-        const amount = BigInt(1000 * 10 ** 6)
+        const amount = BigInt(1000 * usdcPrecision)
         const res = provider.contract.calculateCollateralTokenAmount(
           poolId,
           amount
@@ -830,7 +1069,7 @@ describe('SelfProvider - Staking', () => {
       })
       it('success - calculate collateral token amount', async () => {
         const poolId = BigInt(0)
-        const amount = BigInt(100 * 10 ** 6)
+        const amount = BigInt(100 * usdcPrecision)
         const collateralTokenAmount =
           await provider.contract.calculateCollateralTokenAmount(poolId, amount)
 
