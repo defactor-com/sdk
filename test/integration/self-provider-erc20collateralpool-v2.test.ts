@@ -9,7 +9,7 @@ import {
 } from '../../src/errors'
 import { ERC20CollateralPoolV2 } from '../../src/pools'
 import { SelfProvider } from '../../src/provider'
-import { InitPool } from '../../src/types/erc20-collateral-pool/v2'
+import { Claim, InitPool } from '../../src/types/erc20-collateral-pool/v2'
 import {
   ADMIN_TESTING_PRIVATE_KEY,
   ERC20_COLLATERAL_POOL_ETH_ADDRESS,
@@ -232,7 +232,7 @@ describe('SelfProvider - Staking', () => {
   })
 
   describe('Functions', () => {
-    describe('Lend', () => {
+    describe('Lend()', () => {
       it('failure - the pool does not exists', async () => {
         const poolId = MAX_BIGINT
         const amount = BigInt(1000 * 10 ** 6)
@@ -277,7 +277,7 @@ describe('SelfProvider - Staking', () => {
 
         const res = provider.contract.lend(poolId, amount)
 
-        await expect(res).rejects.toThrow(ecpErrorMessage.endTimeReached)
+        await expect(res).rejects.toThrow(ecpErrorMessage.poolIsClosed)
 
         timekeeper.reset()
       })
@@ -293,7 +293,7 @@ describe('SelfProvider - Staking', () => {
         ).resolves.not.toThrow()
       })
     })
-    describe('Borrow', () => {
+    describe('Borrow()', () => {
       it('failure - the pool id does not exists', async () => {
         const poolId = MAX_BIGINT
         const amount = BigInt(1000 * 10 ** 6)
@@ -417,10 +417,182 @@ describe('SelfProvider - Staking', () => {
         ).resolves.not.toThrow()
       })
     })
+    describe('Repay()', () => {
+      it('failure - the pool does not exists', async () => {
+        const poolId = MAX_BIGINT
+        const borrowId = BigInt(0)
+        const amount = BigInt(100 * 10 ** 6)
+        const res = provider.contract.repay(poolId, borrowId, amount)
+
+        await expect(res).rejects.toThrow(
+          poolCommonErrorMessage.noExistPoolId(poolId)
+        )
+      })
+      it('failure - the borrow does not exists', async () => {
+        const poolId = BigInt(0)
+        const borrowId = MAX_BIGINT
+        const amount = BigInt(100 * 10 ** 6)
+        const res = provider.contract.repay(poolId, borrowId, amount)
+
+        await expect(res).rejects.toThrow(
+          ecpErrorMessage.noExistBorrowId(borrowId)
+        )
+      })
+      it('failure - the amount is zero', async () => {
+        const poolId = BigInt(0)
+        const borrowId = BigInt(0)
+        const amount = BigInt(0)
+        const res = provider.contract.repay(poolId, borrowId, amount)
+
+        await expect(res).rejects.toThrow(
+          poolCommonErrorMessage.noNegativeAmountOrZero
+        )
+      })
+      it('failure - the repay amount is too big', async () => {
+        const poolId = BigInt(0)
+        const borrowId = BigInt(0)
+        const borrow = await provider.contract.getBorrow(
+          poolId,
+          signerAddress,
+          borrowId
+        )
+        const amount = borrow.usdcAmount * BigInt(4)
+        const res = provider.contract.repay(poolId, borrowId, amount)
+
+        await expect(res).rejects.toThrow(ecpErrorMessage.amountTooBig)
+      })
+      it('failure - the amount was not approved', async () => {
+        const poolId = BigInt(0)
+        const borrowId = BigInt(0)
+        const borrow = await provider.contract.getBorrow(
+          poolId,
+          signerAddress,
+          borrowId
+        )
+        const amount = borrow.usdcAmount
+        const res = provider.contract.repay(poolId, borrowId, amount)
+
+        await expect(res).rejects.toThrow('ERC20: insufficient allowance')
+      })
+      it.skip('success - repay the borrow', async () => {
+        const poolId = BigInt(0)
+        const borrowId = BigInt(0)
+        const borrow = await provider.contract.getBorrow(
+          poolId,
+          signerAddress,
+          borrowId
+        )
+        const repayInterest = await provider.contract.calculateRepayInterest(
+          poolId,
+          borrowId,
+          signerAddress
+        )
+        const repayAmount = borrow.usdcAmount
+        const extraAmount = BigInt(0.00001 * 10 ** 6)
+        const totalAmount = repayAmount + repayInterest + extraAmount
+
+        await approveTokenAmount(usdcTokenContract, provider, totalAmount)
+        await expect(
+          provider.contract.repay(poolId, borrowId, repayAmount)
+        ).resolves.not.toThrow()
+      })
+    })
+    describe('Claim()', () => {
+      it('failure - the pool does not exists', async () => {
+        const poolId = MAX_BIGINT
+        const claims = [
+          { lendId: BigInt(0), usdcAmount: BigInt(1 * 10 ** 6) }
+        ] as Array<Claim>
+        const res = provider.contract.claim(poolId, claims)
+
+        await expect(res).rejects.toThrow(
+          poolCommonErrorMessage.noExistPoolId(poolId)
+        )
+      })
+      it('failure - the claims array is empty', async () => {
+        const poolId = BigInt(0)
+        const claims = [] as Array<Claim>
+        const res = provider.contract.claim(poolId, claims)
+
+        await expect(res).rejects.toThrow(ecpErrorMessage.noClaimsProvided)
+      })
+      it('failure - a claim amount is zero', async () => {
+        const poolId = BigInt(0)
+        const claims = [
+          { lendId: BigInt(0), usdcAmount: BigInt(0) }
+        ] as Array<Claim>
+        const res = provider.contract.claim(poolId, claims)
+
+        await expect(res).rejects.toThrow(ecpErrorMessage.nonNegativeOrZero)
+      })
+      it('failure - the loan does not exists', async () => {
+        const poolId = BigInt(0)
+        const claims = [
+          { lendId: MAX_BIGINT, usdcAmount: BigInt(1 * 10 ** 6) }
+        ] as Array<Claim>
+        const res = provider.contract.claim(poolId, claims)
+
+        await expect(res).rejects.toThrow(
+          ecpErrorMessage.noExistLendingId(MAX_BIGINT)
+        )
+      })
+      it('failure - the claim amount exceeds the loan amount', async () => {
+        const poolId = BigInt(0)
+        const lendId = BigInt(0)
+        const loan = await provider.contract.getLoan(
+          poolId,
+          signerAddress,
+          lendId
+        )
+        const claims = [
+          { lendId: lendId, usdcAmount: loan.usdcAmount * BigInt(2) }
+        ] as Array<Claim>
+        const res = provider.contract.claim(poolId, claims)
+
+        await expect(res).rejects.toThrow(ecpErrorMessage.amountTooBig)
+      })
+      it('failure - the sum of the claim amounts exceeds the available amount', async () => {
+        const poolId = BigInt(0)
+        const lendId = BigInt(0)
+        const loan = await provider.contract.getLoan(
+          poolId,
+          signerAddress,
+          lendId
+        )
+        const claims = [
+          { lendId: lendId, usdcAmount: loan.usdcAmount / BigInt(2) },
+          { lendId: lendId, usdcAmount: loan.usdcAmount / BigInt(2) },
+          { lendId: lendId, usdcAmount: loan.usdcAmount / BigInt(2) }
+        ] as Array<Claim>
+        const res = provider.contract.claim(poolId, claims)
+
+        await expect(res).rejects.toThrow(ecpErrorMessage.notEnoughUSDCInPool)
+      })
+      it.skip('success - claim amount', async () => {
+        const poolId = BigInt(0)
+        const lendId = BigInt(0)
+        const loan = await provider.contract.getLoan(
+          poolId,
+          signerAddress,
+          lendId
+        )
+        const claims = [
+          { lendId: lendId, usdcAmount: loan.usdcAmount / BigInt(2) }
+        ] as Array<Claim>
+        const res = provider.contract.claim(poolId, claims)
+
+        await expect(res).resolves.not.toThrow()
+      })
+    })
   })
 
   describe('Views', () => {
     describe('getUsdc()', () => {
+      it('success - get fees collected', async () => {
+        const feesCollected = await provider.contract.USDC_FEES_COLLECTED()
+
+        expect(feesCollected).toBeGreaterThanOrEqual(0)
+      })
       it('success - get usdc', async () => {
         const usdc = await provider.contract.getUsdc()
 
