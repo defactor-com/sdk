@@ -184,7 +184,7 @@ describe('SelfProvider - Staking', () => {
       })
     })
     describe('announceEditPool', () => {
-      it.skip('failure - the signer is not admin', async () => {
+      it('failure - the signer is not admin', async () => {
         const poolId = BigInt(0)
         const res = notAdminProvider.contract.announceEditPool(
           poolId,
@@ -201,6 +201,15 @@ describe('SelfProvider - Staking', () => {
           poolCommonErrorMessage.noExistPoolId(poolId)
         )
       })
+      it.skip('success - announce edit', async () => {
+        const poolId = BigInt(0)
+        const res = provider.contract.announceEditPool(poolId, {
+          ...initialPool,
+          minBorrow: initialPool.minBorrow / BigInt(2)
+        })
+
+        await expect(res).resolves.not.toThrow()
+      })
     })
     describe('cancelEditPool', () => {
       it.skip('failure - the edit annoucement does not exists', async () => {
@@ -210,6 +219,12 @@ describe('SelfProvider - Staking', () => {
         await expect(res).rejects.toThrow(
           ecpErrorMessage.poolAnnouncementIsLocked
         )
+      })
+      it('success - cancel the announcement of edit', async () => {
+        const poolId = BigInt(0)
+        const res = provider.contract.cancelEditPool(poolId)
+
+        await expect(res).resolves.not.toThrow()
       })
     })
     describe('commitEditPool', () => {
@@ -233,6 +248,14 @@ describe('SelfProvider - Staking', () => {
         await expect(res).rejects.toThrow(
           ecpErrorMessage.collateralTokenDoesNotExist
         )
+      })
+      it('success -  withdraw usdc', async () => {
+        const res = provider.contract.withdrawProtocolRewards(
+          USD_TOKEN_ADDRESS,
+          signerAddress
+        )
+
+        await expect(res).resolves.not.toThrow()
       })
     })
   })
@@ -754,6 +777,62 @@ describe('SelfProvider - Staking', () => {
         const res = provider.contract.liquidate(poolId, liquidations)
 
         await expect(res).rejects.toThrow(ecpErrorMessage.amountTooBig)
+      })
+      it('failure - amount was not approved', async () => {
+        const poolId = BigInt(0)
+        const borrowId = BigInt(1)
+        const borrow = await provider.contract.getBorrow(
+          poolId,
+          signerAddress,
+          borrowId
+        )
+        const liquidations = [
+          {
+            borrowId: borrowId,
+            usdcAmount: borrow.usdcAmount,
+            user: signerAddress
+          }
+        ] as Array<Liquidation>
+        const res = provider.contract.liquidate(poolId, liquidations)
+
+        await expect(res).rejects.toThrow('ERC20: insufficient allowance')
+      })
+      it.skip('success - liquidate', async () => {
+        const poolId = BigInt(0)
+        const borrowId = BigInt(1)
+        const borrow = await provider.contract.getBorrow(
+          poolId,
+          signerAddress,
+          borrowId
+        )
+        const liquidations = [
+          {
+            borrowId: borrowId,
+            usdcAmount: borrow.usdcAmount,
+            user: signerAddress
+          }
+        ] as Array<Liquidation>
+
+        const repayAmount = await provider.contract.calculateRepayInterest(
+          poolId,
+          borrowId,
+          signerAddress
+        )
+        const extraAmount = BigInt(0.00001 * usdcPrecision)
+        const usdcAmountWithInterest =
+          borrow.usdcAmount + repayAmount + extraAmount
+        const usdcAmountWithInterestAndProtocolFee =
+          (usdcAmountWithInterest *
+            (provider.contract.LIQUIDATION_PROTOCOL_FEE +
+              provider.contract.BPS_DIVIDER)) /
+          provider.contract.BPS_DIVIDER
+        const amountRequired = usdcAmountWithInterestAndProtocolFee
+
+        await approveTokenAmount(usdcTokenContract, provider, amountRequired)
+
+        const res = provider.contract.liquidate(poolId, liquidations)
+
+        await expect(res).resolves.not.toThrow()
       })
     })
     describe('ClaimCollateral', () => {
