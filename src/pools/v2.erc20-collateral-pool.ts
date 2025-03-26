@@ -710,7 +710,11 @@ export class ERC20CollateralPoolV2
     }
 
     if (this.signer) {
-      await this._checkBorrowId(poolId, borrowId, this.signer.address)
+      const borrow = await this.getBorrow(poolId, this.signer.address, borrowId)
+
+      if (repayAmount > borrow.usdcAmount) {
+        throw new Error(ecpErrorMessage.amountTooBig)
+      }
     } else {
       await this._checkPoolId(poolId)
     }
@@ -769,8 +773,19 @@ export class ERC20CollateralPoolV2
     if (this.signer) {
       const borrow = await this.getBorrow(poolId, this.signer.address, borrowId)
 
-      if (borrow.collateralTokenAmount == BigInt(0)) {
+      if (borrow.collateralTokenAmount <= BigInt(0)) {
         throw new Error(ecpErrorMessage.borrowAlreadyLiquidated)
+      }
+
+      if (newCollateralTokenAmount === borrow.collateralTokenAmount) {
+        throw new Error(ecpErrorMessage.collateralAmountNotChanged)
+      }
+
+      const minCollateralTokenAmount =
+        await this.calculateCollateralTokenAmount(poolId, borrow.usdcAmount)
+
+      if (newCollateralTokenAmount < minCollateralTokenAmount) {
+        throw new Error(ecpErrorMessage.collateralAmountTooLow)
       }
     } else {
       await this._checkPoolId(poolId)

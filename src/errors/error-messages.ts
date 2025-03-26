@@ -66,7 +66,9 @@ export const erc20CollateralPoolV2ErrorMessage = {
   pauseGracePeriodNotPassed: 'The pause grace period has not passed',
   notEnoughUSDCInPool: 'There are not enough USDC in the pool.',
   amountTooBig: 'The amount is greater than to the maximum',
-  collateralAmountTooLow: 'The collateral amount is too low'
+  collateralAmountTooLow: 'The collateral amount is too low',
+  collateralAmountNotChanged:
+    'The new collateral amount is the same as the previous one'
 }
 
 export const counterPartyPoolErrorMessage = {
