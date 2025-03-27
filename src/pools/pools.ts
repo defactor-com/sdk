@@ -7,7 +7,7 @@ import {
   counterPartyPoolErrorMessage as cppErrorMessage,
   poolCommonErrorMessage
 } from '../errors'
-import { Erc20CollateralTokenPoolDetail } from '../types/erc20-collateral-token'
+import { Erc20CollateralTokenPoolDetail } from '../types/erc20-collateral-pool/v1'
 import {
   AdminFunctions,
   ContractPool,

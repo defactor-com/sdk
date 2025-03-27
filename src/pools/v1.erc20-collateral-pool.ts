@@ -1,6 +1,6 @@
 import { ethers } from 'ethers'
 
-import { miscErc20CollateralPool } from '../artifacts'
+import { miscErc20CollateralPoolV1 } from '../artifacts'
 import { BaseContract } from '../base-classes'
 import {
   commonErrorMessage,
@@ -16,18 +16,19 @@ import {
   PoolInput,
   PoolLiquidationInfo,
   ERC20CollateralPoolViews as Views
-} from '../types/erc20-collateral-token'
+} from '../types/erc20-collateral-pool/v1'
 import { AdminFunctions } from '../types/pools'
 import { Abi, Pagination, PrivateKey } from '../types/types'
 import { NULL_ADDRESS, Role } from '../utilities/util'
 
-export class ERC20CollateralPool
+export class ERC20CollateralPoolV1
   extends BaseContract
   implements Functions, Views, AdminFunctions
 {
   readonly LIQUIDATION_PROTOCOL_FEE = BigInt(5)
   readonly LIQUIDATION_FEE = BigInt(10)
-  readonly ONE_YEAR = BigInt(365)
+  readonly DAY_SEC = BigInt(60 * 60 * 24)
+  readonly ONE_YEAR = BigInt(365) * this.DAY_SEC
   readonly HOUNDRED = BigInt(100)
 
   constructor(
@@ -36,7 +37,7 @@ export class ERC20CollateralPool
     privateKey: PrivateKey | null,
     abi?: Abi
   ) {
-    super(address, apiUrl, privateKey, abi || miscErc20CollateralPool.abi)
+    super(address, apiUrl, privateKey, abi || miscErc20CollateralPoolV1.abi)
   }
 
   async USDC_FEES_COLLECTED(): Promise<bigint> {

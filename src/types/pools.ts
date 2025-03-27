@@ -1,7 +1,7 @@
 import { ethers } from 'ethers'
 
-import { ERC20CollateralPool } from '../pools'
-import { Erc20CollateralTokenPoolDetail } from './erc20-collateral-token'
+import { ERC20CollateralPoolV1 } from '../pools'
+import { Erc20CollateralTokenPoolDetail } from './erc20-collateral-pool/v1'
 import { Pagination } from './types'
 
 export const PoolStatusOption = {
@@ -93,12 +93,12 @@ export interface Functions {
 }
 
 export interface PoolViews {
-  getPool(poolId: bigint): Promise<ERC20CollateralPool | Pool>
+  getPool(poolId: bigint): Promise<ERC20CollateralPoolV1 | Pool>
 
   getPools(
     offset: bigint,
     limit: bigint
-  ): Promise<Pagination<ERC20CollateralPool | Pool>>
+  ): Promise<Pagination<ERC20CollateralPoolV1 | Pool>>
 
   getPoolDetails(
     poolId: bigint,
