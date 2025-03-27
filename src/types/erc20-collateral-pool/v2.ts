@@ -139,6 +139,16 @@ export interface Views {
     borrowId: bigint
   ): Promise<boolean>
   calculateReward(poolId: bigint, lendId: bigint, user: string): Promise<bigint>
+  calculateRequiredUsdcToLiquidate(
+    poolId: bigint,
+    liquidations: Array<Liquidation>
+  ): Promise<bigint>
+  calculateRepayInterestAt(
+    poolInterest: bigint,
+    borrow: Borrow,
+    usdcAmount: bigint,
+    timestamp: bigint
+  ): bigint
 }
 
 export interface AdminFunctions {

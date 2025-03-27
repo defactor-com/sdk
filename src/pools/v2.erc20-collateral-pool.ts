@@ -36,6 +36,7 @@ export class ERC20CollateralPoolV2
   readonly ONE_YEAR = BigInt(365) * this.DAY_SEC
   readonly BPS_DIVIDER = BigInt(100_00)
   readonly MAX_LTV_PERCENTAGE = BigInt(65_00)
+  private readonly PRECISION = BigInt(1e18)
 
   constructor(
     address: string,
@@ -490,6 +491,59 @@ export class ERC20CollateralPoolV2
     }
 
     return await this.contract.calculateReward.staticCall(poolId, lendId, user)
+  }
+
+  async calculateRequiredUsdcToLiquidate(
+    poolId: bigint,
+    liquidations: Array<Liquidation>
+  ): Promise<bigint> {
+    await this._checkLiquidations(poolId, liquidations)
+
+    const pool = await this.getPool(poolId)
+    const currentTimestamp = getUnixEpochTime()
+    let requiredUsdcAmount = BigInt(0)
+
+    for (const liquidation of liquidations) {
+      const borrow = await this.getBorrow(
+        poolId,
+        liquidation.user,
+        liquidation.borrowId
+      )
+      const repayInterest = this.calculateRepayInterestAt(
+        pool.interest,
+        borrow,
+        liquidation.usdcAmount,
+        currentTimestamp
+      )
+      const usdcAmountWithInterest = liquidation.usdcAmount + repayInterest
+      const usdcAmountWithInterestAndProtocolFee =
+        (usdcAmountWithInterest *
+          (this.LIQUIDATION_PROTOCOL_FEE + this.BPS_DIVIDER)) /
+        this.BPS_DIVIDER
+
+      requiredUsdcAmount += usdcAmountWithInterestAndProtocolFee
+    }
+
+    return requiredUsdcAmount
+  }
+
+  calculateRepayInterestAt(
+    poolInterest: bigint,
+    borrow: Borrow,
+    usdcAmount: bigint,
+    timestamp: bigint
+  ): bigint {
+    const borrowDuration =
+      timestamp > borrow.borrowTime ? timestamp - borrow.borrowTime : BigInt(0)
+    const numerator = poolInterest * usdcAmount * borrowDuration
+    const denominator = this.ONE_YEAR * this.BPS_DIVIDER
+    const repayInterest = numerator / denominator
+
+    if (numerator % denominator != BigInt(0)) {
+      return repayInterest + BigInt(1)
+    }
+
+    return repayInterest
   }
 
   async addPool(

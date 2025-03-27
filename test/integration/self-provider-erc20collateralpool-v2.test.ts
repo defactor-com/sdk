@@ -826,9 +826,9 @@ describe('SelfProvider - Staking', () => {
             (provider.contract.LIQUIDATION_PROTOCOL_FEE +
               provider.contract.BPS_DIVIDER)) /
           provider.contract.BPS_DIVIDER
-        const amountRequired = usdcAmountWithInterestAndProtocolFee
+        const requiredAmount = usdcAmountWithInterestAndProtocolFee
 
-        await approveTokenAmount(usdcTokenContract, provider, amountRequired)
+        await approveTokenAmount(usdcTokenContract, provider, requiredAmount)
 
         const res = provider.contract.liquidate(poolId, liquidations)
 
@@ -1436,6 +1436,92 @@ describe('SelfProvider - Staking', () => {
 
         expect(typeof liquidatableAmountWithProtocolFee).toBe('bigint')
         expect(liquidatableAmountWithProtocolFee).toBeGreaterThan(0)
+      })
+    })
+    describe('calculateRepayInterestAt()', () => {
+      it('success - same contract calculation', async () => {
+        const poolId = BigInt(0)
+        const borrowId = BigInt(2)
+        const user = signerAddress
+        const repayInterest = await provider.contract.calculateRepayInterest(
+          poolId,
+          borrowId,
+          user
+        )
+        const currentTime = getUnixEpochTime()
+        const pool = await provider.contract.getPool(poolId)
+        const borrow = await provider.contract.getBorrow(poolId, user, borrowId)
+        const repayInterestOffChain =
+          provider.contract.calculateRepayInterestAt(
+            pool.interest,
+            borrow,
+            borrow.usdcAmount,
+            currentTime
+          )
+
+        expect(repayInterestOffChain).toBeGreaterThanOrEqual(repayInterest)
+      })
+      it('success - the timestamp changes the result', async () => {
+        const currentTime = getUnixEpochTime()
+        const poolId = BigInt(0)
+        const borrowId = BigInt(2)
+        const user = signerAddress
+        const pool = await provider.contract.getPool(poolId)
+        const borrow = await provider.contract.getBorrow(poolId, user, borrowId)
+        const repayInterest = provider.contract.calculateRepayInterestAt(
+          pool.interest,
+          borrow,
+          borrow.usdcAmount,
+          currentTime
+        )
+        const repayInterestAfterDay =
+          provider.contract.calculateRepayInterestAt(
+            pool.interest,
+            borrow,
+            borrow.usdcAmount,
+            currentTime + BigInt(ONE_DAY_SEC)
+          )
+
+        expect(repayInterest).toBeGreaterThanOrEqual(0)
+        expect(repayInterestAfterDay).toBeGreaterThan(repayInterest)
+      })
+    })
+    describe('calculateUsdcRequiredToLiquidate()', () => {
+      it('success - calculate required amount', async () => {
+        const poolId = BigInt(0)
+        const borrowId = BigInt(2)
+        const borrow = await provider.contract.getBorrow(
+          poolId,
+          signerAddress,
+          borrowId
+        )
+        const partialLiquidations = [
+          {
+            user: signerAddress,
+            borrowId,
+            usdcAmount: borrow.usdcAmount / BigInt(2)
+          }
+        ] as Array<Liquidation>
+        const totalLiquidations = [
+          {
+            user: signerAddress,
+            borrowId,
+            usdcAmount: borrow.usdcAmount
+          }
+        ] as Array<Liquidation>
+        const partialRequiredAmount =
+          await provider.contract.calculateRequiredUsdcToLiquidate(
+            poolId,
+            partialLiquidations
+          )
+        const totalRequiredAmount =
+          await provider.contract.calculateRequiredUsdcToLiquidate(
+            poolId,
+            totalLiquidations
+          )
+
+        expect(partialRequiredAmount).toBeGreaterThan(0)
+        expect(totalRequiredAmount).toBeGreaterThan(partialRequiredAmount)
       })
     })
   })

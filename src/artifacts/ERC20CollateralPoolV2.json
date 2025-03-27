@@ -161,7 +161,7 @@
       {
         "anonymous": false,
         "inputs": [
-          {
+            {
             "indexed": true,
             "internalType": "uint256",
             "name": "poolId",
@@ -184,41 +184,60 @@
             "internalType": "uint256",
             "name": "amount",
             "type": "uint256"
-          }
-        ],
+        }
+      ],
         "name": "AddedCollateral",
         "type": "event"
       },
       {
         "anonymous": false,
         "inputs": [
+            {
+            "indexed": false,
+            "internalType": "address",
+            "name": "token",
+            "type": "address"
+          },
           {
+            "indexed": false,
+            "internalType": "uint256",
+            "name": "amount",
+            "type": "uint256"
+        }
+      ],
+        "name": "AdminWithdrawProtocolRewards",
+        "type": "event"
+      },
+      {
+        "anonymous": false,
+        "inputs": [
+            {
             "indexed": false,
             "internalType": "uint8",
             "name": "version",
             "type": "uint8"
-          }
-        ],
+        }
+      ],
         "name": "Initialized",
         "type": "event"
       },
       {
         "anonymous": false,
         "inputs": [
-          {
+            {
             "indexed": false,
             "internalType": "address",
             "name": "account",
             "type": "address"
-          }
-        ],
+        }
+      ],
         "name": "Paused",
         "type": "event"
       },
       {
         "anonymous": false,
         "inputs": [
-          {
+            {
             "indexed": true,
             "internalType": "uint256",
             "name": "poolId",
@@ -229,54 +248,54 @@
             "internalType": "address",
             "name": "user",
             "type": "address"
-          }
-        ],
+        }
+      ],
         "name": "PoolAdded",
         "type": "event"
       },
       {
         "anonymous": false,
         "inputs": [
-          {
+            {
             "indexed": true,
             "internalType": "uint256",
             "name": "poolId",
             "type": "uint256"
-          }
-        ],
+        }
+      ],
         "name": "PoolEditAnnounced",
         "type": "event"
       },
       {
         "anonymous": false,
         "inputs": [
-          {
+            {
             "indexed": true,
             "internalType": "uint256",
             "name": "poolId",
             "type": "uint256"
-          }
-        ],
+        }
+      ],
         "name": "PoolEditCanceled",
         "type": "event"
       },
       {
         "anonymous": false,
         "inputs": [
-          {
+            {
             "indexed": true,
             "internalType": "uint256",
             "name": "poolId",
             "type": "uint256"
-          }
-        ],
+        }
+      ],
         "name": "PoolEdited",
         "type": "event"
       },
       {
         "anonymous": false,
         "inputs": [
-          {
+            {
             "indexed": true,
             "internalType": "uint256",
             "name": "poolId",
@@ -299,15 +318,15 @@
             "internalType": "uint256",
             "name": "amount",
             "type": "uint256"
-          }
-        ],
+        }
+      ],
         "name": "RemovedCollateral",
         "type": "event"
       },
       {
         "anonymous": false,
         "inputs": [
-          {
+            {
             "indexed": true,
             "internalType": "uint256",
             "name": "poolId",
@@ -330,15 +349,15 @@
             "internalType": "uint256",
             "name": "interestAmount",
             "type": "uint256"
-          }
-        ],
+        }
+      ],
         "name": "Repaid",
         "type": "event"
       },
       {
         "anonymous": false,
         "inputs": [
-          {
+            {
             "indexed": true,
             "internalType": "uint256",
             "name": "poolId",
@@ -361,15 +380,15 @@
             "internalType": "uint256",
             "name": "interestAmount",
             "type": "uint256"
-          }
-        ],
+        }
+      ],
         "name": "RewardsClaimed",
         "type": "event"
       },
       {
         "anonymous": false,
         "inputs": [
-          {
+            {
             "indexed": true,
             "internalType": "bytes32",
             "name": "role",
@@ -386,15 +405,15 @@
             "internalType": "bytes32",
             "name": "newAdminRole",
             "type": "bytes32"
-          }
-        ],
+        }
+      ],
         "name": "RoleAdminChanged",
         "type": "event"
       },
       {
         "anonymous": false,
         "inputs": [
-          {
+            {
             "indexed": true,
             "internalType": "bytes32",
             "name": "role",
@@ -411,15 +430,15 @@
             "internalType": "address",
             "name": "sender",
             "type": "address"
-          }
-        ],
+        }
+      ],
         "name": "RoleGranted",
         "type": "event"
       },
       {
         "anonymous": false,
         "inputs": [
-          {
+            {
             "indexed": true,
             "internalType": "bytes32",
             "name": "role",
@@ -436,28 +455,28 @@
             "internalType": "address",
             "name": "sender",
             "type": "address"
-          }
-        ],
+        }
+      ],
         "name": "RoleRevoked",
         "type": "event"
       },
       {
         "anonymous": false,
         "inputs": [
-          {
+            {
             "indexed": false,
             "internalType": "address",
             "name": "account",
             "type": "address"
-          }
-        ],
+        }
+      ],
         "name": "Unpaused",
         "type": "event"
       },
       {
         "anonymous": false,
         "inputs": [
-          {
+            {
             "indexed": false,
             "internalType": "uint256",
             "name": "poolId",
@@ -492,15 +511,15 @@
             "internalType": "uint256",
             "name": "interestAmount",
             "type": "uint256"
-          }
-        ],
+        }
+      ],
         "name": "UserPositionLiquidated",
         "type": "event"
       },
       {
         "anonymous": false,
         "inputs": [
-          {
+            {
             "indexed": true,
             "internalType": "uint256",
             "name": "poolId",
@@ -523,15 +542,15 @@
             "internalType": "uint256",
             "name": "amount",
             "type": "uint256"
-          }
-        ],
+        }
+      ],
         "name": "newBorrow",
         "type": "event"
       },
       {
         "anonymous": false,
         "inputs": [
-          {
+            {
             "indexed": true,
             "internalType": "uint256",
             "name": "poolId",
@@ -554,8 +573,8 @@
             "internalType": "uint256",
             "name": "amount",
             "type": "uint256"
-          }
-        ],
+        }
+      ],
         "name": "newLend",
         "type": "event"
       },
@@ -563,12 +582,12 @@
         "inputs": [],
         "name": "BPS_DIVIDER",
         "outputs": [
-          {
+            {
             "internalType": "uint256",
             "name": "",
             "type": "uint256"
-          }
-        ],
+        }
+      ],
         "stateMutability": "view",
         "type": "function"
       },
@@ -576,12 +595,12 @@
         "inputs": [],
         "name": "DEFAULT_ADMIN_ROLE",
         "outputs": [
-          {
+            {
             "internalType": "bytes32",
             "name": "",
             "type": "bytes32"
-          }
-        ],
+        }
+      ],
         "stateMutability": "view",
         "type": "function"
       },
@@ -589,12 +608,12 @@
         "inputs": [],
         "name": "LIQUIDATION_FEE",
         "outputs": [
-          {
+            {
             "internalType": "uint256",
             "name": "",
             "type": "uint256"
-          }
-        ],
+        }
+      ],
         "stateMutability": "view",
         "type": "function"
       },
@@ -602,12 +621,12 @@
         "inputs": [],
         "name": "LIQUIDATION_MARGIN_FACTOR",
         "outputs": [
-          {
+            {
             "internalType": "uint256",
             "name": "",
             "type": "uint256"
-          }
-        ],
+        }
+      ],
         "stateMutability": "view",
         "type": "function"
       },
@@ -615,12 +634,12 @@
         "inputs": [],
         "name": "LIQUIDATION_PROTOCOL_FEE",
         "outputs": [
-          {
+            {
             "internalType": "uint256",
             "name": "",
             "type": "uint256"
-          }
-        ],
+        }
+      ],
         "stateMutability": "view",
         "type": "function"
       },
@@ -628,12 +647,12 @@
         "inputs": [],
         "name": "MAX_LTV_PERCENTAGE",
         "outputs": [
-          {
+            {
             "internalType": "uint256",
             "name": "",
             "type": "uint256"
-          }
-        ],
+        }
+      ],
         "stateMutability": "view",
         "type": "function"
       },
@@ -641,12 +660,12 @@
         "inputs": [],
         "name": "ONE_YEAR",
         "outputs": [
-          {
+            {
             "internalType": "uint256",
             "name": "",
             "type": "uint256"
-          }
-        ],
+        }
+      ],
         "stateMutability": "view",
         "type": "function"
       },
@@ -654,18 +673,18 @@
         "inputs": [],
         "name": "USDC",
         "outputs": [
-          {
+            {
             "internalType": "contract ERC20Upgradeable",
             "name": "",
             "type": "address"
-          }
-        ],
+        }
+      ],
         "stateMutability": "view",
         "type": "function"
       },
       {
         "inputs": [
-          {
+            {
             "internalType": "address",
             "name": "_admin",
             "type": "address"
@@ -688,61 +707,61 @@
           {
             "components": [
               {
-                "internalType": "contract ERC20Upgradeable",
-                "name": "collateralToken",
-                "type": "address"
+              "internalType": "contract ERC20Upgradeable",
+              "name": "collateralToken",
+              "type": "address"
               },
               {
-                "internalType": "contract AggregatorV3Interface",
-                "name": "collateralTokenPriceOracle",
-                "type": "address"
+              "internalType": "contract AggregatorV3Interface",
+              "name": "collateralTokenPriceOracle",
+              "type": "address"
               },
               {
-                "internalType": "contract AggregatorV3Interface",
-                "name": "collateralTokenSequencerOracle",
-                "type": "address"
+              "internalType": "contract AggregatorV3Interface",
+              "name": "collateralTokenSequencerOracle",
+              "type": "address"
               },
               {
-                "internalType": "uint256",
-                "name": "maxPoolCapacity",
-                "type": "uint256"
+              "internalType": "uint256",
+              "name": "maxPoolCapacity",
+              "type": "uint256"
               },
               {
-                "internalType": "uint256",
-                "name": "minLended",
-                "type": "uint256"
+              "internalType": "uint256",
+              "name": "minLended",
+              "type": "uint256"
               },
               {
-                "internalType": "uint256",
-                "name": "minBorrow",
-                "type": "uint256"
+              "internalType": "uint256",
+              "name": "minBorrow",
+              "type": "uint256"
               },
               {
-                "internalType": "uint48",
-                "name": "endTime",
-                "type": "uint48"
+              "internalType": "uint48",
+              "name": "endTime",
+              "type": "uint48"
               },
               {
-                "internalType": "uint24",
-                "name": "collateralTokenFactor",
-                "type": "uint24"
+              "internalType": "uint24",
+              "name": "collateralTokenFactor",
+              "type": "uint24"
               },
               {
-                "internalType": "uint24",
-                "name": "collateralTokenLTVPercentage",
-                "type": "uint24"
+              "internalType": "uint24",
+              "name": "collateralTokenLTVPercentage",
+              "type": "uint24"
               },
               {
-                "internalType": "uint24",
-                "name": "interest",
-                "type": "uint24"
-              }
-            ],
+              "internalType": "uint24",
+              "name": "interest",
+              "type": "uint24"
+            }
+          ],
             "internalType": "struct IERC20CollateralPool.InitPool[]",
             "name": "_pools",
             "type": "tuple[]"
-          }
-        ],
+        }
+      ],
         "name": "__ERC20CollateralPool_init",
         "outputs": [],
         "stateMutability": "nonpayable",
@@ -750,64 +769,64 @@
       },
       {
         "inputs": [
-          {
+            {
             "components": [
               {
-                "internalType": "contract ERC20Upgradeable",
-                "name": "collateralToken",
-                "type": "address"
+              "internalType": "contract ERC20Upgradeable",
+              "name": "collateralToken",
+              "type": "address"
               },
               {
-                "internalType": "contract AggregatorV3Interface",
-                "name": "collateralTokenPriceOracle",
-                "type": "address"
+              "internalType": "contract AggregatorV3Interface",
+              "name": "collateralTokenPriceOracle",
+              "type": "address"
               },
               {
-                "internalType": "contract AggregatorV3Interface",
-                "name": "collateralTokenSequencerOracle",
-                "type": "address"
+              "internalType": "contract AggregatorV3Interface",
+              "name": "collateralTokenSequencerOracle",
+              "type": "address"
               },
               {
-                "internalType": "uint256",
-                "name": "maxPoolCapacity",
-                "type": "uint256"
+              "internalType": "uint256",
+              "name": "maxPoolCapacity",
+              "type": "uint256"
               },
               {
-                "internalType": "uint256",
-                "name": "minLended",
-                "type": "uint256"
+              "internalType": "uint256",
+              "name": "minLended",
+              "type": "uint256"
               },
               {
-                "internalType": "uint256",
-                "name": "minBorrow",
-                "type": "uint256"
+              "internalType": "uint256",
+              "name": "minBorrow",
+              "type": "uint256"
               },
               {
-                "internalType": "uint48",
-                "name": "endTime",
-                "type": "uint48"
+              "internalType": "uint48",
+              "name": "endTime",
+              "type": "uint48"
               },
               {
-                "internalType": "uint24",
-                "name": "collateralTokenFactor",
-                "type": "uint24"
+              "internalType": "uint24",
+              "name": "collateralTokenFactor",
+              "type": "uint24"
               },
               {
-                "internalType": "uint24",
-                "name": "collateralTokenLTVPercentage",
-                "type": "uint24"
+              "internalType": "uint24",
+              "name": "collateralTokenLTVPercentage",
+              "type": "uint24"
               },
               {
-                "internalType": "uint24",
-                "name": "interest",
-                "type": "uint24"
-              }
-            ],
+              "internalType": "uint24",
+              "name": "interest",
+              "type": "uint24"
+            }
+          ],
             "internalType": "struct IERC20CollateralPool.InitPool",
             "name": "pool",
             "type": "tuple"
-          }
-        ],
+        }
+      ],
         "name": "addPool",
         "outputs": [],
         "stateMutability": "nonpayable",
@@ -815,7 +834,7 @@
       },
       {
         "inputs": [
-          {
+            {
             "internalType": "uint256",
             "name": "poolId",
             "type": "uint256"
@@ -823,56 +842,56 @@
           {
             "components": [
               {
-                "internalType": "contract AggregatorV3Interface",
-                "name": "collateralTokenPriceOracle",
-                "type": "address"
+              "internalType": "contract AggregatorV3Interface",
+              "name": "collateralTokenPriceOracle",
+              "type": "address"
               },
               {
-                "internalType": "contract AggregatorV3Interface",
-                "name": "collateralTokenSequencerOracle",
-                "type": "address"
+              "internalType": "contract AggregatorV3Interface",
+              "name": "collateralTokenSequencerOracle",
+              "type": "address"
               },
               {
-                "internalType": "uint256",
-                "name": "maxPoolCapacity",
-                "type": "uint256"
+              "internalType": "uint256",
+              "name": "maxPoolCapacity",
+              "type": "uint256"
               },
               {
-                "internalType": "uint256",
-                "name": "minLended",
-                "type": "uint256"
+              "internalType": "uint256",
+              "name": "minLended",
+              "type": "uint256"
               },
               {
-                "internalType": "uint256",
-                "name": "minBorrow",
-                "type": "uint256"
+              "internalType": "uint256",
+              "name": "minBorrow",
+              "type": "uint256"
               },
               {
-                "internalType": "uint48",
-                "name": "endTime",
-                "type": "uint48"
+              "internalType": "uint48",
+              "name": "endTime",
+              "type": "uint48"
               },
               {
-                "internalType": "uint24",
-                "name": "collateralTokenFactor",
-                "type": "uint24"
+              "internalType": "uint24",
+              "name": "collateralTokenFactor",
+              "type": "uint24"
               },
               {
-                "internalType": "uint24",
-                "name": "collateralTokenLTVPercentage",
-                "type": "uint24"
+              "internalType": "uint24",
+              "name": "collateralTokenLTVPercentage",
+              "type": "uint24"
               },
               {
-                "internalType": "uint24",
-                "name": "interest",
-                "type": "uint24"
-              }
-            ],
+              "internalType": "uint24",
+              "name": "interest",
+              "type": "uint24"
+            }
+          ],
             "internalType": "struct IERC20CollateralPool.EditPool",
             "name": "pool",
             "type": "tuple"
-          }
-        ],
+        }
+      ],
         "name": "announceEditPool",
         "outputs": [],
         "stateMutability": "nonpayable",
@@ -880,15 +899,15 @@
       },
       {
         "inputs": [
-          {
+            {
             "internalType": "uint256",
             "name": "",
             "type": "uint256"
-          }
-        ],
+        }
+      ],
         "name": "announcedPoolEdit",
         "outputs": [
-          {
+            {
             "internalType": "uint256",
             "name": "unlocksAt",
             "type": "uint256"
@@ -896,62 +915,62 @@
           {
             "components": [
               {
-                "internalType": "contract AggregatorV3Interface",
-                "name": "collateralTokenPriceOracle",
-                "type": "address"
+              "internalType": "contract AggregatorV3Interface",
+              "name": "collateralTokenPriceOracle",
+              "type": "address"
               },
               {
-                "internalType": "contract AggregatorV3Interface",
-                "name": "collateralTokenSequencerOracle",
-                "type": "address"
+              "internalType": "contract AggregatorV3Interface",
+              "name": "collateralTokenSequencerOracle",
+              "type": "address"
               },
               {
-                "internalType": "uint256",
-                "name": "maxPoolCapacity",
-                "type": "uint256"
+              "internalType": "uint256",
+              "name": "maxPoolCapacity",
+              "type": "uint256"
               },
               {
-                "internalType": "uint256",
-                "name": "minLended",
-                "type": "uint256"
+              "internalType": "uint256",
+              "name": "minLended",
+              "type": "uint256"
               },
               {
-                "internalType": "uint256",
-                "name": "minBorrow",
-                "type": "uint256"
+              "internalType": "uint256",
+              "name": "minBorrow",
+              "type": "uint256"
               },
               {
-                "internalType": "uint48",
-                "name": "endTime",
-                "type": "uint48"
+              "internalType": "uint48",
+              "name": "endTime",
+              "type": "uint48"
               },
               {
-                "internalType": "uint24",
-                "name": "collateralTokenFactor",
-                "type": "uint24"
+              "internalType": "uint24",
+              "name": "collateralTokenFactor",
+              "type": "uint24"
               },
               {
-                "internalType": "uint24",
-                "name": "collateralTokenLTVPercentage",
-                "type": "uint24"
+              "internalType": "uint24",
+              "name": "collateralTokenLTVPercentage",
+              "type": "uint24"
               },
               {
-                "internalType": "uint24",
-                "name": "interest",
-                "type": "uint24"
-              }
-            ],
+              "internalType": "uint24",
+              "name": "interest",
+              "type": "uint24"
+            }
+          ],
             "internalType": "struct IERC20CollateralPool.EditPool",
             "name": "pool",
             "type": "tuple"
-          }
-        ],
+        }
+      ],
         "stateMutability": "view",
         "type": "function"
       },
       {
         "inputs": [
-          {
+            {
             "internalType": "uint256",
             "name": "poolId",
             "type": "uint256"
@@ -965,8 +984,8 @@
             "internalType": "uint256",
             "name": "collateralTokenAmount",
             "type": "uint256"
-          }
-        ],
+        }
+      ],
         "name": "borrow",
         "outputs": [],
         "stateMutability": "nonpayable",
@@ -974,7 +993,7 @@
       },
       {
         "inputs": [
-          {
+            {
             "internalType": "uint256",
             "name": "",
             "type": "uint256"
@@ -988,11 +1007,11 @@
             "internalType": "uint256",
             "name": "",
             "type": "uint256"
-          }
-        ],
+        }
+      ],
         "name": "borrows",
         "outputs": [
-          {
+            {
             "internalType": "uint256",
             "name": "startingUsdcAmount",
             "type": "uint256"
@@ -1011,14 +1030,14 @@
             "internalType": "uint48",
             "name": "borrowTime",
             "type": "uint48"
-          }
-        ],
+        }
+      ],
         "stateMutability": "view",
         "type": "function"
       },
       {
         "inputs": [
-          {
+            {
             "internalType": "uint256",
             "name": "",
             "type": "uint256"
@@ -1027,22 +1046,22 @@
             "internalType": "address",
             "name": "",
             "type": "address"
-          }
-        ],
+        }
+      ],
         "name": "borrowsLength",
         "outputs": [
-          {
+            {
             "internalType": "uint256",
             "name": "",
             "type": "uint256"
-          }
-        ],
+        }
+      ],
         "stateMutability": "view",
         "type": "function"
       },
       {
         "inputs": [
-          {
+            {
             "internalType": "uint256",
             "name": "poolId",
             "type": "uint256"
@@ -1051,22 +1070,22 @@
             "internalType": "uint256",
             "name": "usdcAmount",
             "type": "uint256"
-          }
-        ],
+        }
+      ],
         "name": "calculateCollateralTokenAmount",
         "outputs": [
-          {
+            {
             "internalType": "uint256",
             "name": "",
             "type": "uint256"
-          }
-        ],
+        }
+      ],
         "stateMutability": "view",
         "type": "function"
       },
       {
         "inputs": [
-          {
+            {
             "internalType": "uint256",
             "name": "poolId",
             "type": "uint256"
@@ -1080,22 +1099,22 @@
             "internalType": "address",
             "name": "user",
             "type": "address"
-          }
-        ],
+        }
+      ],
         "name": "calculateRepayInterest",
         "outputs": [
-          {
+            {
             "internalType": "uint256",
             "name": "",
             "type": "uint256"
-          }
-        ],
+        }
+      ],
         "stateMutability": "view",
         "type": "function"
       },
       {
         "inputs": [
-          {
+            {
             "internalType": "uint256",
             "name": "poolId",
             "type": "uint256"
@@ -1109,27 +1128,27 @@
             "internalType": "address",
             "name": "user",
             "type": "address"
-          }
-        ],
+        }
+      ],
         "name": "calculateReward",
         "outputs": [
-          {
+            {
             "internalType": "uint256",
             "name": "",
             "type": "uint256"
-          }
-        ],
+        }
+      ],
         "stateMutability": "nonpayable",
         "type": "function"
       },
       {
         "inputs": [
-          {
+            {
             "internalType": "uint256",
             "name": "poolId",
             "type": "uint256"
-          }
-        ],
+        }
+      ],
         "name": "cancelEditPool",
         "outputs": [],
         "stateMutability": "nonpayable",
@@ -1137,7 +1156,7 @@
       },
       {
         "inputs": [
-          {
+            {
             "internalType": "uint256",
             "name": "poolId",
             "type": "uint256"
@@ -1156,8 +1175,8 @@
             "internalType": "uint256",
             "name": "maxCollateralTokenLTVPercentage",
             "type": "uint256"
-          }
-        ],
+        }
+      ],
         "name": "changeCollateralAmount",
         "outputs": [],
         "stateMutability": "nonpayable",
@@ -1165,7 +1184,7 @@
       },
       {
         "inputs": [
-          {
+            {
             "internalType": "uint256",
             "name": "poolId",
             "type": "uint256"
@@ -1173,21 +1192,21 @@
           {
             "components": [
               {
-                "internalType": "uint256",
-                "name": "lendId",
-                "type": "uint256"
+              "internalType": "uint256",
+              "name": "lendId",
+              "type": "uint256"
               },
               {
-                "internalType": "uint256",
-                "name": "usdcAmount",
-                "type": "uint256"
-              }
-            ],
+              "internalType": "uint256",
+              "name": "usdcAmount",
+              "type": "uint256"
+            }
+          ],
             "internalType": "struct IERC20CollateralPool.Claim[]",
             "name": "claims",
             "type": "tuple[]"
-          }
-        ],
+        }
+      ],
         "name": "claim",
         "outputs": [],
         "stateMutability": "nonpayable",
@@ -1195,7 +1214,7 @@
       },
       {
         "inputs": [
-          {
+            {
             "internalType": "uint256",
             "name": "poolId",
             "type": "uint256"
@@ -1203,16 +1222,16 @@
           {
             "components": [
               {
-                "internalType": "uint256",
-                "name": "lendId",
-                "type": "uint256"
+              "internalType": "uint256",
+              "name": "lendId",
+              "type": "uint256"
               },
               {
-                "internalType": "uint256",
-                "name": "usdcAmount",
-                "type": "uint256"
-              }
-            ],
+              "internalType": "uint256",
+              "name": "usdcAmount",
+              "type": "uint256"
+            }
+          ],
             "internalType": "struct IERC20CollateralPool.Claim[]",
             "name": "claims",
             "type": "tuple[]"
@@ -1220,26 +1239,26 @@
           {
             "components": [
               {
-                "internalType": "uint256",
-                "name": "borrowId",
-                "type": "uint256"
+              "internalType": "uint256",
+              "name": "borrowId",
+              "type": "uint256"
               },
               {
-                "internalType": "address",
-                "name": "user",
-                "type": "address"
+              "internalType": "address",
+              "name": "user",
+              "type": "address"
               },
               {
-                "internalType": "uint256",
-                "name": "usdcAmount",
-                "type": "uint256"
-              }
-            ],
+              "internalType": "uint256",
+              "name": "usdcAmount",
+              "type": "uint256"
+            }
+          ],
             "internalType": "struct IERC20CollateralPool.Liquidation[]",
             "name": "liquidations",
             "type": "tuple[]"
-          }
-        ],
+        }
+      ],
         "name": "claimCollateral",
         "outputs": [],
         "stateMutability": "nonpayable",
@@ -1247,12 +1266,12 @@
       },
       {
         "inputs": [
-          {
+            {
             "internalType": "uint256",
             "name": "poolId",
             "type": "uint256"
-          }
-        ],
+        }
+      ],
         "name": "commitEditPool",
         "outputs": [],
         "stateMutability": "nonpayable",
@@ -1260,15 +1279,15 @@
       },
       {
         "inputs": [
-          {
+            {
             "internalType": "uint256",
             "name": "poolId",
             "type": "uint256"
-          }
-        ],
+        }
+      ],
         "name": "getAvailableAmountsInPool",
         "outputs": [
-          {
+            {
             "internalType": "uint256",
             "name": "availableUSDC",
             "type": "uint256"
@@ -1277,27 +1296,27 @@
             "internalType": "uint256",
             "name": "availableCollateralTokens",
             "type": "uint256"
-          }
-        ],
+        }
+      ],
         "stateMutability": "view",
         "type": "function"
       },
       {
         "inputs": [
-          {
+            {
             "internalType": "address",
             "name": "collateralToken",
             "type": "address"
-          }
-        ],
+        }
+      ],
         "name": "getCollateralTokenProtocolFee",
         "outputs": [
-          {
+            {
             "internalType": "uint256",
             "name": "",
             "type": "uint256"
-          }
-        ],
+        }
+      ],
         "stateMutability": "view",
         "type": "function"
       },
@@ -1305,18 +1324,18 @@
         "inputs": [],
         "name": "getCollateralTokens",
         "outputs": [
-          {
+            {
             "internalType": "address[]",
             "name": "",
             "type": "address[]"
-          }
-        ],
+        }
+      ],
         "stateMutability": "view",
         "type": "function"
       },
       {
         "inputs": [
-          {
+            {
             "internalType": "uint256",
             "name": "poolId",
             "type": "uint256"
@@ -1330,41 +1349,41 @@
             "internalType": "uint256",
             "name": "borrowId",
             "type": "uint256"
-          }
-        ],
+        }
+      ],
         "name": "getLiquidatableAmountWithProtocolFee",
         "outputs": [
-          {
+            {
             "internalType": "uint256",
             "name": "",
             "type": "uint256"
-          }
-        ],
+        }
+      ],
         "stateMutability": "view",
         "type": "function"
       },
       {
         "inputs": [
-          {
+            {
             "internalType": "bytes32",
             "name": "role",
             "type": "bytes32"
-          }
-        ],
+        }
+      ],
         "name": "getRoleAdmin",
         "outputs": [
-          {
+            {
             "internalType": "bytes32",
             "name": "",
             "type": "bytes32"
-          }
-        ],
+        }
+      ],
         "stateMutability": "view",
         "type": "function"
       },
       {
         "inputs": [
-          {
+            {
             "internalType": "bytes32",
             "name": "role",
             "type": "bytes32"
@@ -1373,8 +1392,8 @@
             "internalType": "address",
             "name": "account",
             "type": "address"
-          }
-        ],
+        }
+      ],
         "name": "grantRole",
         "outputs": [],
         "stateMutability": "nonpayable",
@@ -1382,7 +1401,7 @@
       },
       {
         "inputs": [
-          {
+            {
             "internalType": "bytes32",
             "name": "role",
             "type": "bytes32"
@@ -1391,22 +1410,22 @@
             "internalType": "address",
             "name": "account",
             "type": "address"
-          }
-        ],
+        }
+      ],
         "name": "hasRole",
         "outputs": [
-          {
+            {
             "internalType": "bool",
             "name": "",
             "type": "bool"
-          }
-        ],
+        }
+      ],
         "stateMutability": "view",
         "type": "function"
       },
       {
         "inputs": [
-          {
+            {
             "internalType": "uint256",
             "name": "poolId",
             "type": "uint256"
@@ -1420,22 +1439,22 @@
             "internalType": "uint256",
             "name": "borrowId",
             "type": "uint256"
-          }
-        ],
+        }
+      ],
         "name": "isPositionLiquidatable",
         "outputs": [
-          {
+            {
             "internalType": "bool",
             "name": "",
             "type": "bool"
-          }
-        ],
+        }
+      ],
         "stateMutability": "nonpayable",
         "type": "function"
       },
       {
         "inputs": [
-          {
+            {
             "internalType": "uint256",
             "name": "poolId",
             "type": "uint256"
@@ -1444,8 +1463,8 @@
             "internalType": "uint256",
             "name": "usdcAmount",
             "type": "uint256"
-          }
-        ],
+        }
+      ],
         "name": "lend",
         "outputs": [],
         "stateMutability": "nonpayable",
@@ -1453,7 +1472,7 @@
       },
       {
         "inputs": [
-          {
+            {
             "internalType": "uint256",
             "name": "",
             "type": "uint256"
@@ -1467,11 +1486,11 @@
             "internalType": "uint256",
             "name": "",
             "type": "uint256"
-          }
-        ],
+        }
+      ],
         "name": "lendings",
         "outputs": [
-          {
+            {
             "internalType": "uint256",
             "name": "startingUsdcAmount",
             "type": "uint256"
@@ -1485,14 +1504,14 @@
             "internalType": "uint256",
             "name": "rewardPerTokenIgnored",
             "type": "uint256"
-          }
-        ],
+        }
+      ],
         "stateMutability": "view",
         "type": "function"
       },
       {
         "inputs": [
-          {
+            {
             "internalType": "uint256",
             "name": "",
             "type": "uint256"
@@ -1501,22 +1520,22 @@
             "internalType": "address",
             "name": "",
             "type": "address"
-          }
-        ],
+        }
+      ],
         "name": "lendingsLength",
         "outputs": [
-          {
+            {
             "internalType": "uint256",
             "name": "",
             "type": "uint256"
-          }
-        ],
+        }
+      ],
         "stateMutability": "view",
         "type": "function"
       },
       {
         "inputs": [
-          {
+            {
             "internalType": "uint256",
             "name": "poolId",
             "type": "uint256"
@@ -1524,26 +1543,26 @@
           {
             "components": [
               {
-                "internalType": "uint256",
-                "name": "borrowId",
-                "type": "uint256"
+              "internalType": "uint256",
+              "name": "borrowId",
+              "type": "uint256"
               },
               {
-                "internalType": "address",
-                "name": "user",
-                "type": "address"
+              "internalType": "address",
+              "name": "user",
+              "type": "address"
               },
               {
-                "internalType": "uint256",
-                "name": "usdcAmount",
-                "type": "uint256"
-              }
-            ],
+              "internalType": "uint256",
+              "name": "usdcAmount",
+              "type": "uint256"
+            }
+          ],
             "internalType": "struct IERC20CollateralPool.Liquidation[]",
             "name": "liquidations",
             "type": "tuple[]"
-          }
-        ],
+        }
+      ],
         "name": "liquidate",
         "outputs": [],
         "stateMutability": "nonpayable",
@@ -1560,63 +1579,63 @@
         "inputs": [],
         "name": "paused",
         "outputs": [
-          {
+            {
             "internalType": "bool",
             "name": "",
             "type": "bool"
-          }
-        ],
+        }
+      ],
         "stateMutability": "view",
         "type": "function"
       },
       {
         "inputs": [
-          {
+            {
             "internalType": "uint256",
             "name": "",
             "type": "uint256"
-          }
-        ],
+        }
+      ],
         "name": "pools",
         "outputs": [
-          {
+            {
             "components": [
               {
-                "internalType": "uint256",
-                "name": "lended",
-                "type": "uint256"
+              "internalType": "uint256",
+              "name": "lended",
+              "type": "uint256"
               },
               {
-                "internalType": "uint256",
-                "name": "claimed",
-                "type": "uint256"
+              "internalType": "uint256",
+              "name": "claimed",
+              "type": "uint256"
               },
               {
-                "internalType": "uint256",
-                "name": "borrowed",
-                "type": "uint256"
+              "internalType": "uint256",
+              "name": "borrowed",
+              "type": "uint256"
               },
               {
-                "internalType": "uint256",
-                "name": "repaid",
-                "type": "uint256"
+              "internalType": "uint256",
+              "name": "repaid",
+              "type": "uint256"
               },
               {
-                "internalType": "uint256",
-                "name": "rewards",
-                "type": "uint256"
+              "internalType": "uint256",
+              "name": "rewards",
+              "type": "uint256"
               },
               {
-                "internalType": "uint256",
-                "name": "claimedRewards",
-                "type": "uint256"
+              "internalType": "uint256",
+              "name": "claimedRewards",
+              "type": "uint256"
               },
               {
-                "internalType": "uint256",
-                "name": "collateralTokenAmount",
-                "type": "uint256"
-              }
-            ],
+              "internalType": "uint256",
+              "name": "collateralTokenAmount",
+              "type": "uint256"
+            }
+          ],
             "internalType": "struct IERC20CollateralPool.PoolAmounts",
             "name": "amounts",
             "type": "tuple"
@@ -1624,46 +1643,46 @@
           {
             "components": [
               {
-                "internalType": "contract ERC20Upgradeable",
-                "name": "collateralToken",
-                "type": "address"
+              "internalType": "contract ERC20Upgradeable",
+              "name": "collateralToken",
+              "type": "address"
               },
               {
-                "internalType": "contract AggregatorV3Interface",
-                "name": "collateralTokenPriceOracle",
-                "type": "address"
+              "internalType": "contract AggregatorV3Interface",
+              "name": "collateralTokenPriceOracle",
+              "type": "address"
               },
               {
-                "internalType": "contract AggregatorV3Interface",
-                "name": "collateralTokenSequencerOracle",
-                "type": "address"
+              "internalType": "contract AggregatorV3Interface",
+              "name": "collateralTokenSequencerOracle",
+              "type": "address"
               },
               {
-                "internalType": "uint256",
-                "name": "maxPoolCapacity",
-                "type": "uint256"
+              "internalType": "uint256",
+              "name": "maxPoolCapacity",
+              "type": "uint256"
               },
               {
-                "internalType": "uint256",
-                "name": "minLended",
-                "type": "uint256"
+              "internalType": "uint256",
+              "name": "minLended",
+              "type": "uint256"
               },
               {
-                "internalType": "uint256",
-                "name": "minBorrow",
-                "type": "uint256"
+              "internalType": "uint256",
+              "name": "minBorrow",
+              "type": "uint256"
               },
               {
-                "internalType": "uint24",
-                "name": "collateralTokenFactor",
-                "type": "uint24"
+              "internalType": "uint24",
+              "name": "collateralTokenFactor",
+              "type": "uint24"
               },
               {
-                "internalType": "uint24",
-                "name": "collateralTokenLTVPercentage",
-                "type": "uint24"
-              }
-            ],
+              "internalType": "uint24",
+              "name": "collateralTokenLTVPercentage",
+              "type": "uint24"
+            }
+          ],
             "internalType": "struct IERC20CollateralPool.CollateralDetails",
             "name": "collateralDetails",
             "type": "tuple"
@@ -1692,8 +1711,8 @@
             "internalType": "uint24",
             "name": "interest",
             "type": "uint24"
-          }
-        ],
+        }
+      ],
         "stateMutability": "view",
         "type": "function"
       },
@@ -1701,18 +1720,18 @@
         "inputs": [],
         "name": "poolsLength",
         "outputs": [
-          {
+            {
             "internalType": "uint256",
             "name": "",
             "type": "uint256"
-          }
-        ],
+        }
+      ],
         "stateMutability": "view",
         "type": "function"
       },
       {
         "inputs": [
-          {
+            {
             "internalType": "bytes32",
             "name": "role",
             "type": "bytes32"
@@ -1721,8 +1740,8 @@
             "internalType": "address",
             "name": "account",
             "type": "address"
-          }
-        ],
+        }
+      ],
         "name": "renounceRole",
         "outputs": [],
         "stateMutability": "nonpayable",
@@ -1730,7 +1749,7 @@
       },
       {
         "inputs": [
-          {
+            {
             "internalType": "uint256",
             "name": "poolId",
             "type": "uint256"
@@ -1744,8 +1763,8 @@
             "internalType": "uint256",
             "name": "repayAmount",
             "type": "uint256"
-          }
-        ],
+        }
+      ],
         "name": "repay",
         "outputs": [],
         "stateMutability": "nonpayable",
@@ -1753,7 +1772,7 @@
       },
       {
         "inputs": [
-          {
+            {
             "internalType": "bytes32",
             "name": "role",
             "type": "bytes32"
@@ -1762,8 +1781,8 @@
             "internalType": "address",
             "name": "account",
             "type": "address"
-          }
-        ],
+        }
+      ],
         "name": "revokeRole",
         "outputs": [],
         "stateMutability": "nonpayable",
@@ -1771,20 +1790,20 @@
       },
       {
         "inputs": [
-          {
+            {
             "internalType": "bytes4",
             "name": "interfaceId",
             "type": "bytes4"
-          }
-        ],
+        }
+      ],
         "name": "supportsInterface",
         "outputs": [
-          {
+            {
             "internalType": "bool",
             "name": "",
             "type": "bool"
-          }
-        ],
+        }
+      ],
         "stateMutability": "view",
         "type": "function"
       },
@@ -1792,12 +1811,12 @@
         "inputs": [],
         "name": "unPausedTimestamp",
         "outputs": [
-          {
+            {
             "internalType": "uint256",
             "name": "",
             "type": "uint256"
-          }
-        ],
+        }
+      ],
         "stateMutability": "view",
         "type": "function"
       },
@@ -1812,12 +1831,12 @@
         "inputs": [],
         "name": "usdcFeesCollected",
         "outputs": [
-          {
+            {
             "internalType": "uint256",
             "name": "",
             "type": "uint256"
-          }
-        ],
+        }
+      ],
         "stateMutability": "view",
         "type": "function"
       },
@@ -1825,12 +1844,12 @@
         "inputs": [],
         "name": "usdcPriceOracle",
         "outputs": [
-          {
+            {
             "internalType": "contract AggregatorV3Interface",
             "name": "",
             "type": "address"
-          }
-        ],
+        }
+      ],
         "stateMutability": "view",
         "type": "function"
       },
@@ -1838,18 +1857,18 @@
         "inputs": [],
         "name": "usdcSequencerOracle",
         "outputs": [
-          {
+            {
             "internalType": "contract AggregatorV3Interface",
             "name": "",
             "type": "address"
-          }
-        ],
+        }
+      ],
         "stateMutability": "view",
         "type": "function"
       },
       {
         "inputs": [
-          {
+            {
             "internalType": "contract IERC20Upgradeable",
             "name": "token",
             "type": "address"
@@ -1858,15 +1877,14 @@
             "internalType": "address",
             "name": "recipient",
             "type": "address"
-          }
-        ],
+        }
+      ],
         "name": "withdrawProtocolRewards",
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"
-      }
-    ],
+    }
+  ],
     "linkReferences": {},
     "deployedLinkReferences": {}
-  }
-  
+}
