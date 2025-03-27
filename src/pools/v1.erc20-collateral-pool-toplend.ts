@@ -6,19 +6,29 @@ import {
   erc20CollateralPoolErrorMessage as ecpErrorMessage,
   poolCommonErrorMessage
 } from '../errors'
-import { ERC20CollateralPool } from '../pools/erc20-collateral-pool'
 import {
   Borrow,
+  ERC20CollateralPoolViews,
   Erc20CollateralTokenPoolDetail,
+  Functions,
   Lend,
   Pool,
   PoolInput,
   PoolLiquidationInfo
-} from '../types/erc20-collateral-pool-toplend'
+} from '../types/erc20-collateral-pool/v1.toplend'
+import { AdminFunctions } from '../types/pools'
 import { Abi, Pagination, PrivateKey } from '../types/types'
 import { NULL_ADDRESS, Role } from '../utilities/util'
+import { ERC20CollateralPoolV1 } from './v1.erc20-collateral-pool'
 
-export class ERC20CollateralPoolToplend extends ERC20CollateralPool {
+export class ERC20CollateralPoolToplend
+  extends ERC20CollateralPoolV1
+  implements Functions, ERC20CollateralPoolViews, AdminFunctions
+{
+  readonly LIQUIDATION_PROTOCOL_FEE = BigInt(5)
+  readonly DAY_SEC = BigInt(60 * 60 * 24)
+  readonly ONE_YEAR = BigInt(365) * this.DAY_SEC
+  readonly HOUNDRED = BigInt(100)
   readonly LIQUIDATION_FEE = BigInt(5)
 
   constructor(

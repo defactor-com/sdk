@@ -1,4 +1,3 @@
-import { miscErc20CollateralPool } from '../artifacts'
 import { BaseProvider, CoreContract } from '../base-classes'
 import {
   Abi,
@@ -23,10 +22,10 @@ export class AssistedProvider<T extends CoreContract> extends BaseProvider<T> {
     ) => T,
     address: string,
     apiUrl: string,
-    abi?: Abi
+    abi: Abi
   ) {
     super(new contractBuilder(address, apiUrl, null, abi))
 
-    this.abi = abi || miscErc20CollateralPool.abi
+    this.abi = abi
   }
 }

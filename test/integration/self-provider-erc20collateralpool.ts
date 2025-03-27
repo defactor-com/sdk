@@ -3,9 +3,9 @@ import {
   erc20CollateralPoolErrorMessage as ecpErrorMessage,
   poolCommonErrorMessage
 } from '../../src/errors'
-import { ERC20CollateralPool } from '../../src/pools'
+import { ERC20CollateralPoolV1 } from '../../src/pools'
 import { SelfProvider } from '../../src/provider'
-import { Lend, Pool } from '../../src/types/erc20-collateral-token'
+import { Lend, Pool } from '../../src/types/erc20-collateral-pool/v1'
 import { Erc20 } from '../../src/utilities/erc20'
 import { sleep } from '../../src/utilities/util'
 import {
@@ -28,7 +28,7 @@ jest.setTimeout(9000000)
 
 describe('SelfProvider - ERC20CollateralPool', () => {
   let providerUrl: string
-  let provider: SelfProvider<ERC20CollateralPool>
+  let provider: SelfProvider<ERC20CollateralPoolV1>
   let usdcTokenContract: Erc20
   let auTokenContract: Erc20
 
@@ -54,7 +54,7 @@ describe('SelfProvider - ERC20CollateralPool', () => {
 
   beforeEach(() => {
     provider = new SelfProvider(
-      ERC20CollateralPool,
+      ERC20CollateralPoolV1,
       ERC20_COLLATERAL_POOL_ETH_ADDRESS,
       providerUrl,
       TESTING_PRIVATE_KEY
@@ -1073,7 +1073,7 @@ describe('SelfProvider - ERC20CollateralPool', () => {
 
       it('failure - create pool with end time in the past', async () => {
         provider = new SelfProvider(
-          ERC20CollateralPool,
+          ERC20CollateralPoolV1,
           ERC20_COLLATERAL_POOL_ETH_ADDRESS,
           providerUrl,
           ADMIN_TESTING_PRIVATE_KEY
@@ -1170,7 +1170,7 @@ describe('SelfProvider - ERC20CollateralPool', () => {
 
       it('success - create pool', async () => {
         provider = new SelfProvider(
-          ERC20CollateralPool,
+          ERC20CollateralPoolV1,
           ERC20_COLLATERAL_POOL_ETH_ADDRESS,
           providerUrl,
           ADMIN_TESTING_PRIVATE_KEY
@@ -1311,7 +1311,7 @@ describe('SelfProvider - ERC20CollateralPool', () => {
 
       it('failure - pool is not closed', async () => {
         provider = new SelfProvider(
-          ERC20CollateralPool,
+          ERC20CollateralPoolV1,
           ERC20_COLLATERAL_POOL_ETH_ADDRESS,
           providerUrl,
           ADMIN_TESTING_PRIVATE_KEY
@@ -1345,7 +1345,7 @@ describe('SelfProvider - ERC20CollateralPool', () => {
 
       it('failure - pool cannot be liquidated', async () => {
         provider = new SelfProvider(
-          ERC20CollateralPool,
+          ERC20CollateralPoolV1,
           ERC20_COLLATERAL_POOL_ETH_ADDRESS,
           providerUrl,
           ADMIN_TESTING_PRIVATE_KEY

@@ -1,6 +1,5 @@
 import { ethers } from 'ethers'
 
-import { miscErc20CollateralPool } from '../artifacts'
 import { commonErrorMessage } from '../errors'
 import { Abi, PrivateKey, RoleOption } from '../types/types'
 import { Role } from '../utilities/util'
@@ -17,7 +16,7 @@ export abstract class BaseContract extends CoreContract {
     privateKey: PrivateKey | null,
     abi: Abi
   ) {
-    super(address, apiUrl, privateKey, abi || miscErc20CollateralPool.abi)
+    super(address, apiUrl, privateKey, abi)
   }
 
   protected _checkIsAdmin = async () => {

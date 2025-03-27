@@ -46,6 +46,31 @@ export const erc20CollateralPoolErrorMessage = {
     'The min borrow amount must be less than max lent amount'
 }
 
+export const erc20CollateralPoolV2ErrorMessage = {
+  ...erc20CollateralPoolErrorMessage,
+  nonNegativeOrZero: 'Amount cannot be negative or 0',
+  nonNegativeOrZeroCollateralTokenLTV:
+    'The collateral token ltv percentage cannot be negative or 0',
+  collateralTokenLTVTooHigh:
+    'The collateral token ltv percentage is greater than the maximum',
+  minLentMustBeLessThanMaxPoolCapacity:
+    'The min lent must be less that the max pool capacity',
+  editAnnouncementAlreadyDone:
+    'There is already an active announcement for this pool',
+  poolAnnouncementIsLocked: 'Pool announcement is locked',
+  collateralTokenDoesNotExist: 'The token address is not a collateral token',
+  maxPoolCapacityIsReached: 'Maximum pool capacity has been reached',
+  borrowAlreadyLiquidated: 'Borrow already liquidated',
+  noClaimsProvided: 'No claims provided',
+  noLiquidationsProvided: 'No liquidations provided',
+  pauseGracePeriodNotPassed: 'The pause grace period has not passed',
+  notEnoughUSDCInPool: 'There are not enough USDC in the pool.',
+  amountTooBig: 'The amount is greater than to the maximum',
+  collateralAmountTooLow: 'The collateral amount is too low',
+  collateralAmountNotChanged:
+    'The new collateral amount is the same as the previous one'
+}
+
 export const counterPartyPoolErrorMessage = {
   addressIsNotOwner: 'Sender address is not the owner of the pool',
   poolOwnerCannotCommitToTheirOwnPool:
@@ -98,6 +123,7 @@ export const stakingErrorMessage = {
   stakeAmountTooLow: 'Stake amount too low',
   stakingHasEnded: 'Staking has ended',
   stakeAlreadyUnstaked: 'Stake already unstaked',
+  rewardAlreadyClaimed: 'Reward already claimed',
   stakeIsLocked: 'Stake is locked',
   invalidStakeIndex: 'Invalid stake index',
   stakingCantBeLessThanRewardsEnd:
@@ -109,6 +135,7 @@ export const stakingErrorMessage = {
   rewardsEndTimeReached: 'The rewards end time has passed',
   planAlreadyExists: 'The plan already exists',
   rewardEndTimeTooLow: 'The reward end time is too low',
+  timeMustBeInFuture: 'Rewards and staking end time must be in the future',
   nonNegativeMinStakeAmount: 'The min stake amount cannot be negative',
   maxStakedReached: 'Max stake is reached',
   restakedWithWrongToken:
