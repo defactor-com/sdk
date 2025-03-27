@@ -123,6 +123,7 @@ export const stakingErrorMessage = {
   stakeAmountTooLow: 'Stake amount too low',
   stakingHasEnded: 'Staking has ended',
   stakeAlreadyUnstaked: 'Stake already unstaked',
+  rewardAlreadyClaimed: 'Reward already claimed',
   stakeIsLocked: 'Stake is locked',
   invalidStakeIndex: 'Invalid stake index',
   stakingCantBeLessThanRewardsEnd:
@@ -134,6 +135,7 @@ export const stakingErrorMessage = {
   rewardsEndTimeReached: 'The rewards end time has passed',
   planAlreadyExists: 'The plan already exists',
   rewardEndTimeTooLow: 'The reward end time is too low',
+  timeMustBeInFuture: 'Rewards and staking end time must be in the future',
   nonNegativeMinStakeAmount: 'The min stake amount cannot be negative',
   maxStakedReached: 'Max stake is reached',
   restakedWithWrongToken:
