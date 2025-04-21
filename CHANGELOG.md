@@ -1,5 +1,11 @@
 # @defactor-com/defactor-sdk
 
+## 7.1.0
+
+### Minor Changes
+
+- d16d994: Improve getOptimalAmountFromMaxAmount function performance
+
 ## 7.0.0
 
 ### Major Changes
