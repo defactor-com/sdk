@@ -304,9 +304,11 @@ export class Buyback
     }
 
     let optimalAmount = maxAmount
-    const pool1 = await this.getPool1()
-    const pool2 = await this.getPool2()
-    const path = await this.getPath()
+    const [pool1, pool2, path] = await Promise.all([
+      this.getPool1(),
+      this.getPool2(),
+      this.getPath()
+    ])
 
     if (!this.quoterContract) {
       const quoterAddress = await this.getUniswapQuoter()
@@ -318,21 +320,16 @@ export class Buyback
     }
 
     let quoterAmount = BigInt(0)
+    let quoteExactInput = [BigInt(0)]
     let twapOptimalAmount = optimalAmount
 
     while (quoterAmount < twapOptimalAmount) {
-      const quoteExactInput =
-        await this.quoterContract.quoteExactInput.staticCall(
-          path,
-          optimalAmount
-        )
+      ;[quoteExactInput, twapOptimalAmount] = await Promise.all([
+        this.quoterContract.quoteExactInput.staticCall(path, optimalAmount),
+        this.getOptimalTwapAmountThreshold(optimalAmount, pool1, pool2)
+      ])
 
       quoterAmount = quoteExactInput[0]
-      twapOptimalAmount = await this.getOptimalTwapAmountThreshold(
-        optimalAmount,
-        pool1,
-        pool2
-      )
 
       if (quoterAmount < twapOptimalAmount) {
         optimalAmount -= optimalAmount / BigInt(10)
