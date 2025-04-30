@@ -11,3 +11,6 @@ dist
 
 # Sensitive data
 .env
+
+# Cursor 
+.cursor
