@@ -1,5 +1,11 @@
 # @defactor-com/defactor-sdk
 
+## 7.2.0
+
+### Minor Changes
+
+- c6371fa: Update abi: include borrowId for Repaid event and lendId for RewardsClaimed event
+
 ## 7.1.0
 
 ### Minor Changes
