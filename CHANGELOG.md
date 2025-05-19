@@ -1,5 +1,11 @@
 # @defactor-com/defactor-sdk
 
+## 7.3.0
+
+### Minor Changes
+
+- 0d2c586: Update erc20-collateral-contract to support new structure for events: Repaid, newBorrow and newLend
+
 ## 7.2.0
 
 ### Minor Changes
