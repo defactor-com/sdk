@@ -355,6 +355,12 @@
           "internalType": "uint256",
           "name": "interestAmount",
           "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "collateralTokenAmount",
+          "type": "uint256"
         }
       ],
       "name": "Repaid",
@@ -554,6 +560,12 @@
           "internalType": "uint256",
           "name": "amount",
           "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "collateralTokenAmount",
+          "type": "uint256"
         }
       ],
       "name": "newBorrow",
@@ -584,6 +596,12 @@
           "indexed": false,
           "internalType": "uint256",
           "name": "amount",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "rewardPerTokenIgnored",
           "type": "uint256"
         }
       ],
