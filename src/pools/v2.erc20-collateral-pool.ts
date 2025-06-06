@@ -660,7 +660,7 @@ export class ERC20CollateralPoolV2
     const collaterals = await this.getCollateralTokens()
     const usdc = await this.getUsdc()
 
-    if (!collaterals.includes(token) || token !== usdc) {
+    if (!collaterals.includes(token) && token !== usdc) {
       throw new Error(ecpErrorMessage.collateralTokenDoesNotExist)
     }
 
