@@ -1,5 +1,11 @@
 # @defactor-com/defactor-sdk
 
+## 7.3.1
+
+### Patch Changes
+
+- 40f6e08: Fix withdraw protocol rewards function
+
 ## 7.3.0
 
 ### Minor Changes
