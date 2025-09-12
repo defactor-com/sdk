@@ -1,5 +1,11 @@
 # @defactor-com/defactor-sdk
 
+## 7.4.0
+
+### Minor Changes
+
+- 866a1bf: Added protocol fee suport for erc20CollateralPools
+
 ## 7.3.1
 
 ### Patch Changes
