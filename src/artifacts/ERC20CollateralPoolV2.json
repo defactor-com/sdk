@@ -145,6 +145,11 @@
     },
     {
       "inputs": [],
+      "name": "ProtocolFeeTooHigh",
+      "type": "error"
+    },
+    {
+      "inputs": [],
       "name": "ThereIsAlreadyActiveAnnouncementForThisPool",
       "type": "error"
     },
@@ -701,6 +706,19 @@
     },
     {
       "inputs": [],
+      "name": "PROTOCOL_FEE",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
       "name": "USDC",
       "outputs": [
         {
@@ -733,6 +751,11 @@
           "internalType": "contract AggregatorV3Interface",
           "name": "_usdcSequencerOracle",
           "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_protocolFee",
+          "type": "uint256"
         },
         {
           "components": [
@@ -1208,6 +1231,19 @@
         }
       ],
       "name": "changeCollateralAmount",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "newProtocolFee",
+          "type": "uint256"
+        }
+      ],
+      "name": "changeProtocolFee",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"

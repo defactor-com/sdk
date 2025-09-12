@@ -99,6 +99,14 @@ export class ERC20CollateralPoolV2
     return await this.contract.usdcFeesCollected()
   }
 
+  async PROTOCOL_FEE(): Promise<bigint> {
+    try {
+      return await this.contract.PROTOCOL_FEE()
+    } catch (error) {
+      return BigInt(0)
+    }
+  }
+
   async getUsdc(): Promise<string> {
     return await this.contract.USDC()
   }
